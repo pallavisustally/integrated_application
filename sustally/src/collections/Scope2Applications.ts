@@ -185,6 +185,26 @@ const Scope2Applications: CollectionConfig = {
       required: true,
     },
     {
+      name: "spendAmount",
+      type: "number",
+      admin: {
+        condition: (data, siblingData) =>
+          siblingData?.trackingType === "Spend amount" ||
+          siblingData?.trackingType === "Both",
+      },
+      required: false,
+    },
+    {
+      name: "electricityPurchased",
+      type: "number",
+      admin: {
+        condition: (data, siblingData) =>
+          siblingData?.trackingType === "Unit consumption" ||
+          siblingData?.trackingType === "Both",
+      },
+      required: false,
+    },
+    {
       name: "energySupportingEvidenceFile",
       type: "upload",
       relationTo: "media",

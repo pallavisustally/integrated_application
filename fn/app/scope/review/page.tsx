@@ -28,7 +28,7 @@ const RenewableIcon = () => (
 );
 
 const EvidenceIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
     <polyline points="14 2 14 8 20 8"></polyline>
     <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -147,6 +147,8 @@ function ScopeReviewContent() {
       energyActivityInput: searchParams.get("energyActivityInput") || "Yearly",
       energyCategory: searchParams.get("energyCategory") || "-",
       trackingType: searchParams.get("trackingType") || "-",
+      electricityPurchased: searchParams.get("electricityPurchased") || "-",
+      energyConsumption: searchParams.get("energyConsumption") || "-",
       energySupportingEvidenceFile:
         searchParams.get("energySupportingEvidenceFile") || "No supporting evidence uploaded",
       energySourceDescription: searchParams.get("energySourceDescription") || "Bill",
@@ -206,37 +208,43 @@ function ScopeReviewContent() {
       <div className="w-full max-w-6xl flex flex-col h-full">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-1 gap-2 flex-shrink-0">
           <div>
             <div className="mb-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              <span className="text-[10px] font-bold text-blue-500 tracking-widest uppercase">Scope 2 Assessment</span>
+              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span className="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Scope 2 Assessment</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Scope 2 self-assessment</h1>
             <p className="text-gray-500 text-xs mt-0.5">Share a few basic details. Takes about 2 minutes.</p>
           </div>
 
-          <div className="flex flex-col items-end w-1/3">
-            {/* Sustally Logo */}
-            <div className="flex items-center gap-6 opacity-90">
-              <img src="/sustally-logo.png" alt="Sustally" className="h-8 object-contain" />
-              <div className="h-8 w-[1px] bg-gray-300 mx-1"></div>
-              <div className="flex flex-col justify-center">
-                <span className="hidden md:block font-medium text-gray-500 text-xs max-w-[150px] leading-tight text-left">
-                  Choose Sustally as your sustainability ally
-                </span>
-              </div>
+          {/* Progress Bar - Centered */}
+          <div className="flex-1 max-w-md mx-4 hidden md:block">
+            <div className="flex justify-between items-end mb-2">
+              <span className="text-xs font-bold text-indigo-900 tracking-widest uppercase">
+                4 of 6 - Review & Submit
+              </span>
+              <span className="text-sm font-bold text-gray-400">
+                68%
+              </span>
             </div>
+            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-indigo-500 transition-all duration-500 ease-out rounded-full"
+                style={{ width: "85%" }}
+              ></div>
+            </div>
+          </div>
 
-            <div className="w-full">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-bold text-blue-600 tracking-widest uppercase">5 of 6 - Admin Verification</span>
-                <span className="text-[10px] font-bold text-gray-400">85%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1">
-                <div className="bg-blue-600 h-1 rounded-full w-[85%]"></div>
-              </div>
+          <div className="flex items-center gap-4 opacity-90">
+            {/* Sustally Logo */}
+            <img src="/sustally-logo.png" alt="Sustally" className="h-8 md:h-10 w-auto object-contain" />
+            <div className="hidden md:flex gap-1 h-8 md:h-10">
+              <div className="w-[1px] bg-gray-200 h-full"></div>
             </div>
+            <span className="hidden md:block font-medium text-gray-400 text-xs max-w-[120px] leading-tight text-left">
+              Choose Sustally as your sustainability ally
+            </span>
           </div>
         </div>
 
@@ -276,14 +284,14 @@ function ScopeReviewContent() {
               <DetailGrid>
                 <DetailRow label="Energy Activity" value={data.energyActivityInput} />
                 <DetailRow label="Value Type" value="Gross" />
-                <DetailRow label="Electricity Purchased" value="12 kWh" />
-                <DetailRow label="Energy Consumption" value="12 GJ" />
+                <DetailRow label="Electricity Purchased" value={`${data.electricityPurchased} kWh`} />
+                <DetailRow label="Energy Consumption" value={`${data.energyConsumption} GJ`} />
                 <DetailRow label="Data Source" value={data.energySourceDescription} />
               </DetailGrid>
             </ReviewCard>
 
             {/* Uploaded Evidence */}
-            <ReviewCard title="Uploaded Evidence" icon={<EvidenceIcon />} accentColor="#8b5cf6">
+            <ReviewCard title="Uploaded Evidence" icon={<EvidenceIcon />} accentColor="#6366F1">
               <div className="bg-gray-50 rounded-lg p-6 border border-dashed border-gray-300 flex items-center justify-center min-h-[100px] h-full">
                 {data.energySupportingEvidenceFile !== "No supporting evidence uploaded" ? (
                   <div className="text-center">
@@ -304,7 +312,7 @@ function ScopeReviewContent() {
             type="button"
             onClick={submitAssessment}
             disabled={isSubmitting}
-            className={`px-6 py-2.5 rounded-full bg-[#a802d1] text-white text-xs font-bold flex items-center gap-2 shadow-lg hover:bg-[#a802d1] transition-colors shadow-purple-200 ${isSubmitting ? "opacity-70 cursor-wait" : ""}`}
+            className={`px-6 py-2.5 rounded-full bg-[#4F46E5] text-white text-xs font-bold flex items-center gap-2 shadow-lg hover:bg-[#4F46E5] transition-colors shadow-indigo-200 ${isSubmitting ? "opacity-70 cursor-wait" : ""}`}
           >
             {isSubmitting ? (
               <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

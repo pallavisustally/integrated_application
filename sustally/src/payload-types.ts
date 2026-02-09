@@ -204,6 +204,8 @@ export interface Scope2Application {
   energyActivityInput: 'Monthly' | 'Yearly';
   energyCategory: string;
   trackingType: 'Unit consumption' | 'Spend amount' | 'Both';
+  spendAmount?: number | null;
+  electricityPurchased?: number | null;
   energySupportingEvidenceFile?: (string | null) | Media;
   energySourceDescription?: string | null;
   hasRenewableElectricity: 'Yes' | 'No';
@@ -381,6 +383,8 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   energyActivityInput?: T;
   energyCategory?: T;
   trackingType?: T;
+  spendAmount?: T;
+  electricityPurchased?: T;
   energySupportingEvidenceFile?: T;
   energySourceDescription?: T;
   hasRenewableElectricity?: T;

@@ -6,25 +6,25 @@ import Modal from "../../components/Modal"; // Adjust path as needed based on fi
 
 // Reusing Icons from Page 1
 const CalendarIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-indigo-100">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-indigo-100">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
     </svg>
 );
 
 const SunIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
     </svg>
 );
 
 const CloudIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
     </svg>
 );
 
 const MoonIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
     </svg>
 );
@@ -40,9 +40,9 @@ const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(date); // e.g. January 28, 2026
 };
 
-const formatDayOfWeek = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date); // e.g. Wednesday
-}
+const getDayNumber = (date: Date) => new Intl.DateTimeFormat('en-US', { day: 'numeric' }).format(date);
+const getMonthName = (date: Date) => new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date);
+const getDayName = (date: Date) => new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
 
 type ShiftType = "Morning" | "Afternoon" | "Evening";
 
@@ -52,17 +52,17 @@ const timeSlotsByShift: Record<ShiftType, string[]> = {
     Evening: ["05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM", "07:00 PM", "07:30 PM", "08:00 PM"]
 };
 
-const shifts: { label: ShiftType; icon: React.ReactNode }[] = [
-    { label: "Morning", icon: <SunIcon /> },
-    { label: "Afternoon", icon: <CloudIcon /> },
-    { label: "Evening", icon: <MoonIcon /> }
+const shifts: { label: ShiftType; icon: React.ReactNode; range: string }[] = [
+    { label: "Morning", icon: <SunIcon />, range: "9 AM - 12 PM" },
+    { label: "Afternoon", icon: <CloudIcon />, range: "12 PM - 5 PM" },
+    { label: "Evening", icon: <MoonIcon />, range: "5 PM - 8 PM" }
 ];
 
 function ChooseTimeContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const [selectedDateIndex, setSelectedDateIndex] = useState<number | null>(0);
+    const [selectedDateIndex, setSelectedDateIndex] = useState<number | null>(null);
     const [selectedShift, setSelectedShift] = useState<ShiftType | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
@@ -80,7 +80,7 @@ function ChooseTimeContent() {
 
     const dates = [
         { label: "Tomorrow", date: date1, id: 0 },
-        { label: formatDayOfWeek(date2), date: date2, id: 1 }
+        { label: getDayName(date2), date: date2, id: 1 }
     ];
 
     const handleDateSelect = (index: number) => {
@@ -98,89 +98,114 @@ function ChooseTimeContent() {
         setSelectedTime(time);
     };
 
-    const handleConfirmBooking = async () => {
-        if (selectedDateIndex !== null && selectedTime) {
+    const prepareBookingData = () => {
+        if (selectedDateIndex === null || !selectedTime) return null;
 
-            const assignmentDate = formatDate(dates[selectedDateIndex].date);
-            const assignmentTime = selectedTime;
+        const assignmentDate = formatDate(dates[selectedDateIndex].date);
+        const assignmentTime = selectedTime;
 
-            // Construct data object locally since we mostly need to pass it to the backend
-            // For the email body, we read from searchParams AND the newly selected date/time
-            const renewableEnergyStr = searchParams.get("renewableEnergy") || "0";
-            const totalEnergyStr = searchParams.get("totalEnergy") || "0";
-            const renewableEnergy = parseFloat(renewableEnergyStr.replace(/[^\d.]/g, "")) || 0;
-            const totalEnergy = parseFloat(totalEnergyStr.replace(/[^\d.]/g, "")) || 0;
-            const renewablePercentage = totalEnergy > 0
-                ? parseFloat(((renewableEnergy / totalEnergy) * 100).toFixed(2))
-                : 0;
+        const renewableEnergyStr = searchParams.get("renewableEnergy") || "0";
+        const totalEnergyStr = searchParams.get("totalEnergy") || "0";
+        const renewableEnergy = parseFloat(renewableEnergyStr.replace(/[^\d.]/g, "")) || 0;
+        const totalEnergy = parseFloat(totalEnergyStr.replace(/[^\d.]/g, "")) || 0;
+        const renewablePercentage = totalEnergy > 0
+            ? parseFloat(((renewableEnergy / totalEnergy) * 100).toFixed(2))
+            : 0;
 
-            // Construct Assessment Link
-            // Use window.location.origin to get the base URL
-            const currentParams = new URLSearchParams(searchParams.toString());
-            currentParams.append("assessmentId", assessmentId);
-            const assessmentLink = `${window.location.origin}/scope?${currentParams.toString()}`;
+        const currentParams = new URLSearchParams(searchParams.toString());
+        currentParams.append("assessmentId", assessmentId);
+        // Pass assignment details in URL for the countdown on the next page
+        currentParams.append("assignmentDate", assignmentDate);
+        currentParams.append("assignmentTime", assignmentTime);
 
-            // Calculate Expire Time
-            // "based on the slot" - sending the slot time as the expiry/reference time
-            const expireTime = `${assignmentDate} at ${assignmentTime}`;
+        const assessmentLink = `${window.location.origin}/scope?${currentParams.toString()}`;
 
-            const dataToSend = {
-                name: searchParams.get("name") || "-",
-                mobile: searchParams.get("mobile") || "-",
-                email: searchParams.get("email") || "-",
-                company: searchParams.get("company") || "-",
-                sector: searchParams.get("sector") || "-",
-                natureOfBusiness: searchParams.get("natureOfBusiness") || "-",
-                country: searchParams.get("country") || "-",
-                renewableEnergy: renewableEnergyStr || "-",
-                totalEnergy: totalEnergyStr || "-",
-                renewablePercentage: renewablePercentage,
-                assignmentDate: assignmentDate,
-                assignmentSlot: assignmentTime, // using time as slot for now
-                assignmentTime: assignmentTime,
-                assessmentId: assessmentId,
-                assessmentLink: assessmentLink,
-                expireTime: expireTime
-            };
+        // Validity is until the end of the event date (11:59 PM)
+        const expireTime = `${assignmentDate} at 11:59 PM`;
 
-            setIsSendingEmail(true);
+        return {
+            name: searchParams.get("name") || "-",
+            mobile: searchParams.get("mobile") || "-",
+            email: searchParams.get("email") || "-",
+            company: searchParams.get("company") || "-",
+            sector: searchParams.get("sector") || "-",
+            natureOfBusiness: searchParams.get("natureOfBusiness") || "-",
+            country: searchParams.get("country") || "-",
+            renewableEnergy: renewableEnergyStr || "-",
+            totalEnergy: totalEnergyStr || "-",
+            renewablePercentage: renewablePercentage,
+            assignmentDate: assignmentDate,
+            assignmentSlot: assignmentTime,
+            assignmentTime: assignmentTime,
+            assessmentId: assessmentId,
+            assessmentLink: assessmentLink,
+            expireTime: expireTime
+        };
+    };
+
+    const sendBookingEmail = async (data: any) => {
+        setIsSendingEmail(true);
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+            const response = await fetch(`${apiUrl}/api/send-email`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+
+            let result;
             try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-                const response = await fetch(`${apiUrl}/api/send-email`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(dataToSend),
-                });
-
-                let result;
-                try {
-                    result = await response.json();
-                } catch (parseError) {
-                    console.error("Failed to parse response:", parseError);
-                    setNotification({
-                        message: "Failed to send email: Invalid response from server.",
-                        type: "error"
-                    });
-                    return;
-                }
-
-                if (response.ok && result.success) {
-                    setIsSuccess(true);
-                } else {
-                    const errorMessage = result.error || result.message || `Server error (${response.status})`;
-                    setNotification({ message: `Failed to send email: ${errorMessage}`, type: "error" });
-                }
-            } catch (error) {
-                console.error("Error sending email:", error);
+                result = await response.json();
+            } catch (parseError) {
+                console.error("Failed to parse response:", parseError);
                 setNotification({
-                    message: "Failed to send email. Please check your connection.",
+                    message: "Failed to send email: Invalid response from server.",
                     type: "error"
                 });
-            } finally {
-                setIsSendingEmail(false);
+                return false;
             }
+
+            if (response.ok && result.success) {
+                return true;
+            } else {
+                const errorMessage = result.error || result.message || `Server error (${response.status})`;
+                setNotification({ message: `Failed to send email: ${errorMessage}`, type: "error" });
+                return false;
+            }
+        } catch (error) {
+            console.error("Error sending email:", error);
+            setNotification({
+                message: "Failed to send email. Please check your connection.",
+                type: "error"
+            });
+            return false;
+        } finally {
+            setIsSendingEmail(false);
+        }
+    };
+
+    const handleConfirmBooking = async () => {
+        const data = prepareBookingData();
+        if (!data) return;
+
+        const success = await sendBookingEmail(data);
+        if (success) {
+            setIsSuccess(true);
+        }
+    };
+
+    const handleResendEmail = async () => {
+        const data = prepareBookingData();
+        if (!data) return;
+
+        const success = await sendBookingEmail(data);
+        if (success) {
+            setNotification({
+                message: "Email sent successfully!",
+                type: "success"
+            });
         }
     };
 
@@ -356,13 +381,14 @@ function ChooseTimeContent() {
                         </div>
                     </div>
                 </div>
-                {/* Back to Home Button */}
-                <div className="w-full max-w-[600px] mt-8 flex justify-center">
+                {/* Resend Email Option */}
+                <div className="mt-8 flex justify-center">
                     <button
-                        onClick={() => router.push('/')}
-                        className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-semibold transition-all"
+                        onClick={handleResendEmail}
+                        disabled={isSendingEmail}
+                        className="text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Back to Home
+                        {isSendingEmail ? "Sending..." : "Didn't receive the email? Resend"}
                     </button>
                 </div>
             </main>
@@ -472,89 +498,121 @@ function ChooseTimeContent() {
                             {/* Date Selection */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
-                                    Available Dates
+                                    Select a date <span className="text-red-500">*</span>
                                 </label>
-                                <div className="flex flex-col sm:flex-row gap-3">
+                                <p className="text-[10px] text-gray-500 mb-3">Choose your preferred assessment date</p>
+                                <div className="grid grid-cols-2 gap-4">
                                     {dates.map((d, index) => (
                                         <button
                                             key={index}
                                             onClick={() => handleDateSelect(index)}
-                                            className={`flex-1 p-3 rounded-xl border text-left transition-all ${selectedDateIndex === index
-                                                ? "bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500"
-                                                : "bg-white border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
+                                            className={`relative p-6 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 min-h-[140px] ${selectedDateIndex === index
+                                                ? "bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500 shadow-sm"
+                                                : "bg-white border-gray-200 hover:border-indigo-300 hover:shadow-md"
                                                 }`}
                                         >
-                                            <span className={`block text-[10px] font-bold uppercase mb-0.5 ${selectedDateIndex === index ? "text-indigo-600" : "text-gray-500"}`}>
-                                                {d.label}
+                                            {selectedDateIndex === index && (
+                                                <div className="absolute top-3 right-3 text-indigo-500">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                                        <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                            <span className={`text-4xl font-bold ${selectedDateIndex === index ? "text-indigo-600" : "text-gray-900"}`}>
+                                                {getDayNumber(d.date)}
                                             </span>
-                                            <span className={`block text-sm font-bold ${selectedDateIndex === index ? "text-gray-900" : "text-gray-700"}`}>
-                                                {formatDate(d.date)}
+                                            <span className={`text-sm font-medium ${selectedDateIndex === index ? "text-indigo-600" : "text-gray-900"}`}>
+                                                {getMonthName(d.date)}
+                                            </span>
+                                            <span className="text-xs text-gray-500 font-medium">
+                                                {getDayName(d.date)}
                                             </span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
+
 
                             {/* Shift Selection */}
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-2">
-                                    Select Shift
-                                </label>
-                                <div className="flex gap-2 overflow-x-auto pb-1">
-                                    {shifts.map((shift) => (
-                                        <button
-                                            key={shift.label}
-                                            onClick={() => handleShiftSelect(shift.label)}
-                                            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs font-medium transition-all whitespace-nowrap ${selectedShift === shift.label
-                                                ? "bg-purple-500 text-white border-gray-900 shadow-md"
-                                                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                                                }`}
-                                        >
-                                            <span className={selectedShift === shift.label ? "text-white" : "text-gray-400"}>
-                                                {shift.icon}
-                                            </span>
-                                            {shift.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Time Selection */}
-                            <div className="min-h-[150px]">
-                                <label className="block text-xs font-medium text-gray-700 mb-2">
-                                    Available Times {selectedShift && <span className="text-gray-400 font-normal">- {selectedShift}</span>}
-                                </label>
-
-                                {selectedShift ? (
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                        {timeSlotsByShift[selectedShift].map((time) => (
+                            {selectedDateIndex !== null ? (
+                                <div className="animate-fade-in">
+                                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                                        Select time of day <span className="text-red-500">*</span>
+                                    </label>
+                                    <p className="text-[10px] text-gray-500 mb-3">Choose your preferred time period</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        {shifts.map((shift) => (
                                             <button
-                                                key={time}
-                                                onClick={() => handleTimeSelect(time)}
-                                                className={`py-2 px-1 rounded-lg text-xs font-medium transition-all text-center border ${selectedTime === time
-                                                    ? "bg-purple-500 text-white border-purple-600 shadow-md"
-                                                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-purple-200"
+                                                key={shift.label}
+                                                onClick={() => handleShiftSelect(shift.label)}
+                                                className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all h-[120px] gap-2 ${selectedShift === shift.label
+                                                    ? "bg-gray-900 text-white border-gray-900 shadow-md"
+                                                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
                                                     }`}
                                             >
-                                                {time}
+                                                <div className={`${selectedShift === shift.label ? "text-white" : "text-gray-900"}`}>
+                                                    {shift.icon}
+                                                </div>
+                                                <span className={`text-sm font-bold ${selectedShift === shift.label ? "text-white" : "text-gray-900"}`}>
+                                                    {shift.label}
+                                                </span>
+                                                <span className={`text-[10px] font-medium ${selectedShift === shift.label ? "text-gray-300" : "text-gray-500"}`}>
+                                                    {shift.range}
+                                                </span>
                                             </button>
                                         ))}
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-[120px] bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-center p-4">
-                                        <div className="text-gray-300 mb-1">
-                                            <CalendarIcon />
-                                        </div>
-                                        <p className="text-gray-400 text-xs">Please select a shift to view available times</p>
+                                </div>
+                            ) : (
+                                <div className="p-8 border border-dashed border-gray-200 rounded-2xl bg-gray-50 text-center">
+                                    <div className="text-gray-300 mb-2 flex justify-center">
+                                        <CalendarIcon />
                                     </div>
-                                )}
+                                    <p className="text-sm font-medium text-gray-500">Please select a date above to continue.</p>
+                                </div>
+                            )}
 
-                                {selectedShift && !selectedTime && (
-                                    <p className="text-[10px] text-gray-400 mt-2 italic animate-pulse">
-                                        * Select a time slot to proceed.
-                                    </p>
-                                )}
-                            </div>
+                            {/* Time Selection */}
+                            {selectedDateIndex !== null && (
+                                <div className="min-h-[150px] animate-fade-in">
+                                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                                        Select specific time <span className="text-red-500">*</span>
+                                    </label>
+                                    <p className="text-[10px] text-gray-500 mb-3">Pick your exact appointment time</p>
+
+                                    {selectedShift ? (
+                                        <div className="flex flex-wrap gap-3">
+                                            {timeSlotsByShift[selectedShift].map((time) => (
+                                                <button
+                                                    key={time}
+                                                    onClick={() => handleTimeSelect(time)}
+                                                    className={`py-3 px-6 rounded-full text-xs font-bold transition-all text-center border min-w-[100px] ${selectedTime === time
+                                                        ? "bg-white text-indigo-600 border-indigo-500 ring-1 ring-indigo-500 shadow-sm"
+                                                        : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                                                        }`}
+                                                >
+                                                    {time}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-[120px] bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-center p-4">
+                                            <div className="text-gray-300 mb-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <p className="text-gray-400 text-xs">Please select a time of day to view available times</p>
+                                        </div>
+                                    )}
+
+                                    {selectedShift && !selectedTime && (
+                                        <p className="text-[10px] text-gray-400 mt-2 italic animate-pulse">
+                                            * Select a time slot to proceed.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Terms and Conditions */}
@@ -565,7 +623,7 @@ function ChooseTimeContent() {
                                         type="checkbox"
                                         checked={termsAccepted}
                                         onChange={(e) => setTermsAccepted(e.target.checked)}
-                                        className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-gray-300 transition-all checked:border-gray-900 checked:bg-purple-500 group-hover:border-gray-400"
+                                        className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-gray-300 transition-all checked:border-gray-900 checked:bg-indigo-500 group-hover:border-gray-400"
                                     />
                                     <svg
                                         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity peer-checked:opacity-100 text-white w-3 h-3"
@@ -603,8 +661,8 @@ function ChooseTimeContent() {
                                 onClick={handleConfirmBooking}
                                 disabled={!selectedTime || !termsAccepted || isSendingEmail}
                                 className={`flex items-center gap-1.5 px-6 py-2 rounded-xl font-bold transition-all transform ${selectedTime && termsAccepted && !isSendingEmail
-                                    ? "bg-purple-500 hover:bg-purple-500 text-white hover:scale-105 cursor-pointer shadow-lg text-sm"
-                                    : "bg-purple-500 text-white cursor-not-allowed text-sm"
+                                    ? "bg-indigo-500 hover:bg-indigo-500 text-white hover:scale-105 cursor-pointer shadow-lg text-sm"
+                                    : "bg-indigo-500 text-white cursor-not-allowed text-sm"
                                     }`}
                             >
                                 {isSendingEmail ? "Booking..." : "Confirm Booking"}
@@ -625,7 +683,7 @@ function ChooseTimeContent() {
                             <div className="space-y-3">
                                 <div className="flex items-start gap-2">
                                     <div className="mt-0.5 text-gray-400 scale-90">
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
@@ -639,7 +697,7 @@ function ChooseTimeContent() {
 
                                 <div className="flex items-start gap-2">
                                     <div className="mt-0.5 text-gray-400 scale-90">
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
@@ -653,22 +711,7 @@ function ChooseTimeContent() {
                             </div>
                         </div>
 
-                        {/* Info Card */}
-                        <div className="bg-indigo-50 rounded-3xl p-4 border border-indigo-100">
-                            <div className="flex gap-2 mb-1">
-                                <div className="p-1.5 bg-white rounded-lg h-fit text-indigo-600 shadow-sm scale-90">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-indigo-900 text-xs">Why is this important?</h4>
-                                </div>
-                            </div>
-                            <p className="text-[10px] text-indigo-800 leading-relaxed ml-8">
-                                Choosing a dedicated time ensures our experts can walk you through the assessment process efficiently.
-                            </p>
-                        </div>
+
                     </div>
 
                 </div>

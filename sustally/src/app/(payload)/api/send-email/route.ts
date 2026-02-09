@@ -155,45 +155,45 @@ export const POST = async (request: Request) => {
 
               <h2>Application Information</h2>
               <div class="detail-row">
-                <span class="detail-label">Name:</span>
+                <span class="detail-label">Name: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.name}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Mobile:</span>
+                <span class="detail-label">Mobile: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.mobile}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Email:</span>
+                <span class="detail-label">Email: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.email}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Company:</span>
+                <span class="detail-label">Company: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.company}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Sector:</span>
+                <span class="detail-label">Sector: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.sector}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Nature of Business:</span>
+                <span class="detail-label">Nature of Business: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.natureOfBusiness}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Country:</span>
+                <span class="detail-label">Country: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.country}</span>
               </div>
               
 
               <div class="detail-row">
-              <span class="detail-label">Assignment Date:</span>
+              <span class="detail-label">Assignment Date: &nbsp;</span>
               <span class="detail-value">${reviewDetails.assignmentDate}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Assignment Slot:</span>
+                <span class="detail-label">Assignment Slot: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.assignmentSlot}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Assignment Time:</span>
+                <span class="detail-label">Assignment Time: &nbsp;</span>
                 <span class="detail-value">${reviewDetails.assignmentTime}</span>
               </div>
 

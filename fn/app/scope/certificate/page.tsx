@@ -21,13 +21,45 @@ function CertificateContent() {
     setGeneratedId(`CEA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
   }, []);
 
+  const formatReportingPeriod = (dateStr: string, period: string) => {
+    if (!dateStr) return "-";
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr; // Fallback if invalid date
+
+      const year = date.getFullYear();
+
+      if (period === "Annually" || period === "Yearly") {
+        return `${year} - ${year + 1}`;
+      } else if (period === "Monthly") {
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthIndex = date.getMonth();
+        const monthName = monthNames[monthIndex];
+
+        // Get last day of the month
+        const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+
+        return `1 ${monthName} ${year} to ${lastDay} ${monthName} ${year}`;
+      }
+
+      return `${year}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   const data = useMemo(() => {
+    const rawReportingYear = searchParams.get("reportingYear") || "";
+    const rawReportingPeriod = searchParams.get("reportingPeriod") || "Annually";
+    const formattedPeriod = formatReportingPeriod(rawReportingYear, rawReportingPeriod);
+
     return {
       state: searchParams.get("state") || "-",
       siteCount: searchParams.get("siteCount") || "-",
       facilityName: searchParams.get("facilityName") || "ACME MANUFACTURING LTD.",
-      reportingYear: searchParams.get("reportingYear") || "2025-26",
-      reportingPeriod: searchParams.get("reportingPeriod") || "-",
+      reportingYear: formattedPeriod || "2025-26", // Use formatted value as default if available
+      rawReportingYear: rawReportingYear, // Keep raw if needed
+      reportingPeriod: rawReportingPeriod,
       scopeBoundaryNotes: searchParams.get("scopeBoundaryNotes") || "-",
       renewableElectricity: searchParams.get("renewableElectricity") || "0",
       renewableEnergyConsumption: searchParams.get("renewableEnergyConsumption") || "0",
@@ -43,25 +75,78 @@ function CertificateContent() {
     };
   }, [searchParams, generatedId]);
 
-  // Convert kJ to MWh for display (1 MWh = 3,600,000 kJ)
-  const energyTotalMWh = (parseFloat(data.energyTotal) / 3600000).toFixed(2);
-  const energyRenewMWh = (parseFloat(data.energyRenew) / 3600000).toFixed(2);
+  // Convert kJ to GWh for display (1 GWh = 3,600,000,000 kJ)
+  const energyTotalGWh = (parseFloat(data.energyTotal) / 3600000000).toFixed(2);
+  const energyRenewGWh = (parseFloat(data.energyRenew) / 3600000000).toFixed(2);
 
   // Mock data for charts - Updated to reflect ratio of Grid vs Renew
-  const gridEnergyMWh = (parseFloat(data.energyGrid) / 3600000);
-  const renewEnergyMWh = (parseFloat(data.energyRenew) / 3600000);
+  const gridEnergyGWh = (parseFloat(data.energyGrid) / 3600000000);
+  const renewEnergyGWh = (parseFloat(data.energyRenew) / 3600000000);
 
   const chartData = [
-    { name: "Grid Electricity", value: parseFloat(gridEnergyMWh.toFixed(2)), color: "#9ca3af" },
-    { name: "Renewable / Contracted", value: parseFloat(renewEnergyMWh.toFixed(2)), color: "#22c55e" },
+    { name: "Grid Electricity", value: parseFloat(gridEnergyGWh.toFixed(2)), color: "#9ca3af" },
+    { name: "Renewable / Contracted", value: parseFloat(renewEnergyGWh.toFixed(2)), color: "#22c55e" },
   ];
 
   const handleDownloadCertificate = async () => {
-    // ... existing download code ...
+    if (certificateRef.current === null) {
+      return;
+    }
+
+    try {
+      setIsDownloading(true);
+
+      // Force valid dimensions for capture (A4 at 96 DPI: 794x1123)
+      const dataUrl = await toPng(certificateRef.current, { cacheBust: true, width: 794, height: 1123, pixelRatio: 2 });
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [794, 1123]
+      });
+
+      pdf.addImage(dataUrl, 'PNG', 0, 0, 794, 1123);
+      pdf.save(`Certification_${data.facilityName}_${data.reportingYear}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate certificate", err);
+      alert("Failed to generate certificate. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleDownloadReport = async () => {
-    // ... existing download code ...
+    const element = document.getElementById('dashboard-container');
+    if (!element) {
+      return;
+    }
+
+    try {
+      setIsDownloadingReport(true);
+
+      // Capture the dashboard with good quality
+      const dataUrl = await toPng(element, { cacheBust: true, pixelRatio: 2 });
+
+      // Calculate aspect ratio to fit in PDF (Landscape A4: 297mm x 210mm)
+      // A4 Landscape in px (approx): 1123 x 794
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [1123, 794]
+      });
+
+      const imgProperties = pdf.getImageProperties(dataUrl);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
+
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Assessment_Report_${data.facilityName}_${data.reportingYear}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate report", err);
+      alert("Failed to generate report. Please try again.");
+    } finally {
+      setIsDownloadingReport(false);
+    }
   };
 
   return (
@@ -75,7 +160,7 @@ function CertificateContent() {
             <div className="flex items-center gap-3 mt-1 text-gray-500 text-sm">
               <span className="font-medium text-gray-700">{data.facilityName}</span>
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-              <span>FY {data.reportingYear}</span>
+              <span>{data.reportingYear}</span>
             </div>
           </div>
           {/* ... Verified Badge ... */}
@@ -110,7 +195,7 @@ function CertificateContent() {
               <div className="p-1.5 bg-yellow-50 rounded-md"><svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-xl font-bold text-gray-900">{energyRenewMWh} <span className="text-xs font-normal text-gray-500">MWh</span></h3>
+              <h3 className="text-xl font-bold text-gray-900">{energyRenewGWh} <span className="text-xs font-normal text-gray-500">GWh</span></h3>
             </div>
           </div>
           {/* Metric 4: Total Energy */}
@@ -120,7 +205,7 @@ function CertificateContent() {
               <div className="p-1.5 bg-cyan-50 rounded-md"><svg className="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-xl font-bold text-gray-900">{energyTotalMWh} <span className="text-xs font-normal text-gray-500">MWh</span></h3>
+              <h3 className="text-xl font-bold text-gray-900">{energyTotalGWh} <span className="text-xs font-normal text-gray-500">GWh</span></h3>
             </div>
           </div>
         </div>
@@ -151,8 +236,8 @@ function CertificateContent() {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
-                  <span className="text-lg font-bold text-gray-900 block">{parseFloat(energyTotalMWh).toLocaleString()}</span>
-                  <span className="text-[10px] text-gray-500 uppercase">MWh Total</span>
+                  <span className="text-lg font-bold text-gray-900 block">{parseFloat(energyTotalGWh).toLocaleString()}</span>
+                  <span className="text-[10px] text-gray-500 uppercase">GWh Total</span>
                 </div>
               </div>
             </div>
@@ -376,7 +461,7 @@ function CertificateContent() {
                 <p className="text-lg font-Cormorant Garamond style italic size-medium Line-height-relaxed text-gray-700 leading-relaxed italic">
                   in recognition of leadership in environmental transparency through the
                   proactive initiation of a Scope 2 emissions assessment for the reporting
-                  period <span className="font-semibold not-italic">FY{data.reportingYear}</span>{" "}
+                  period <span className="font-semibold not-italic">{data.reportingYear}</span>{" "}
                   conducted during
                 </p>
 
@@ -434,7 +519,7 @@ function CertificateContent() {
 
 export default function ScopeDashboardPage() {
   return (
-    <main className="h-screen flex flex-col bg-gray-50 p-4 md:p-6 overflow-hidden font-sans text-gray-800">
+    <main id="dashboard-container" className="h-screen flex flex-col bg-gray-50 p-4 md:p-6 overflow-hidden font-sans text-gray-800">
       <Suspense fallback={<div>Loading...</div>}>
         <CertificateContent />
       </Suspense>
