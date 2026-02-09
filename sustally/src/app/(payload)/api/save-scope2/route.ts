@@ -29,8 +29,9 @@ export const POST = async (request: Request) => {
 
     const contentType = request.headers.get('content-type') || ''
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data: any = {}
-    let files: Record<string, File> = {}
+    const files: Record<string, File> = {}
 
     // Check if it's FormData
     if (contentType.includes('multipart/form-data')) {
@@ -111,6 +112,7 @@ export const POST = async (request: Request) => {
       renewableElectricity: data.renewableElectricity || '',
       renewableEnergyConsumption: data.renewableEnergyConsumption || '',
       // Assign uploaded Media IDs
+      renewableSupportingEvidenceFile: renewableEvidenceId,
       renewableEnergySourceDescription: data.renewableEnergySourceDescription || '',
       // Calculated Fields
       gridEmissionFactor: parseFloat(String(data.gridEmissionFactor)) || null,
@@ -119,7 +121,7 @@ export const POST = async (request: Request) => {
       energyGrid_kJ: parseFloat(String(data.energyGrid_kJ)) || null,
       energyRenew_kJ: parseFloat(String(data.energyRenew_kJ)) || null,
       energyTotal_kJ: parseFloat(String(data.energyTotal_kJ)) || null,
-      status: 'PENDING' as 'PENDING',
+      status: 'PENDING' as const,
     }
 
     // Create the scope2 application in Payload

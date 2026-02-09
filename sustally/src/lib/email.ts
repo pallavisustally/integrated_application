@@ -1,6 +1,4 @@
 import type { TestAccount } from 'nodemailer'; // Type only
-import { jsPDF } from 'jspdf';
-import { Payload } from 'payload';
 
 export interface Scope2Submission {
     id: string;
@@ -44,7 +42,6 @@ async function getTransporter() {
     });
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@sustally.com';
 
 export async function sendAdminNotification(submission: Scope2Submission) {

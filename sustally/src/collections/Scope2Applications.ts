@@ -14,6 +14,7 @@ const Scope2Applications: CollectionConfig = {
   },
   hooks: {
     afterChange: [
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async ({ doc, previousDoc, operation }: any) => {
         // Only load and run the hook on the server
         if (typeof window === 'undefined' && operation === 'update') {
