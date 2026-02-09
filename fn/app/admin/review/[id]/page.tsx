@@ -1,6 +1,6 @@
 import ReviewClient from "./ReviewClient";
 
-const SUSTALLY_API_URL = process.env.SUSTALLY_API_URL || "http://localhost:3001";
+const SUSTALLY_API_URL = process.env.SUSTALLY_API_URL || "https://render-beryl.vercel.app";
 
 async function getSubmissionFromSustally(id: string) {
     try {

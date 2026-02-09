@@ -798,7 +798,7 @@ function TemplateContent() {
       });
 
       // Save to Payload CMS (Directly to Sustally)
-      const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
       // NOTE: Do NOT set Content-Type header when sending FormData, the browser sets it with boundary
       const saveResponse = await fetch(`${apiUrl}/api/save-scope2`, {
         method: "POST",

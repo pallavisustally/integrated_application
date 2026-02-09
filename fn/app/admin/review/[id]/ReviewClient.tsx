@@ -96,7 +96,7 @@ const DetailGrid = ({ children }: { children: React.ReactNode }) => (
     </div>
 );
 
-const SUSTALLY_API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "http://localhost:3001";
+const SUSTALLY_API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
 
 export default function ReviewClient({ submission }: { submission: any }) {
     const router = useRouter();
