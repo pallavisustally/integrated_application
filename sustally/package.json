@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@payloadcms/db-mongodb": "3.70.0",
-    "@payloadcms/email-nodemailer": "^3.70.0",
+    "@payloadcms/email-nodemailer": "3.70.0",
     "@payloadcms/next": "3.70.0",
     "@payloadcms/richtext-lexical": "3.70.0",
     "@payloadcms/ui": "3.70.0",
