@@ -117,7 +117,7 @@ const Scope2Applications: CollectionConfig = {
     {
       name: "onsiteExportedKwh",
       type: "text",
-      required: true,
+      required: false,
     },
     {
       name: "netMeteringApplicable",

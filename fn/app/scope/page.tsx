@@ -144,9 +144,9 @@ function TemplateContent() {
     })(),
     facilityName: "",
 
-    renewableProcurement: "",
+    renewableProcurement: "Yes",
     onsiteExportedKwh: "",
-    netMeteringApplicable: "",
+    netMeteringApplicable: "Yes",
 
     reportingYear: new Date(),
     reportingPeriod: "Annually", // Updated to match type
@@ -830,11 +830,11 @@ function TemplateContent() {
   };
 
   const renderYesNo = (name: keyof FormDataType, value: YesNo) => (
-    <div className={`flex bg-gray-50 p-1 rounded-lg w-full border ${errors[name] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+    <div className={`flex h-10 bg-gray-50 p-1 rounded-lg w-full border ${errors[name] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
       <button
         type="button"
         onClick={() => handleRadioChange(name, "Yes")}
-        className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${value === "Yes"
+        className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-medium transition-all ${value === "Yes"
           ? "bg-[#4F46E5] text-white shadow-sm"
           : "text-gray-500 hover:text-gray-900"
           }`}
@@ -844,7 +844,7 @@ function TemplateContent() {
       <button
         type="button"
         onClick={() => handleRadioChange(name, "No")}
-        className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${value === "No"
+        className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-medium transition-all ${value === "No"
           ? "bg-[#4F46E5] text-white shadow-sm"
           : "text-gray-500 hover:text-gray-900"
           }`}
@@ -956,7 +956,7 @@ function TemplateContent() {
                         name="utilityProvider"
                         value={formData.utilityProvider || ""}
                         onChange={handleChange}
-                        className={`w-full px-2 py-1 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-600 ${errors.utilityProvider ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                        className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-600 ${errors.utilityProvider ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                       >
                         <option value="">Select utility...</option>
                         {Object.keys(TARIFF_DATA[formData.state]).map((utility) => (
@@ -981,7 +981,7 @@ function TemplateContent() {
                       value={formData.siteCount || ""}
                       onChange={handleChange}
                       placeholder="Site 1"
-                      className={`w-full px-2 py-1 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.siteCount ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.siteCount ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                     />
                     <p className="text-[10px] text-gray-400 mt-1.5">
                       Based on your earlier input
@@ -1000,7 +1000,7 @@ function TemplateContent() {
                       value={formData.facilityName || ""}
                       onChange={handleChange}
                       placeholder="e.g., Pune Manufacturing Plant"
-                      className={`w-full px-2 py-1 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.facilityName ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.facilityName ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                     />
                     <p className="text-[10px] text-gray-400 mt-1.5">
                       Based on your earlier input
@@ -1047,7 +1047,7 @@ function TemplateContent() {
                       value={formData.onsiteExportedKwh || ""}
                       onChange={handleChange}
                       placeholder="Enter kWh value"
-                      className={`w-full px-2 py-1 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.onsiteExportedKwh ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.onsiteExportedKwh ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                     />
                     <p className="text-[10px] text-gray-400 mt-1.5">
                       Based on your earlier input
@@ -1103,7 +1103,7 @@ function TemplateContent() {
                         customInput={
                           <button
                             type="button"
-                            className={`w-full flex justify-between items-center px-2 py-1 text-xs bg-white border rounded-lg text-gray-700 hover:border-gray-300 focus:ring-2 focus:ring-indigo-500 transition-all ${errors.reportingYear ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                            className={`w-full h-10 flex justify-between items-center px-2 text-xs bg-white border rounded-lg text-gray-700 hover:border-gray-300 focus:ring-2 focus:ring-indigo-500 transition-all ${errors.reportingYear ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                           >
                             {formData.reportingYear
                               ? (formData.reportingPeriod === "Monthly"
@@ -1123,13 +1123,13 @@ function TemplateContent() {
                       <label className="block text-xs font-bold text-gray-700 mb-2">
                         Reporting period <span className="text-red-500">*</span>
                       </label>
-                      <div className={`flex text-[10px] font-medium bg-gray-50 border rounded-lg p-1 ${errors.reportingPeriod ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                      <div className={`flex h-10 text-xs font-medium bg-gray-50 border rounded-lg p-1 ${errors.reportingPeriod ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
                         {["Monthly", "Quarterly", "Annually"].map((p) => (
                           <button
                             key={p}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, reportingPeriod: p as any }))}
-                            className={`flex-1 py-2 rounded text-center transition-all ${formData.reportingPeriod === p
+                            className={`flex-1 h-full flex items-center justify-center rounded text-center transition-all ${formData.reportingPeriod === p
                               ? "bg-[#4F46E5] text-white shadow-sm"
                               : "text-gray-500 hover:text-gray-900"
                               }`}
@@ -1240,13 +1240,13 @@ function TemplateContent() {
                       <label className="block text-xs font-bold text-gray-700 mb-2">
                         Energy activity input <span className="text-red-500">*</span>
                       </label>
-                      <div className={`flex bg-gray-50 p-1 rounded-lg border w-fit ${errors.energyActivityInput ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                      <div className={`flex h-10 bg-gray-50 p-1 rounded-lg border w-fit ${errors.energyActivityInput ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
                         {["Monthly", "Yearly"].map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, energyActivityInput: m as any }))}
-                            className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${formData.energyActivityInput === m
+                            className={`px-3 h-full flex items-center justify-center rounded-md text-xs font-bold transition-all ${formData.energyActivityInput === m
                               ? "bg-white text-indigo-900 shadow-sm ring-1 ring-gray-100"
                               : "text-gray-400 hover:text-gray-600"
                               }`}
@@ -1270,7 +1270,7 @@ function TemplateContent() {
                         name="energyCategory"
                         value={formData.energyCategory}
                         onChange={handleChange}
-                        className={`w-full px-2 py-1 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-600 ${errors.energyCategory ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                        className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-600 ${errors.energyCategory ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                       >
                         <option value="">Select category...</option>
                         <option value="Grid Energy">Grid Energy</option>
@@ -1291,13 +1291,13 @@ function TemplateContent() {
                       {[
                         { id: "Unit consumption", label: "UNIT CONSUMPTION" },
                         { id: "Spend amount", label: "SPEND AMOUNT" },
-                        { id: "Both", label: "BOTH" }
+                        // { id: "Both", label: "BOTH" }
                       ].map((t) => (
                         <button
                           key={t.id}
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, trackingType: t.id as any }))}
-                          className={`px-4 py-2 rounded-lg text-[10px] font-bold tracking-wider uppercase transition-all border ${formData.trackingType === t.id
+                          className={`px-4 h-10 flex items-center justify-center rounded-lg text-[10px] font-bold tracking-wider uppercase transition-all border ${formData.trackingType === t.id
                             ? "bg-[#4F46E5] text-white border-[#4F46E5]"
                             : errors.trackingType ? "bg-red-50 text-red-500 border-red-300" : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
                             }`}
@@ -1338,14 +1338,14 @@ function TemplateContent() {
                                     type="month"
                                     value={row.month}
                                     onChange={(e) => handleRowChange(row.id, "month", e.target.value)}
-                                    className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
+                                    className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
                                     placeholder="Select month"
                                   />
                                 </td>
                                 {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
                                   <>
                                     <td className="px-3 py-2">
-                                      <div className={`border rounded px-1 py-0.5 ${errors[`monthly_${row.id}_electricityPurchased`] ? "border-red-300 bg-red-50" : "border-transparent"}`}>
+                                      <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_electricityPurchased`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
                                         <input
                                           type="number"
                                           value={row.electricityPurchased}
@@ -1356,7 +1356,7 @@ function TemplateContent() {
                                       </div>
                                     </td>
                                     <td className="px-3 py-2">
-                                      <div className={`border rounded px-1 py-0.5 ${errors[`monthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-transparent"}`}>
+                                      <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
                                         <select
                                           value={row.dataSourceType}
                                           onChange={(e) => handleRowChange(row.id, "dataSourceType", e.target.value)}
@@ -1371,12 +1371,12 @@ function TemplateContent() {
                                       </div>
                                     </td>
                                     <td className="px-3 py-2">
-                                      <div className={`border rounded px-1 py-0.5 ${errors[`monthly_${row.id}_energyConsumption`] ? "border-red-300 bg-red-50" : "border-transparent"}`}>
+                                      <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-100 ${errors[`monthly_${row.id}_energyConsumption`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
                                         <input
                                           type="number"
                                           value={row.energyConsumption}
-                                          onChange={(e) => handleRowChange(row.id, "energyConsumption", e.target.value)}
-                                          className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
+                                          readOnly
+                                          className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
                                           placeholder="0"
                                         />
                                       </div>
@@ -1385,7 +1385,7 @@ function TemplateContent() {
                                 )}
                                 {(formData.trackingType === "Spend amount" || formData.trackingType === "Both") && (
                                   <td className="px-3 py-2">
-                                    <div className={`border rounded px-1 py-0.5 ${errors[`monthly_${row.id}_spend`] ? "border-red-300 bg-red-50" : "border-transparent"}`}>
+                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_spend`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
                                       <input
                                         type="number"
                                         value={row.spend}
@@ -1442,9 +1442,9 @@ function TemplateContent() {
                                   value={formData.electricityPurchased || ""}
                                   onChange={handleChange}
                                   placeholder="Enter value"
-                                  className={`w-full px-2 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.electricityPurchased ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                                  className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.electricityPurchased ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                                 />
-                                <span className="absolute right-3 top-1.5 text-[10px] text-gray-400">kWh</span>
+                                <span className="absolute right-3 top-3 text-[10px] text-gray-400">kWh</span>
                               </div>
                               {errors.electricityPurchased && <p className="text-red-500 text-xs mt-1">{errors.electricityPurchased}</p>}
                             </div>
@@ -1458,7 +1458,7 @@ function TemplateContent() {
                                 name="dataSourceType"
                                 value={formData.dataSourceType || ""}
                                 onChange={handleChange}
-                                className={`w-full px-2 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none appearance-none ${errors.dataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                                className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none appearance-none ${errors.dataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                               >
                                 <option value="">Select data source...</option>
                                 <option value="Invoice">Invoice</option>
@@ -1478,9 +1478,9 @@ function TemplateContent() {
                                 type="text"
                                 name="energyConsumption"
                                 value={formData.energyConsumption || ""}
-                                onChange={handleChange}
-                                placeholder="Enter value"
-                                className={`w-full px-2 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.energyConsumption ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                                readOnly
+                                placeholder="Auto-calculated"
+                                className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
                               />
                               {errors.energyConsumption && <p className="text-red-500 text-xs mt-1">{errors.energyConsumption}</p>}
                             </div>
@@ -1512,9 +1512,9 @@ function TemplateContent() {
                                     type="text"
                                     value={formData.electricityPurchased || ""}
                                     disabled
-                                    className="w-full px-2 py-1.5 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
+                                    className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
                                   />
-                                  <span className="absolute right-3 top-1.5 text-[10px] text-gray-400">kWh</span>
+                                  <span className="absolute right-3 top-3 text-[10px] text-gray-400">kWh</span>
                                 </div>
                               </div>
                             )}
@@ -1529,7 +1529,7 @@ function TemplateContent() {
                                 value={formData.spendAmount || ""}
                                 onChange={handleChange}
                                 placeholder="Enter amount"
-                                className="w-full px-2 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full h-10 px-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                               />
                               {errors.spendAmount && <p className="text-red-500 text-xs mt-1">{errors.spendAmount}</p>}
                             </div>
@@ -1610,16 +1610,16 @@ function TemplateContent() {
                         <label className="block text-xs font-bold text-gray-700 mb-2">
                           Renewable electricity
                         </label>
-                        <input
-                          type="text"
-                          name="renewableElectricity"
-                          value={formData.renewableElectricity || ""}
-                          onChange={handleChange}
-                          placeholder="Enter value"
-                          className={`w-full px-2 py-1 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.renewableElectricity ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                        />
-                        <div className="flex justify-end -mt-6 mr-2 pointer-events-none">
-                          <span className="text-[10px] text-gray-400">kWh</span>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            name="renewableElectricity"
+                            value={formData.renewableElectricity || ""}
+                            onChange={handleChange}
+                            placeholder="Enter value"
+                            className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.renewableElectricity ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                          />
+                          <span className="absolute right-3 top-3 text-[10px] text-gray-400">kWh</span>
                         </div>
                         {errors.renewableElectricity && <p className="text-red-500 text-xs mt-1">{errors.renewableElectricity}</p>}
                       </div>
@@ -1631,9 +1631,9 @@ function TemplateContent() {
                           type="text"
                           name="renewableEnergyConsumption"
                           value={formData.renewableEnergyConsumption || ""}
-                          onChange={handleChange}
-                          placeholder="Enter value"
-                          className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.renewableEnergyConsumption ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                          readOnly
+                          placeholder="Auto-calculated"
+                          className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
                         />
                         {errors.renewableEnergyConsumption && <p className="text-red-500 text-xs mt-1">{errors.renewableEnergyConsumption}</p>}
                       </div>
@@ -1675,7 +1675,7 @@ function TemplateContent() {
                       value={formData.renewableEnergySourceDescription || ""}
                       onChange={handleChange}
                       placeholder="Describe renewable energy source..."
-                      className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none min-h-[60px]"
+                      className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none min-h-[40px]"
                     />
                   </div>
                 </div>

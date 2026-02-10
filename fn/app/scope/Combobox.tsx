@@ -65,7 +65,7 @@ export default function Combobox({
             <div className="relative">
                 <input
                     type="text"
-                    className={`w-full px-2 py-1 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-gray-700 ${error ? "border-red-300 bg-red-50" : "border-gray-200"
+                    className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-gray-700 ${error ? "border-red-300 bg-red-50" : "border-gray-200"
                         }`}
                     placeholder={placeholder}
                     value={isOpen ? searchTerm : (value || "")}

@@ -12,5 +12,9 @@ export const Media: CollectionConfig = {
       required: true,
     },
   ],
-  upload: true,
+  upload: {
+    staticDir: '/tmp/media',
+    adminThumbnail: 'card',
+    mimeTypes: ['image/*', 'application/pdf'],
+  },
 }

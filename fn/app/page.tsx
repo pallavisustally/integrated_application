@@ -62,6 +62,26 @@ const TrendingUpIcon = () => (
   </svg>
 );
 
+// New Icons for FMCG, Auto/Engineering, Other
+const ShoppingBagIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+  </svg>
+);
+
+const CogIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+  </svg>
+);
+
+const DotsHorizontalIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+  </svg>
+);
+
 // Form Data Type
 type FormDataType = {
   // About You
@@ -72,7 +92,7 @@ type FormDataType = {
   // About Business
   company: string;
   sector: string;
-  subSector: string; // e.g. "FMCG"
+  // subSector removed
   natureOfBusiness: string;
 
   // Operating Footprint
@@ -83,6 +103,14 @@ type FormDataType = {
   legalEntityId: string;
 };
 
+const PREDEFINED_SECTORS = [
+  "Manufacturing",
+  "Services",
+  "Trading",
+  "FMCG",
+  "Auto / Engineering",
+];
+
 export default function HomePage() {
   const router = useRouter();
 
@@ -92,7 +120,6 @@ export default function HomePage() {
     email: "",
     company: "",
     sector: "Manufacturing", // Default selection
-    subSector: "FMCG", // Default selection
     natureOfBusiness: "",
     siteCount: "Single site",
     siteCountNumber: "",
@@ -102,7 +129,17 @@ export default function HomePage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isCustomSubSector, setIsCustomSubSector] = useState(false);
+
+  // Helper to check if current sector is custom (not in predefined list)
+  const isCustomSector = !PREDEFINED_SECTORS.includes(formData.sector) && formData.sector !== "";
+  // If sector is empty string, we treat it as custom mode active but no value yet, 
+  // or we need a specific state for "Other selected but empty"? 
+  // actually if sector is "", it's not in predefined, so isCustomSector is true (if we remove '&& formData.sector !== ""').
+  // Let's use a derived state or just check inclusion.
+
+  // We need to know if "Other" button is active. 
+  // If sector is NOT in predefined list, "Other" is active.
+  const isOtherActive = !PREDEFINED_SECTORS.includes(formData.sector);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -114,15 +151,12 @@ export default function HomePage() {
     }
   };
 
-  const handleSectorChange = (sector: string) => {
-    setFormData((prev) => ({ ...prev, sector }));
-    // Reset sub-sector when sector changes if needed, 
-    // but sticking to existing behavior for now, maybe just reset custom toggle?
-    setIsCustomSubSector(false);
-  };
-
-  const handleSubSectorChange = (subSector: string) => {
-    setFormData((prev) => ({ ...prev, subSector }));
+  const handleSectorClick = (sectorName: string) => {
+    if (sectorName === "Other") {
+      setFormData((prev) => ({ ...prev, sector: "" })); // Clear sector to show input
+    } else {
+      setFormData((prev) => ({ ...prev, sector: sectorName }));
+    }
   };
 
   const validate = () => {
@@ -150,6 +184,10 @@ export default function HomePage() {
     }
 
     if (!formData.company.trim()) newErrors.company = "Company name is required";
+
+    if (!formData.sector.trim()) {
+      newErrors.sector = "Sector is required";
+    }
 
     if (formData.siteCount === "Multiple sites") {
       if (!formData.siteCountNumber?.trim()) {
@@ -210,7 +248,7 @@ export default function HomePage() {
             </p>
             <div className="flex items-center gap-3">
               <div className="h-1 w-32 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-indigo-1500 w-[17%]"></div>
+                <div className="h-full bg-indigo-500 w-[17%]"></div>
               </div>
               <span className="text-sm font-bold text-gray-400">17%</span>
             </div>
@@ -258,7 +296,7 @@ export default function HomePage() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className={`w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.name ? "border-red-300 bg-red-50" : "border-gray-200"
+                    className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.name ? "border-red-300 bg-red-50" : "border-gray-200"
                       }`}
                   />
                   {errors.name && <p className="text-red-500 text-[10px] mt-0.5">{errors.name}</p>}
@@ -274,7 +312,7 @@ export default function HomePage() {
                     value={formData.mobile}
                     onChange={handleChange}
                     placeholder="10-digit mobile number"
-                    className={`w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.mobile ? "border-red-300 bg-red-50" : "border-gray-200"
+                    className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.mobile ? "border-red-300 bg-red-50" : "border-gray-200"
                       }`}
                   />
                   {errors.mobile && <p className="text-red-500 text-[10px] mt-0.5">{errors.mobile}</p>}
@@ -290,7 +328,7 @@ export default function HomePage() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Used to share your assessment summary"
-                    className={`w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.email ? "border-red-300 bg-red-50" : "border-gray-200"
+                    className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.email ? "border-red-300 bg-red-50" : "border-gray-200"
                       }`}
                   />
                   {errors.email && <p className="text-red-500 text-[10px] mt-0.5">{errors.email}</p>}
@@ -319,7 +357,7 @@ export default function HomePage() {
                     name="company"
                     value={formData.company}
                     onChange={handleChange}
-                    className={`w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.company ? "border-red-300 bg-red-50" : "border-gray-200"
+                    className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.company ? "border-red-300 bg-red-50" : "border-gray-200"
                       }`}
                   />
                   {errors.company && <p className="text-red-500 text-[10px] mt-0.5">{errors.company}</p>}
@@ -330,18 +368,20 @@ export default function HomePage() {
                     Sector <span className="text-red-500">*</span>
                   </label>
 
-                  {/* Sector Caps */}
-                  <div className="flex gap-2 mb-3">
+                  {/* Sector Selection */}
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {[
                       { name: "Manufacturing", icon: <FactoryIcon /> },
                       { name: "Services", icon: <BriefcaseIcon /> },
-                      { name: "Trading", icon: <TrendingUpIcon /> }
+                      { name: "Trading", icon: <TrendingUpIcon /> },
+                      { name: "FMCG", icon: <ShoppingBagIcon /> },
+                      { name: "Auto / Engineering", icon: <CogIcon /> },
                     ].map(s => (
                       <button
                         key={s.name}
                         type="button"
-                        onClick={() => handleSectorChange(s.name)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border flex items-center gap-2 ${formData.sector === s.name
+                        onClick={() => handleSectorClick(s.name)}
+                        className={`px-3 h-10 rounded-lg text-xs font-medium transition-colors border flex items-center gap-2 ${formData.sector === s.name
                           ? "bg-white border-indigo-200 text-indigo-700 shadow-sm"
                           : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
                           }`}
@@ -350,57 +390,37 @@ export default function HomePage() {
                         {s.name}
                       </button>
                     ))}
+
+                    {/* Other Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleSectorClick("Other")}
+                      className={`px-3 h-10 rounded-lg text-xs font-medium transition-colors border flex items-center gap-2 ${isOtherActive
+                        ? "bg-white border-indigo-200 text-indigo-700 shadow-sm"
+                        : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+                        }`}
+                    >
+                      <DotsHorizontalIcon />
+                      Other
+                    </button>
                   </div>
 
-                  {/* Sub Sector Pills */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      {["FMCG", "Auto / Engineering"].map(sub => (
-                        <button
-                          key={sub}
-                          type="button"
-                          onClick={() => {
-                            handleSubSectorChange(sub);
-                            setIsCustomSubSector(false);
-                          }}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${!isCustomSubSector && formData.subSector === sub
-                            ? "bg-indigo-500 border-indigo-500 text-white"
-                            : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                            }`}
-                        >
-                          {/* <span className="mr-1">🏭</span> */}
-                          {sub}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsCustomSubSector(true);
-                          setFormData(prev => ({ ...prev, subSector: "" }));
-                        }}
-                        className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${isCustomSubSector
-                          ? "bg-indigo-500 text-white"
-                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                          }`}
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
+                  {/* Conditional Input for Other */}
+                  {isOtherActive && (
+                    <div className="animate-in fade-in slide-in-from-top-1 mb-2">
+                      <input
+                        type="text"
+                        name="sector"
+                        value={formData.sector}
+                        onChange={handleChange}
+                        placeholder="Enter your sector"
+                        autoFocus
+                        className={`w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.sector ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                      />
                     </div>
-                    {isCustomSubSector && (
-                      <div className="animate-in fade-in slide-in-from-top-1">
-                        <input
-                          type="text"
-                          value={formData.subSector}
-                          onChange={(e) => handleSubSectorChange(e.target.value)}
-                          placeholder="Enter sub-sector"
-                          autoFocus
-                          className="w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all border-gray-200"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  )}
+                  {errors.sector && <p className="text-red-500 text-[10px] mt-0.5">{errors.sector}</p>}
+
                 </div>
 
                 <div>
@@ -413,18 +433,12 @@ export default function HomePage() {
                     value={formData.natureOfBusiness}
                     onChange={handleChange}
                     placeholder="e.g., packaged snacks, CNC machining"
-                    className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    className="w-full h-10 px-3 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                   />
-                  {/* <textarea
-                    name="natureOfBusiness"
-                    value={formData.natureOfBusiness}
-                    onChange={handleChange}
-                    rows={2}
-                    placeholder="e.g., packaged snacks, CNC machining"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
-                  /> */}
+
                 </div>
               </div>
+
             </div>
 
             {/* Column 3: What you'll get (Span 3) */}
@@ -494,11 +508,11 @@ export default function HomePage() {
                 <label className="block text-xs font-bold text-gray-700 mb-2">
                   How many sites do you have?
                 </label>
-                <div className="flex bg-gray-100 p-1 rounded-lg w-full max-w-sm">
+                <div className="flex h-10 bg-gray-100 p-1 rounded-lg w-full max-w-sm">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, siteCount: "Single site" }))}
-                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all ${formData.siteCount === "Single site"
+                    className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.siteCount === "Single site"
                       ? "bg-indigo-500 text-white shadow-md"
                       : "text-gray-500 hover:text-gray-900"
                       }`}
@@ -508,7 +522,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, siteCount: "Multiple sites" }))}
-                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all ${formData.siteCount === "Multiple sites"
+                    className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.siteCount === "Multiple sites"
                       ? "bg-indigo-500 text-white shadow-sm border border-gray-200"
                       : "text-gray-500 hover:text-gray-900"
                       }`}
@@ -525,10 +539,12 @@ export default function HomePage() {
                       type="number"
                       name="siteCountNumber"
                       value={formData.siteCountNumber}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 3) handleChange(e);
+                      }}
                       placeholder="Enter number of sites"
                       min="2"
-                      className={`w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none transition-all ${errors.siteCountNumber ? "border-red-300 bg-red-50" : "border-gray-200"
+                      className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none transition-all ${errors.siteCountNumber ? "border-red-300 bg-red-50" : "border-gray-200"
                         }`}
                     />
                     {errors.siteCountNumber && <p className="text-red-500 text-[10px] mt-0.5">{errors.siteCountNumber}</p>}
@@ -542,26 +558,26 @@ export default function HomePage() {
                   <label className="block text-[10px] font-bold text-gray-500 mb-1">
                     Country
                   </label>
-                  <div className="flex bg-gray-50 p-1 rounded-lg w-full border border-gray-200">
+                  <div className="flex h-10 bg-gray-50 p-1 rounded-lg w-full border border-gray-200">
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, country: "India" }))}
-                      className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all ${formData.country === "India"
+                      className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.country === "India"
                         ? "bg-indigo-500 text-white"
                         : "text-gray-500 hover:text-gray-900"
                         }`}
                     >
-                      • India
+                      India
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, country: "Other" }))}
-                      className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all ${formData.country === "Other"
+                      className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.country === "Other"
                         ? "bg-indigo-500 text-white"
                         : "text-gray-500 hover:text-gray-900"
                         }`}
                     >
-                      • Other
+                      Other
                     </button>
                   </div>
                   {formData.country === "Other" && (
@@ -592,7 +608,7 @@ export default function HomePage() {
                     name="legalEntityId"
                     value={formData.legalEntityId}
                     onChange={handleChange}
-                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-gray-400 outline-none transition-all text-xs"
+                    className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-gray-400 outline-none transition-all text-xs"
                   />
                   <p className="text-[10px] text-gray-400 mt-0.5">
                     If available — can be added later
