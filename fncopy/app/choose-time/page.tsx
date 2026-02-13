@@ -582,11 +582,8 @@ function ChooseTimeContent() {
 
                             {/* Terms and Actions */}
                             <div className="py-8 border-t border-gray-200">
-                                <div className="flex flex-col md:flex-row gap-10">
-                                    <div className="w-full md:w-1/3">
-                                        {/* Empty or Maybe "Review" title? Leaving empty to align inputs to right */}
-                                    </div>
-                                    <div className="w-full md:w-2/3 space-y-8">
+                                <div className="w-full space-y-8">
+                                    <div className="flex justify-start">
                                         <label className="flex items-center gap-2 cursor-pointer group">
                                             <div className="relative flex items-center">
                                                 <input
@@ -617,28 +614,28 @@ function ChooseTimeContent() {
                                                 </span>
                                             </span>
                                         </label>
+                                    </div>
 
-                                        <div className="flex justify-between items-center pt-4">
-                                            <button
-                                                onClick={() => router.back()}
-                                                className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
-                                            >
-                                                &larr; Back
-                                            </button>
-                                            <button
-                                                onClick={handleConfirmBooking}
-                                                disabled={!selectedTime || !termsAccepted || isSendingEmail}
-                                                className={`flex items-center gap-1.5 px-6 py-3 rounded-xl font-bold transition-all transform ${selectedTime && termsAccepted && !isSendingEmail
-                                                    ? "bg-indigo-500 hover:bg-indigo-600 text-white hover:scale-105 cursor-pointer shadow-lg text-sm"
-                                                    : "bg-gray-300 text-white cursor-not-allowed text-sm"
-                                                    }`}
-                                            >
-                                                {isSendingEmail ? "Booking..." : "Confirm Booking"}
-                                                {!isSendingEmail && <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>}
-                                            </button>
-                                        </div>
+                                    <div className="flex justify-between items-center pt-4">
+                                        <button
+                                            onClick={() => router.back()}
+                                            className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                                        >
+                                            &larr; Back
+                                        </button>
+                                        <button
+                                            onClick={handleConfirmBooking}
+                                            disabled={!selectedTime || !termsAccepted || isSendingEmail}
+                                            className={`flex items-center gap-1.5 px-6 py-3 rounded-xl font-bold transition-all transform ${selectedTime && termsAccepted && !isSendingEmail
+                                                ? "bg-indigo-500 hover:bg-indigo-600 text-white hover:scale-105 cursor-pointer shadow-lg text-sm"
+                                                : "bg-gray-300 text-white cursor-not-allowed text-sm"
+                                                }`}
+                                        >
+                                            {isSendingEmail ? "Booking..." : "Confirm Booking"}
+                                            {!isSendingEmail && <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>}
+                                        </button>
                                     </div>
                                 </div>
                             </div>

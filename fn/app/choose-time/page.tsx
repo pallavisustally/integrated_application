@@ -722,30 +722,26 @@ function ChooseTimeContent() {
                 onClose={() => setShowTerms(false)}
                 title="Terms and Conditions"
             >
-                <div className="text-sm text-gray-600 space-y-4">
-                    <p>
-                        <strong>1. Introduction</strong><br />
-                        Welcome to Sustally. By using our services, you agree to these terms.
-                    </p>
-                    <p>
-                        <strong>2. Booking Policy</strong><br />
-                        All bookings are subject to availability. You may reschedule or cancel your appointment up to 24 hours before the scheduled time.
-                    </p>
-                    <p>
-                        <strong>3. Scope of Assessment</strong><br />
-                        The Scope 2 assessment is designed to evaluate your indirect energy emissions. Please ensure all data provided is accurate.
-                    </p>
-                    <p>
-                        <strong>4. Privacy</strong><br />
-                        Your data is handled according to our Privacy Policy. We do not share your information with third parties without consent.
-                    </p>
-                    <p>
-                        <strong>5. Instructions</strong><br />
-                        - Please arrive on time for your scheduled call.<br />
-                        - Have your energy bills and usage data ready.<br />
-                        - Ensure a stable internet connection.
-                    </p>
-                </div>
+                <ol className="text-sm text-gray-600 space-y-4 list-decimal pl-5">
+                    <li>
+                        This Application is established for the purpose of administering the GCG assessment process, including assessment scheduling, examination conduct, administrative review, and certificate issuance.
+                    </li>
+                    <li>
+                        By using this Application, the user represents and warrants that all information provided is true, accurate, complete, and lawfully belongs to the user. Any misrepresentation may result in disqualification or termination of access.
+                    </li>
+                    <li>
+                        Users shall adhere strictly to all examination rules and ethical standards. Any act of misconduct, unauthorized access, data manipulation, or misuse of the Application shall result in immediate invalidation of the assessment and may lead to further legal action.
+                    </li>
+                    <li>
+                        All assessment outcomes are subject to administrative review and verification. Certificates shall be generated and issued only upon successful completion of such verification and approval processes.
+                    </li>
+                    <li>
+                        The Application implements appropriate technical and organizational security measures to safeguard personal, assessment, and certification data. User information shall not be disclosed, shared, or leaked to any unauthorized third party, except as required by applicable law or regulatory authority.
+                    </li>
+                    <li>
+                        The Application owner reserves the right to modify, suspend, or terminate access to the Application, in whole or in part, at its sole discretion, in the event of a violation of these Terms and Conditions.
+                    </li>
+                </ol>
             </Modal>
         </div>
     );

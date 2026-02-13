@@ -195,7 +195,7 @@ export interface Scope2Application {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   rejectionReason?: string | null;
   renewableProcurement: 'Yes' | 'No';
-  onsiteExportedKwh: string;
+  onsiteExportedKwh?: string | null;
   netMeteringApplicable: 'Yes' | 'No';
   reportingYear: string;
   reportingPeriod: 'Monthly' | 'Quarterly' | 'Annually';

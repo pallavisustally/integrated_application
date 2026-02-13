@@ -800,6 +800,7 @@ function TemplateContent() {
 
       // Save to Payload CMS (Directly to Sustally)
       const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
+
       // NOTE: Do NOT set Content-Type header when sending FormData, the browser sets it with boundary
       const saveResponse = await fetch(`${apiUrl}/api/save-scope2`, {
         method: "POST",
@@ -874,20 +875,10 @@ function TemplateContent() {
             </p>
           </div>
 
+
           {/* Optional: Add step indicator if needed to match "2 OF 6" from image, 
              but typically Sidebar handles this. If user wants it explicitly in header: */}
-          <div className="hidden md:block text-right mb-2">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-              {page === 1 ? "2 of 6 - Boundaries" : "3 of 6 - Energy Inputs"}
-            </p>
-            <div className="w-full bg-gray-100 h-1 mt-2 rounded-full overflow-hidden w-32 ml-auto">
-              <div
-                className="bg-indigo-600 h-full rounded-full"
-                style={{ width: page === 1 ? '34%' : '51%' }}
-              ></div>
-            </div>
-            <p className="text-xs font-bold text-gray-400 mt-1">{page === 1 ? "34%" : "51%"}</p>
-          </div>
+
         </div>
 
         <div className="border border-gray-200 rounded-3xl p-8 bg-white shadow-sm mb-10">

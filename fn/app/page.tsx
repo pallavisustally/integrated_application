@@ -167,11 +167,9 @@ export default function HomePage() {
       newErrors.name = "Name should not contain numbers";
     }
 
-    // Mobile Validation: 10 digits
+    // Mobile Validation: 10 digits (Optional)
     const mobileRegex = /^[0-9]{10}$/;
-    if (!formData.mobile.trim()) {
-      newErrors.mobile = "Mobile number is required";
-    } else if (!mobileRegex.test(formData.mobile)) {
+    if (formData.mobile.trim() && !mobileRegex.test(formData.mobile)) {
       newErrors.mobile = "Please enter a valid 10-digit mobile number";
     }
 
@@ -187,6 +185,10 @@ export default function HomePage() {
 
     if (!formData.sector.trim()) {
       newErrors.sector = "Sector is required";
+    }
+
+    if (!formData.natureOfBusiness.trim()) {
+      newErrors.natureOfBusiness = "Nature of business is required";
     }
 
     if (formData.siteCount === "Multiple sites") {
@@ -304,7 +306,7 @@ export default function HomePage() {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                    Mobile number <span className="text-red-500">*</span>
+                    Mobile number
                   </label>
                   <input
                     type="tel"
@@ -423,20 +425,19 @@ export default function HomePage() {
 
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                    Nature of business activity
-                  </label>
-                  <input
-                    type="text"
-                    name="natureOfBusiness"
-                    value={formData.natureOfBusiness}
-                    onChange={handleChange}
-                    placeholder="e.g., packaged snacks, CNC machining"
-                    className="w-full h-10 px-3 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                  />
-
-                </div>
+                <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                  Nature of business activity <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="natureOfBusiness"
+                  value={formData.natureOfBusiness}
+                  onChange={handleChange}
+                  placeholder="e.g., packaged snacks, CNC machining"
+                  className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.natureOfBusiness ? "border-red-300 bg-red-50" : "border-gray-200"
+                    }`}
+                />
+                {errors.natureOfBusiness && <p className="text-red-500 text-[10px] mt-0.5">{errors.natureOfBusiness}</p>}
               </div>
 
             </div>
