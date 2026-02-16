@@ -29,7 +29,7 @@ const MoonIcon = () => (
     </svg>
 );
 
-// We need Next 1 Day (Tomorrow) and 2nd Date from present.
+// We need Today, Next 1 Day (Tomorrow) and 2nd Date from present.
 const getFutureDate = (daysToAdd: number) => {
     const date = new Date();
     date.setDate(date.getDate() + daysToAdd);
@@ -42,7 +42,16 @@ const formatDate = (date: Date) => {
 
 const getDayNumber = (date: Date) => new Intl.DateTimeFormat('en-US', { day: 'numeric' }).format(date);
 const getMonthName = (date: Date) => new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date);
-const getDayName = (date: Date) => new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
+const getDayName = (date: Date) => {
+    const today = new Date();
+    // Reset time parts for accurate comparison
+    const d1 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const d2 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    if (d1.getTime() === d2.getTime()) return "Today";
+
+    return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
+};
 
 type ShiftType = "Morning" | "Afternoon" | "Evening";
 
@@ -50,6 +59,26 @@ const timeSlotsByShift: Record<ShiftType, string[]> = {
     Morning: ["09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"],
     Afternoon: ["12:00 PM", "12:30 PM", "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"],
     Evening: ["05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM", "07:00 PM", "07:30 PM", "08:00 PM"]
+};
+
+// Helper to check if a time slot is in the past (for Today)
+const isTimeSlotInPast = (timeSlot: string) => {
+    const date = new Date();
+    const currentHours = date.getHours();
+    const currentMinutes = date.getMinutes();
+
+    // Parse time slot
+    // Format: "HH:MM AM/PM"
+    const [time, period] = timeSlot.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+
+    if (period === 'PM' && hours !== 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+
+    if (hours < currentHours) return true;
+    if (hours === currentHours && minutes <= currentMinutes) return true;
+
+    return false;
 };
 
 const shifts: { label: ShiftType; icon: React.ReactNode; range: string }[] = [
@@ -74,13 +103,25 @@ function ChooseTimeContent() {
     const [assessmentId] = useState(() => Math.random().toString(36).substring(2, 10).toUpperCase());
 
 
-    // Dates: Tomorrow (1 day) and Day After (2 days)
+    // Dates: Today (0), Next 1 Day (Tomorrow) (1)
+    const date0 = getFutureDate(0);
     const date1 = getFutureDate(1);
+
+    // Only show Today and Tomorrow as requested (2 options: instant/today, and selected day/tomorrow)
+    // Or maybe they meant Today + 2 other days? 
+    // "so after selecting today , the timgs remaing of the day will generate as same as we have already the 2 days in choose time"
+    // I'll keep 3 options logic (Today, Tomorrow, Day After) to be safe or just 2 if they strictly said "2 options".
+    // "2 options . one for instat , and 2nd if for within the selected day" -> confusing.
+    // Let's assume they want Today + the original 2 days (Tomorrow, Day After) or just Today + Tomorrow.
+    // "we have already the 2 days in choose time" implies keeping existing logic but adding Today.
+    // So distinct options: Today, Tomorrow, Day After.
+
     const date2 = getFutureDate(2);
 
     const dates = [
-        { label: "Tomorrow", date: date1, id: 0 },
-        { label: getDayName(date2), date: date2, id: 1 }
+        { label: "Today", date: date0, id: 0 },
+        { label: "Tomorrow", date: date1, id: 1 },
+        { label: getDayName(date2), date: date2, id: 2 }
     ];
 
     const handleDateSelect = (index: number) => {
@@ -396,7 +437,7 @@ function ChooseTimeContent() {
     }
 
     return (
-        <div className="h-screen w-screen overflow-hidden bg-gray-50 text-gray-800 font-sans selection:bg-indigo-100 p-2 md:p-4 flex flex-col">
+        <div className="min-h-screen w-full bg-gray-50 text-gray-800 font-sans selection:bg-indigo-100 p-2 md:p-4 flex flex-col">
             {/* Notification Popup */}
             {notification && (
                 <div
@@ -501,7 +542,7 @@ function ChooseTimeContent() {
                                     Select a date <span className="text-red-500">*</span>
                                 </label>
                                 <p className="text-[10px] text-gray-500 mb-3">Choose your preferred assessment date</p>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     {dates.map((d, index) => (
                                         <button
                                             key={index}
@@ -525,7 +566,7 @@ function ChooseTimeContent() {
                                                 {getMonthName(d.date)}
                                             </span>
                                             <span className="text-xs text-gray-500 font-medium">
-                                                {getDayName(d.date)}
+                                                {d.label}
                                             </span>
                                         </button>
                                     ))}
@@ -541,26 +582,42 @@ function ChooseTimeContent() {
                                     </label>
                                     <p className="text-[10px] text-gray-500 mb-3">Choose your preferred time period</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                        {shifts.map((shift) => (
-                                            <button
-                                                key={shift.label}
-                                                onClick={() => handleShiftSelect(shift.label)}
-                                                className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all h-[120px] gap-2 ${selectedShift === shift.label
-                                                    ? "bg-gray-900 text-white border-gray-900 shadow-md"
-                                                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                                                    }`}
-                                            >
-                                                <div className={`${selectedShift === shift.label ? "text-white" : "text-gray-900"}`}>
-                                                    {shift.icon}
-                                                </div>
-                                                <span className={`text-sm font-bold ${selectedShift === shift.label ? "text-white" : "text-gray-900"}`}>
-                                                    {shift.label}
-                                                </span>
-                                                <span className={`text-[10px] font-medium ${selectedShift === shift.label ? "text-gray-300" : "text-gray-500"}`}>
-                                                    {shift.range}
-                                                </span>
-                                            </button>
-                                        ))}
+                                        {shifts.map((shift) => {
+                                            // Optional: Filter shifts if all its slots are past (for Today)
+                                            // But for now, let's just let the user click and see empty/filtered slots or handle it here
+                                            // Let's filter shifts that are completely in the past
+                                            const isToday = dates[selectedDateIndex].label === "Today";
+                                            let isShiftAvailable = true;
+
+                                            if (isToday) {
+                                                const availableSlots = timeSlotsByShift[shift.label].filter(t => !isTimeSlotInPast(t));
+                                                if (availableSlots.length === 0) isShiftAvailable = false;
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={shift.label}
+                                                    onClick={() => handleShiftSelect(shift.label)}
+                                                    disabled={!isShiftAvailable}
+                                                    className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all h-[120px] gap-2 ${!isShiftAvailable
+                                                        ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-100"
+                                                        : selectedShift === shift.label
+                                                            ? "bg-gray-900 text-white border-gray-900 shadow-md"
+                                                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                                                        }`}
+                                                >
+                                                    <div className={`${selectedShift === shift.label ? "text-white" : "text-gray-900"}`}>
+                                                        {shift.icon}
+                                                    </div>
+                                                    <span className={`text-sm font-bold ${selectedShift === shift.label ? "text-white" : "text-gray-900"}`}>
+                                                        {shift.label}
+                                                    </span>
+                                                    <span className={`text-[10px] font-medium ${selectedShift === shift.label ? "text-gray-300" : "text-gray-500"}`}>
+                                                        {shift.range}
+                                                    </span>
+                                                </button>
+                                            )
+                                        })}
                                     </div>
                                 </div>
                             ) : (
@@ -582,18 +639,36 @@ function ChooseTimeContent() {
 
                                     {selectedShift ? (
                                         <div className="flex flex-wrap gap-3">
-                                            {timeSlotsByShift[selectedShift].map((time) => (
-                                                <button
-                                                    key={time}
-                                                    onClick={() => handleTimeSelect(time)}
-                                                    className={`py-3 px-6 rounded-full text-xs font-bold transition-all text-center border min-w-[100px] ${selectedTime === time
-                                                        ? "bg-white text-indigo-600 border-indigo-500 ring-1 ring-indigo-500 shadow-sm"
-                                                        : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                                                        }`}
-                                                >
-                                                    {time}
-                                                </button>
-                                            ))}
+                                            {timeSlotsByShift[selectedShift]
+                                                .filter(time => {
+                                                    const isToday = dates[selectedDateIndex].label === "Today";
+                                                    if (isToday) {
+                                                        return !isTimeSlotInPast(time);
+                                                    }
+                                                    return true;
+                                                })
+                                                .map((time) => (
+                                                    <button
+                                                        key={time}
+                                                        onClick={() => handleTimeSelect(time)}
+                                                        className={`py-3 px-6 rounded-full text-xs font-bold transition-all text-center border min-w-[100px] ${selectedTime === time
+                                                            ? "bg-white text-indigo-600 border-indigo-500 ring-1 ring-indigo-500 shadow-sm"
+                                                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                                                            }`}
+                                                    >
+                                                        {time}
+                                                    </button>
+                                                ))}
+                                            {/* Show message if all slots are filtered out but shift was selectable (edge case) */}
+                                            {timeSlotsByShift[selectedShift].filter(time => {
+                                                const isToday = dates[selectedDateIndex].label === "Today";
+                                                if (isToday) return !isTimeSlotInPast(time);
+                                                return true;
+                                            }).length === 0 && (
+                                                    <p className="text-xs text-gray-500 italic w-full text-center py-4">
+                                                        No available slots for this shift today.
+                                                    </p>
+                                                )}
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center h-[120px] bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-center p-4">

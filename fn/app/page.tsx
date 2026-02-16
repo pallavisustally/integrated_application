@@ -225,8 +225,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gray-50 text-gray-800 font-sans selection:bg-indigo-100 p-2 md:p-4 flex flex-col">
-      <div className="w-full h-full max-w-7xl mx-auto flex flex-col">
+    <div className="min-h-screen w-full bg-gray-50 text-gray-800 font-sans selection:bg-indigo-100 p-2 md:p-4 pb-20 flex flex-col">
+      <div className="w-full h-full max-w-7xl mx-auto flex flex-col flex-1">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-2 flex-shrink-0 gap-4">
           <div>
@@ -280,7 +280,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0">
 
             {/* Column 1: About You (Span 4) */}
-            <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden flex flex-col h-full">
+            <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative lg:overflow-hidden flex flex-col lg:h-full">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
                   <div className="w-4 h-4 rounded-full bg-indigo-500"></div>
@@ -339,7 +339,7 @@ export default function HomePage() {
             </div>
 
             {/* Column 2: About Your Business (Span 5) */}
-            <div className="lg:col-span-5 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative flex flex-col h-full">
+            <div className="lg:col-span-5 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative flex flex-col lg:h-full">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -509,7 +509,7 @@ export default function HomePage() {
                 <label className="block text-xs font-bold text-gray-700 mb-2">
                   How many sites do you have?
                 </label>
-                <div className="flex h-10 bg-gray-100 p-1 rounded-lg w-full max-w-sm">
+                <div className="flex flex-col sm:flex-row h-auto sm:h-10 bg-gray-100 p-1 rounded-lg w-full max-w-sm">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, siteCount: "Single site" }))}
@@ -559,7 +559,7 @@ export default function HomePage() {
                   <label className="block text-[10px] font-bold text-gray-500 mb-1">
                     Country
                   </label>
-                  <div className="flex h-10 bg-gray-50 p-1 rounded-lg w-full border border-gray-200">
+                  <div className="flex flex-col sm:flex-row h-auto sm:h-10 bg-gray-50 p-1 rounded-lg w-full border border-gray-200">
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, country: "India" }))}
