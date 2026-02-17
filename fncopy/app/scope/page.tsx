@@ -798,6 +798,13 @@ function TemplateContent() {
         }
       });
 
+      // Debugging: Log FormData entries
+      console.log("--- Form Submission Payload ---");
+      for (const pair of formDataToSend.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
+      }
+      console.log("-------------------------------");
+
       // Save to Payload CMS (Directly to Sustally)
       const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
 
@@ -1531,17 +1538,36 @@ function TemplateContent() {
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             onChange={(e) => setFormData(prev => ({ ...prev, energySupportingEvidenceFile: e.target.files?.[0] || null }))}
                           />
-                          <div className="bg-indigo-100 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
-                            <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-600">
-                            Click to upload or drag and drop
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            PDF, JPG, PNG up to 10MB
-                          </p>
+                          {formData.energySupportingEvidenceFile ? (
+                            <div className="flex flex-col items-center z-10 pointer-events-none">
+                              <div className="bg-indigo-100 p-3 rounded-full mb-3">
+                                <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                              </div>
+                              <p className="text-sm font-semibold text-indigo-600 break-all px-4">
+                                {formData.energySupportingEvidenceFile.name}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {(formData.energySupportingEvidenceFile.size / 1024).toFixed(1)} KB
+                              </p>
+                              <p className="text-[10px] text-gray-400 mt-2">Click to replace</p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="bg-indigo-100 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                                <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                </svg>
+                              </div>
+                              <p className="text-sm font-semibold text-gray-600">
+                                Click to upload or drag and drop
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, JPG, PNG up to 10MB
+                              </p>
+                            </>
+                          )}
                         </div>
                         <p className="text-[10px] text-gray-400 mt-2">
                           Uploading bills improves data confidence.
@@ -1631,17 +1657,36 @@ function TemplateContent() {
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                               onChange={(e) => setFormData(prev => ({ ...prev, renewableSupportingEvidenceFile: e.target.files?.[0] || null }))}
                             />
-                            <div className="bg-green-100 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
-                              <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                              </svg>
-                            </div>
-                            <p className="text-sm font-semibold text-gray-600">
-                              Click to upload or drag and drop
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              PDF, JPG, PNG up to 10MB
-                            </p>
+                            {formData.renewableSupportingEvidenceFile ? (
+                              <div className="flex flex-col items-center z-10 pointer-events-none">
+                                <div className="bg-green-100 p-3 rounded-full mb-3">
+                                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                </div>
+                                <p className="text-sm font-semibold text-green-600 break-all px-4">
+                                  {formData.renewableSupportingEvidenceFile.name}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {(formData.renewableSupportingEvidenceFile.size / 1024).toFixed(1)} KB
+                                </p>
+                                <p className="text-[10px] text-gray-400 mt-2">Click to replace</p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="bg-green-100 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                  </svg>
+                                </div>
+                                <p className="text-sm font-semibold text-gray-600">
+                                  Click to upload or drag and drop
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  PDF, JPG, PNG up to 10MB
+                                </p>
+                              </>
+                            )}
                           </div>
                         </div>
 
