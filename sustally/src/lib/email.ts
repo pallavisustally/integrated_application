@@ -87,29 +87,8 @@ export async function sendApprovalEmail(userEmail: string, submission: Scope2Sub
     const facilityName = (submission.data.facilityName as string) || 'Unknown Facility';
 
     // Construct Dashboard URL with params
+    // Construct Dashboard URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sustally.vercel.app';
-    const params = new URLSearchParams({
-        email: userEmail, // Added email param for OTP trigger
-        id: submission.id,
-        facilityName: facilityName,
-        state: (submission.data.state as string) || '',
-        siteCount: (submission.data.siteCount as string) || '',
-        reportingYear: (submission.data.reportingYear as string) || '',
-        reportingPeriod: (submission.data.reportingPeriod as string) || '',
-        scopeBoundaryNotes: (submission.data.scopeBoundaryNotes as string) || '',
-        renewableElectricity: (submission.data.renewableElectricity as string) || '',
-        renewableEnergyConsumption: (submission.data.renewableEnergyConsumption as string) || '',
-        onsiteExportedKwh: (submission.data.onsiteExportedKwh as string) || '',
-        energyCategory: (submission.data.energyCategory as string) || '',
-        // Calculated fields
-        gridEmissionFactor: String(submission.data.gridEmissionFactor || ''),
-        locationBasedEmissions: String(submission.data.locationBasedEmissions || ''),
-        marketBasedEmissions: String(submission.data.marketBasedEmissions || ''),
-        energyGrid_kJ: String(submission.data.energyGrid_kJ || ''),
-        energyRenew_kJ: String(submission.data.energyRenew_kJ || ''),
-        energyTotal_kJ: String(submission.data.energyTotal_kJ || ''),
-    });
-
     const dashboardLink = `${baseUrl}/dashboard?email=${encodeURIComponent(userEmail)}`;
 
     const mailOptions = {
