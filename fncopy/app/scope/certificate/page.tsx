@@ -508,7 +508,6 @@ function CertificateContent() {
 
 
 
-
           </div>
         </div>
       </div>

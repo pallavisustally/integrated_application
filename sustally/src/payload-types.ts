@@ -178,6 +178,8 @@ export interface Application {
   country: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   rejectionReason?: string | null;
+  otp?: string | null;
+  otpExpiresAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -219,6 +221,8 @@ export interface Scope2Application {
   energyGrid_kJ?: number | null;
   energyRenew_kJ?: number | null;
   energyTotal_kJ?: number | null;
+  otp?: string | null;
+  otpExpiresAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -358,6 +362,8 @@ export interface ApplicationsSelect<T extends boolean = true> {
   country?: T;
   status?: T;
   rejectionReason?: T;
+  otp?: T;
+  otpExpiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -398,6 +404,8 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   energyGrid_kJ?: T;
   energyRenew_kJ?: T;
   energyTotal_kJ?: T;
+  otp?: T;
+  otpExpiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

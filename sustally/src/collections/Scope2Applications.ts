@@ -268,6 +268,169 @@ const Scope2Applications: CollectionConfig = {
       name: "energyTotal_kJ",
       type: "number",
     },
+    {
+      name: "otp",
+      type: "text",
+      hidden: true,
+    },
+    {
+      name: "otpExpiresAt",
+      type: "date",
+      hidden: true,
+    },
+  ],
+  endpoints: [
+    {
+      path: "/generate-otp",
+      method: "post",
+      handler: async (req) => {
+        const { email } = req.json ? await req.json() : { email: "" };
+
+        if (!email) {
+          return Response.json({ error: "Email is required" }, { status: 400 });
+        }
+
+        try {
+          // Find application by email
+          const result = await req.payload.find({
+            collection: "scope2-applications",
+            overrideAccess: true,
+            showHiddenFields: true,
+            where: {
+              email: {
+                equals: email,
+              },
+            },
+          });
+
+          if (result.totalDocs === 0) {
+            return Response.json({ error: "Email not found" }, { status: 404 });
+          }
+
+          const application = result.docs[0];
+
+          if (application.status !== "APPROVED") {
+            return Response.json(
+              { error: "Application pending or rejected. Please contact admin." },
+              { status: 403 }
+            );
+          }
+
+          // Generate 6-digit OTP
+          const otp = Math.floor(100000 + Math.random() * 900000).toString();
+          const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+          console.log(`Generated OTP for Scope 2 ${email}: ${otp}`);
+
+          // Save OTP to application
+          await req.payload.update({
+            collection: "scope2-applications",
+            id: application.id,
+            data: {
+              otp,
+              otpExpiresAt: otpExpiresAt.toISOString(),
+            },
+          });
+
+          // Send Email
+          req.payload.sendEmail({
+            to: email,
+            subject: "Your Dashboard Login OTP",
+            html: `<p>Your OTP for dashboard access is: <strong>${otp}</strong></p><p>This OTP expires in 10 minutes.</p>`,
+          });
+
+          return Response.json({ success: true, message: "OTP sent to email" });
+        } catch (error) {
+          console.error("Error generating OTP:", error);
+          return Response.json(
+            { error: "Internal server error" },
+            { status: 500 }
+          );
+        }
+      },
+    },
+    {
+      path: "/verify-otp",
+      method: "post",
+      handler: async (req) => {
+        const { email, otp } = req.json ? await req.json() : { email: "", otp: "" };
+
+        if (!email || !otp) {
+          return Response.json(
+            { error: "Email and OTP are required" },
+            { status: 400 }
+          );
+        }
+
+        try {
+          const result = await req.payload.find({
+            collection: "scope2-applications",
+            overrideAccess: true,
+            showHiddenFields: true,
+            where: {
+              email: {
+                equals: email,
+              },
+            },
+          });
+
+          if (result.totalDocs === 0) {
+            return Response.json({ error: "Email not found" }, { status: 404 });
+          }
+
+          const application = result.docs[0];
+
+          // Check if OTP matches and is not expired
+          if (
+            application.otp !== otp ||
+            !application.otpExpiresAt ||
+            new Date(application.otpExpiresAt) < new Date()
+          ) {
+            return Response.json({ error: "Invalid or expired OTP" }, { status: 401 });
+          }
+
+          // Clear OTP after successful verification
+          await req.payload.update({
+            collection: "scope2-applications",
+            id: application.id,
+            data: {
+              otp: null,
+              otpExpiresAt: null,
+            },
+          });
+
+          return Response.json({
+            success: true,
+            user: {
+              facilityName: application.facilityName,
+              email: application.email,
+              id: application.id,
+              // Return all other fields needed for certificate
+              state: application.state,
+              siteCount: application.siteCount,
+              reportingYear: application.reportingYear,
+              reportingPeriod: application.reportingPeriod,
+              scopeBoundaryNotes: application.scopeBoundaryNotes,
+              renewableElectricity: application.renewableElectricity,
+              renewableEnergyConsumption: application.renewableEnergyConsumption,
+              onsiteExportedKwh: application.onsiteExportedKwh,
+              gridEmissionFactor: application.gridEmissionFactor,
+              locationBasedEmissions: application.locationBasedEmissions,
+              marketBasedEmissions: application.marketBasedEmissions,
+              energyGrid_kJ: application.energyGrid_kJ,
+              energyRenew_kJ: application.energyRenew_kJ,
+              energyTotal_kJ: application.energyTotal_kJ,
+            },
+          });
+        } catch (error) {
+          console.error("Error verifying OTP:", error);
+          return Response.json(
+            { error: "Internal server error" },
+            { status: 500 }
+          );
+        }
+      },
+    },
   ],
 };
 

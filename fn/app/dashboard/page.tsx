@@ -1,0 +1,224 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+
+function DashboardContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    // States: "RESTRICTED" -> "OTP" -> "DASHBOARD"
+    const [step, setStep] = useState<"RESTRICTED" | "OTP" | "DASHBOARD">("RESTRICTED");
+
+    const [email, setEmail] = useState("");
+    const [otp, setOtp] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [userData, setUserData] = useState<any>(null);
+    const [initialized, setInitialized] = useState(false);
+
+    const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+    const sendOtp = async (emailAddress: string) => {
+        setError("");
+        setLoading(true);
+
+        try {
+            // Updated endpoint to Scope 2
+            const res = await fetch(`${NEXT_PUBLIC_API_URL}/api/scope2-applications/generate-otp`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: emailAddress }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setStep("OTP");
+            } else {
+                setError(data.error || "Failed to send OTP");
+                // If OTP fails (e.g. invalid email in link), stay on RESTRICTED or show error
+                setStep("RESTRICTED");
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+            setStep("RESTRICTED");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!initialized) {
+            const emailParam = searchParams.get("email");
+            if (emailParam) {
+                setEmail(emailParam);
+                sendOtp(emailParam);
+            } else {
+                // If no email param, ensure we are in restricted mode
+                setStep("RESTRICTED");
+            }
+            setInitialized(true);
+        }
+    }, [searchParams, initialized]);
+
+    const handleSendOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await sendOtp(email);
+    };
+
+    const handleVerifyOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        try {
+            // Updated endpoint to Scope 2
+            const res = await fetch(`${NEXT_PUBLIC_API_URL}/api/scope2-applications/verify-otp`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, otp }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setUserData(data.user);
+
+                // Save user data to session storage
+                if (typeof window !== "undefined") {
+                    sessionStorage.setItem("scope2_user", JSON.stringify(data.user));
+                }
+
+                // Redirect to Scope 2 Certificate Page (Clean URL)
+                router.push(`/scope/certificate`);
+            } else {
+                setError(data.error || "Invalid OTP");
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        setStep("RESTRICTED");
+        setEmail("");
+        setOtp("");
+        setUserData(null);
+        router.push("/"); // Redirect to home or keep on restricted page
+    };
+
+    // Render Logic
+    if (step === "RESTRICTED") {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center">
+                    <div className="mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16 mx-auto text-gray-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        </svg>
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h1>
+                    <p className="text-gray-500 text-sm mb-6">
+                        This dashboard is only accessible via the secure link sent to your registered email address upon approval.
+                    </p>
+                    <p className="text-xs text-gray-400">
+                        If you believe this is an error, please contact support.
+                    </p>
+                    {error && <p className="text-red-500 text-xs mt-4">{error}</p>}
+                </div>
+            </div>
+        );
+    }
+
+    if (step === "OTP") {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                    <div className="text-center mb-8">
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify OTP</h1>
+                        <p className="text-gray-500 text-sm">Enter the code sent to {email}</p>
+                    </div>
+
+                    <form onSubmit={handleVerifyOtp} className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">One-Time Password</label>
+                            <input
+                                type="text"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                placeholder="123456"
+                                className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
+                                required
+                            />
+                        </div>
+
+                        {error && <p className="text-red-500 text-xs">{error}</p>}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center disabled:opacity-70"
+                        >
+                            {loading ? "Verifying..." : "Verify & Login"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => router.push("/")}
+                            className="w-full text-xs text-gray-500 hover:text-indigo-600 mt-4"
+                        >
+                            Cancel
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
+    }
+
+    // Dashboard View
+    return (
+        <div className="min-h-screen bg-gray-50 font-sans">
+            {/* Navbar */}
+            <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                    {/* Logo placeholder if needed */}
+                    <span className="font-bold text-indigo-600 text-xl">Sustally Dashboard</span>
+                </div>
+                <button
+                    onClick={handleLogout}
+                    className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
+                >
+                    Logout
+                </button>
+            </nav>
+
+            <main className="max-w-7xl mx-auto p-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center py-20">
+                    <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-indigo-600">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome, {userData?.name || "User"}!</h2>
+                    <p className="text-gray-500 max-w-lg mx-auto">
+                        You have successfully logged in to your Sustally dashboard.
+                        <br />
+                        (This area is under construction)
+                    </p>
+                </div>
+            </main>
+        </div>
+    );
+}
+
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <DashboardContent />
+        </Suspense>
+    );
+}

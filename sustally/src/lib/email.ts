@@ -89,6 +89,7 @@ export async function sendApprovalEmail(userEmail: string, submission: Scope2Sub
     // Construct Dashboard URL with params
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sustally.vercel.app';
     const params = new URLSearchParams({
+        email: userEmail, // Added email param for OTP trigger
         id: submission.id,
         facilityName: facilityName,
         state: (submission.data.state as string) || '',
@@ -109,7 +110,7 @@ export async function sendApprovalEmail(userEmail: string, submission: Scope2Sub
         energyTotal_kJ: String(submission.data.energyTotal_kJ || ''),
     });
 
-    const dashboardLink = `${baseUrl}/scope/certificate?${params.toString()}`;
+    const dashboardLink = `${baseUrl}/dashboard?email=${encodeURIComponent(userEmail)}`;
 
     const mailOptions = {
         from: '"Sustally Team" <no-reply@sustally.com>',

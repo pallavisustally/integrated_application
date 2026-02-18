@@ -48,32 +48,58 @@ function CertificateContent() {
     }
   };
 
-  const data = useMemo(() => {
-    const rawReportingYear = searchParams.get("reportingYear") || "";
-    const rawReportingPeriod = searchParams.get("reportingPeriod") || "Annually";
-    const formattedPeriod = formatReportingPeriod(rawReportingYear, rawReportingPeriod);
+  /* eslint-disable react-hooks/exhaustive-deps */
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-    return {
-      state: searchParams.get("state") || "-",
-      siteCount: searchParams.get("siteCount") || "-",
-      facilityName: searchParams.get("facilityName") || "ACME MANUFACTURING LTD.",
-      reportingYear: formattedPeriod || "2025-26", // Use formatted value as default if available
-      rawReportingYear: rawReportingYear, // Keep raw if needed
-      reportingPeriod: rawReportingPeriod,
-      scopeBoundaryNotes: searchParams.get("scopeBoundaryNotes") || "-",
-      renewableElectricity: searchParams.get("renewableElectricity") || "0",
-      renewableEnergyConsumption: searchParams.get("renewableEnergyConsumption") || "0",
-      onsiteExportedKwh: searchParams.get("onsiteExportedKwh") || "0",
-      certificateId: searchParams.get("certificateId") || generatedId,
-      // Metrics
-      gridEmissionFactor: searchParams.get("gridEmissionFactor") || "0",
-      locationBasedEmissions: searchParams.get("locationBasedEmissions") || "0",
-      marketBasedEmissions: searchParams.get("marketBasedEmissions") || "0",
-      energyGrid: searchParams.get("energyGrid_kJ") || "0", // in kJ
-      energyRenew: searchParams.get("energyRenew_kJ") || "0", // in kJ
-      energyTotal: searchParams.get("energyTotal_kJ") || "0", // in kJ
-    };
-  }, [searchParams, generatedId]);
+  useEffect(() => {
+    // Check for session data
+    const storedUser = sessionStorage.getItem("scope2_user");
+
+    if (!storedUser) {
+      // Not authenticated, redirect to login
+      router.push("/dashboard");
+      return;
+    }
+
+    try {
+      const parsedData = JSON.parse(storedUser);
+      const rawReportingYear = parsedData.reportingYear || "";
+      const rawReportingPeriod = parsedData.reportingPeriod || "Annually";
+      const formattedPeriod = formatReportingPeriod(rawReportingYear, rawReportingPeriod);
+
+      setData({
+        state: parsedData.state || "-",
+        siteCount: parsedData.siteCount || "-",
+        facilityName: parsedData.facilityName || "ACME MANUFACTURING LTD.",
+        reportingYear: formattedPeriod || "2025-26",
+        rawReportingYear: rawReportingYear,
+        reportingPeriod: rawReportingPeriod,
+        scopeBoundaryNotes: parsedData.scopeBoundaryNotes || "-",
+        renewableElectricity: parsedData.renewableElectricity || "0",
+        renewableEnergyConsumption: parsedData.renewableEnergyConsumption || "0",
+        onsiteExportedKwh: parsedData.onsiteExportedKwh || "0",
+        certificateId: parsedData.id || generatedId, // Use DB ID or fallback
+        // Metrics
+        gridEmissionFactor: String(parsedData.gridEmissionFactor || "0"),
+        locationBasedEmissions: String(parsedData.locationBasedEmissions || "0"),
+        marketBasedEmissions: String(parsedData.marketBasedEmissions || "0"),
+        energyGrid: String(parsedData.energyGrid_kJ || "0"),
+        energyRenew: String(parsedData.energyRenew_kJ || "0"),
+        energyTotal: String(parsedData.energyTotal_kJ || "0"),
+      });
+    } catch (e) {
+      console.error("Failed to parse session data", e);
+      router.push("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  }, [router, generatedId]);
+
+  if (loading || !data) {
+    return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;
+  }
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Convert kJ to GWh for display (1 GWh = 3,600,000,000 kJ)
   const energyTotalGWh = (parseFloat(data.energyTotal) / 3600000000).toFixed(2);
@@ -167,7 +193,7 @@ function CertificateContent() {
         </div>
 
         {/* Level 1: Metrics */}
-        <div className="grid grid-cols-4 gap-4 shrink-0 h-[15%] min-h-[100px]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 shrink-0 h-auto lg:h-[15%] min-h-[100px]">
           {/* Metric 1: Total Emissions (Market Based) */}
           <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
             <div className="flex justify-between items-start">
@@ -211,9 +237,9 @@ function CertificateContent() {
         </div>
 
         {/* Level 2: Charts & Cost & Downloads */}
-        <div className="grid grid-cols-12 gap-4 flex-1 h-[40%] min-h-[250px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 h-auto lg:h-[40%] min-h-[250px]">
           {/* Pie Chart */}
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 col-span-4 flex flex-col">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-4 flex flex-col h-[300px] lg:h-full">
             <h3 className="text-gray-500 text-xs font-medium mb-2">Electricity Consumption Breakdown</h3>
             <div className="flex-1 w-full relative">
               <ResponsiveContainer width="100%" height="100%">
@@ -255,7 +281,7 @@ function CertificateContent() {
           </div>
 
           {/* Cost Projection */}
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 col-span-4 flex flex-col justify-between">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-4 flex flex-col justify-between h-[200px] lg:h-full">
             <h3 className="text-gray-500 text-xs font-medium">Cost Projection</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-end">
@@ -280,7 +306,7 @@ function CertificateContent() {
           </div>
 
           {/* Downloads */}
-          <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl shadow-sm border border-indigo-100 col-span-4 flex flex-col">
+          <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl shadow-sm border border-indigo-100 col-span-1 lg:col-span-4 flex flex-col h-[300px] lg:h-full">
             <h3 className="text-indigo-900 text-xs font-semibold mb-3">Available Reports</h3>
             <div className="flex-1 flex flex-col gap-2 overflow-y-auto">
               <div
@@ -344,14 +370,14 @@ function CertificateContent() {
         </div>
 
         {/* Level 3: AI Insights & Footers */}
-        <div className="flex gap-4 h-[25%] shrink-0 min-h-[160px]">
+        <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-[25%] shrink-0 min-h-[160px]">
           {/* AI Insights - 70% Width */}
-          <div id="ai-insights-section" className="w-[70%] flex flex-col ai-insights-target">
+          <div id="ai-insights-section" className="w-full lg:w-[70%] flex flex-col ai-insights-target">
             <div className="flex items-center gap-2 mb-2 shrink-0">
               <svg className="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
               <h3 className="text-sm font-semibold text-gray-800">Operational AI Insights</h3>
             </div>
-            <div className="grid grid-cols-3 gap-3 flex-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1">
               <div className="bg-green-50 rounded-lg p-3 border border-green-100 flex flex-col justify-between">
                 <div className="flex justify-between items-start">
                   <h4 className="font-semibold text-gray-900 text-xs">Production Efficiency</h4>
@@ -388,7 +414,7 @@ function CertificateContent() {
             </div>
           </div>
 
-          <div id="next-steps-section" className="w-[30%] bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-center gap-3 next-steps-target">
+          <div id="next-steps-section" className="w-full lg:w-[30%] bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-center gap-3 next-steps-target">
             <div className="text-center mb-1">
               <h4 className="font-semibold text-gray-900 text-sm">Next Steps</h4>
               <p className="text-[10px] text-gray-500">Complete assessment for other sites</p>
@@ -397,7 +423,10 @@ function CertificateContent() {
               Continue to next site
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </button>
-            <button onClick={() => router.push('/')} className="w-full py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-opacity text-xs border border-gray-200">
+            <button onClick={() => {
+              sessionStorage.removeItem("scope2_user");
+              router.push('/dashboard');
+            }} className="w-full py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-opacity text-xs border border-gray-200">
               Exit to Dashboard
             </button>
           </div>
@@ -519,7 +548,7 @@ function CertificateContent() {
 
 export default function ScopeDashboardPage() {
   return (
-    <main id="dashboard-container" className="h-screen flex flex-col bg-gray-50 p-4 md:p-6 overflow-hidden font-sans text-gray-800">
+    <main id="dashboard-container" className="min-h-screen flex flex-col bg-gray-50 p-4 md:p-6 overflow-y-auto font-sans text-gray-800">
       <Suspense fallback={<div>Loading...</div>}>
         <CertificateContent />
       </Suspense>
