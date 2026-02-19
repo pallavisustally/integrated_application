@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import CostSavingCard from "../../dashboard/CostSavingCard";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -56,14 +57,16 @@ function CertificateContent() {
     // Check for session data
     const storedUser = sessionStorage.getItem("scope2_user");
 
-    if (!storedUser) {
+    const isPreview = searchParams.get("preview") === "true";
+
+    if (!storedUser && !isPreview) {
       // Not authenticated, redirect to login
       router.push("/dashboard");
       return;
     }
 
     try {
-      const parsedData = JSON.parse(storedUser);
+      const parsedData = JSON.parse(storedUser || "{}");
       const rawReportingYear = parsedData.reportingYear || "";
       const rawReportingPeriod = parsedData.reportingPeriod || "Annually";
       const formattedPeriod = formatReportingPeriod(rawReportingYear, rawReportingPeriod);
@@ -94,8 +97,33 @@ function CertificateContent() {
       });
     } catch (e) {
       console.error("Failed to parse session data", e);
-      router.push("/dashboard");
+      if (!isPreview) router.push("/dashboard");
     } finally {
+      if (isPreview && (!data || loading)) {
+        // Mock data for preview
+        setData({
+          state: "Maharashtra",
+          siteCount: "Single Site",
+          facilityName: "Demo Manufacturing Ltd.",
+          reportingYear: "2024 - 2025",
+          rawReportingYear: "2024",
+          reportingPeriod: "Annually",
+          scopeBoundaryNotes: "Operational Control",
+          renewableElectricity: "Yes",
+          renewableEnergyConsumption: "1000",
+          onsiteExportedKwh: "0",
+          certificateId: generatedId,
+          gridEmissionFactor: "0.82",
+          locationBasedEmissions: "17.77",
+          marketBasedEmissions: "11.27",
+          energyGrid: "72000000000", // ~20 GWh in kJ
+          energyRenew: "36000000", // ~0.01 GWh in kJ
+          energyTotal: "72036000000",
+          electricityPurchased: "20000", // 20k units annual
+          spendAmount: "25500000", // 2.55 Cr
+          trackingType: "Spend amount",
+        });
+      }
       setLoading(false);
     }
   }, [router, generatedId]);
@@ -299,38 +327,9 @@ function CertificateContent() {
             </div>
           </div>
 
-          {/* Cost Projection */}
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-4 flex flex-col justify-between h-[200px] lg:h-full">
-            <h3 className="text-gray-500 text-xs font-medium">Cost Projection</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Baseline (Grid-only)</span>
-                  <p className="text-xl font-bold text-gray-900">
-                    {data.spendAmount ? `₹${(parseFloat(data.spendAmount) / 10000000).toFixed(2)} Cr` : "-"}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Actual Spend</span>
-                  <p className="text-xl font-bold text-gray-900">
-                    {data.spendAmount ? `₹${(parseFloat(data.spendAmount) / 10000000).toFixed(2)} Cr` : "-"}
-                  </p>
-                </div>
-              </div>
-              <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-                <div className="flex items-center gap-2 mb-1">
-                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                  <span className="text-xs font-medium text-green-800">Potential Savings</span>
-                </div>
-                <p className="text-2xl font-bold text-green-700">
-                  {/* Simple estimate: 15% of annual spend if implemented */}
-                  {data.spendAmount
-                    ? `₹${((parseFloat(data.spendAmount) * 0.15) / 100000).toFixed(1)} Lakhs`
-                    : "-"}
-                </p>
-                <p className="text-[10px] text-green-600">Estimate based on 15% reduction via solar</p>
-              </div>
-            </div>
+          {/* Cost Projection (Solar Model) */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-4 flex flex-col h-full overflow-hidden">
+            <CostSavingCard userData={data} />
           </div>
 
           {/* Downloads */}

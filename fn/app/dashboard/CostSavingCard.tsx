@@ -63,18 +63,18 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
     };
 
     return (
-        <div className="bg-white rounded-3xl shadow-lg p-6 max-w-4xl mx-auto border border-gray-100">
+        <div className="bg-white rounded-3xl p-4 w-full h-full flex flex-col justify-center">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7 text-white">
+            <div className="flex items-center gap-3 mb-4 shrink-0">
+                <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-white">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
                     </svg>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Cost Saving through Solar</h2>
+                <h2 className="text-base font-bold text-gray-900">Cost Saving through Solar</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
                 {/* Left Column */}
                 <div className="space-y-6">
                     {/* Inputs Row */}
