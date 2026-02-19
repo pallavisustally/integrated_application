@@ -323,25 +323,29 @@ const Scope2Applications: CollectionConfig = {
           console.log(`Generated OTP for Scope 2 ${email}: ${otp}`);
           console.time("otp-process");
 
-          // Run DB update and Email sending in parallel to reduce wait time
+          // Run DB update first to ensure OTP is valid
           const start = Date.now();
-          console.log(`[OTP] Starting parallel DB update and Email send for ${email}`);
+          console.log(`[OTP] Starting DB update for ${email}`);
 
-          await Promise.all([
-            req.payload.update({
-              collection: "scope2-applications",
-              id: application.id,
-              data: {
-                otp,
-                otpExpiresAt: otpExpiresAt.toISOString(),
-              },
-            }).then(() => console.log(`[OTP] DB Update completed in ${Date.now() - start}ms`)),
-            req.payload.sendEmail({
-              to: email,
-              subject: "Your Dashboard Login OTP",
-              html: `<p>Your OTP for dashboard access is: <strong>${otp}</strong></p><p>This OTP expires in 10 minutes.</p>`,
-            }).then(() => console.log(`[OTP] Email send completed in ${Date.now() - start}ms`))
-          ]);
+          await req.payload.update({
+            collection: "scope2-applications",
+            id: application.id,
+            data: {
+              otp,
+              otpExpiresAt: otpExpiresAt.toISOString(),
+            },
+          });
+
+          console.log(`[OTP] DB Update completed in ${Date.now() - start}ms`);
+
+          // Fire and forget email sending
+          // Note: In some serverless environments, this might be terminated early.
+          req.payload.sendEmail({
+            to: email,
+            subject: "Your Dashboard Login OTP",
+            html: `<p>Your OTP for dashboard access is: <strong>${otp}</strong></p><p>This OTP expires in 10 minutes.</p>`,
+          }).then(() => console.log(`[OTP] Email sent in background in ${Date.now() - start}ms`))
+            .catch(err => console.error(`[OTP] Background email failed:`, err));
 
           console.timeEnd("otp-process");
 
