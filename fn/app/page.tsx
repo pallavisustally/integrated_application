@@ -234,6 +234,9 @@ export default function HomePage() {
               <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
                 Scope 2 Assessment
               </span>
+              <a href="/solar" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 border-b border-indigo-200 hover:border-indigo-600 transition-colors">
+                Try Solar Model →
+              </a>
             </div>
             <h1 className="text-xl font-bold text-gray-900">
               Book your Scope 2 self-assessment

@@ -1,0 +1,230 @@
+{
+  "Rajasthan": [
+    {
+      "name": "Jaisalmer",
+      "annualIrradiance": 1095
+    },
+    {
+      "name": "Barmer",
+      "annualIrradiance": 1050
+    },
+    {
+      "name": "Bikaner",
+      "annualIrradiance": 1065
+    },
+    {
+      "name": "Jaipur",
+      "annualIrradiance": 945
+    },
+    {
+      "name": "Jodhpur",
+      "annualIrradiance": 1095
+    }
+  ],
+  "Punjab": [
+    {
+      "name": "Gurdaspur",
+      "annualIrradiance": 795
+    },
+    {
+      "name": "Amritsar",
+      "annualIrradiance": 795
+    },
+    {
+      "name": "Ludhiana",
+      "annualIrradiance": 840
+    }
+  ],
+  "Gujarat": [
+    {
+      "name": "Gandhinagar",
+      "annualIrradiance": 900
+    },
+    {
+      "name": "Ahmedabad",
+      "annualIrradiance": 1230
+    },
+    {
+      "name": "Surat",
+      "annualIrradiance": 1335
+    }
+  ],
+  "Himachal Pradesh": [
+    {
+      "name": "Shimla",
+      "annualIrradiance": 900
+    },
+    {
+      "name": "Manali",
+      "annualIrradiance": 825
+    }
+  ],
+  "Maharashtra": [
+    {
+      "name": "Mumbai",
+      "annualIrradiance": 1425
+    },
+    {
+      "name": "Pune",
+      "annualIrradiance": 1335
+    },
+    {
+      "name": "Nagpur",
+      "annualIrradiance": 1320
+    }
+  ],
+  "Karnataka": [
+    {
+      "name": "Bengaluru",
+      "annualIrradiance": 1590
+    }
+  ],
+  "Tamil Nadu": [
+    {
+      "name": "Chennai",
+      "annualIrradiance": 1410
+    }
+  ],
+  "West Bengal": [
+    {
+      "name": "Kolkata",
+      "annualIrradiance": 870
+    }
+  ],
+  "Delhi": [
+    {
+      "name": "Central",
+      "annualIrradiance": 750
+    }
+  ],
+  "Uttar Pradesh": [
+    {
+      "name": "Lucknow",
+      "annualIrradiance": 705
+    }
+  ],
+  "Telangana": [
+    {
+      "name": "Hyderabad",
+      "annualIrradiance": 1260
+    }
+  ],
+  "Kerala": [
+    {
+      "name": "Thiruvananthapuram",
+      "annualIrradiance": 1710
+    }
+  ],
+  "Bihar": [
+    {
+      "name": "Patna",
+      "annualIrradiance": 735
+    }
+  ],
+  "Assam": [
+    {
+      "name": "Guwahati",
+      "annualIrradiance": 1155
+    }
+  ],
+  "Odisha": [
+    {
+      "name": "Bhubaneswar",
+      "annualIrradiance": 960
+    }
+  ],
+  "Madhya Pradesh": [
+    {
+      "name": "Bhopal",
+      "annualIrradiance": 1305
+    }
+  ],
+  "Goa": [
+    {
+      "name": "Panaji",
+      "annualIrradiance": 1665
+    }
+  ],
+  "Jharkhand": [
+    {
+      "name": "Ranchi",
+      "annualIrradiance": 1050
+    }
+  ],
+  "Chhattisgarh": [
+    {
+      "name": "Raipur",
+      "annualIrradiance": 1275
+    }
+  ],
+  "Uttarakhand": [
+    {
+      "name": "Dehradun",
+      "annualIrradiance": 945
+    }
+  ],
+  "Tripura": [
+    {
+      "name": "Agartala",
+      "annualIrradiance": 1215
+    }
+  ],
+  "Sikkim": [
+    {
+      "name": "Gangtok",
+      "annualIrradiance": 795
+    }
+  ],
+  "Mizoram": [
+    {
+      "name": "Aizawl",
+      "annualIrradiance": 1575
+    }
+  ],
+  "Nagaland": [
+    {
+      "name": "Kohima",
+      "annualIrradiance": 1485
+    }
+  ],
+  "Manipur": [
+    {
+      "name": "Imphal",
+      "annualIrradiance": 1455
+    }
+  ],
+  "Meghalaya": [
+    {
+      "name": "Shillong",
+      "annualIrradiance": 1260
+    }
+  ],
+  "Arunachal Pradesh": [
+    {
+      "name": "Itanagar",
+      "annualIrradiance": 960
+    }
+  ],
+  "Andhra Pradesh": [
+    {
+      "name": "Visakhapatnam",
+      "annualIrradiance": 1005
+    },
+    {
+      "name": "Vijayawada",
+      "annualIrradiance": 1185
+    }
+  ],
+  "Razor": [
+    {
+      "name": "Udaipur",
+      "annualIrradiance": 1215
+    }
+  ],
+  "Haryana": [
+    {
+      "name": "Gurugram",
+      "annualIrradiance": 735
+    }
+  ]
+}

@@ -321,23 +321,29 @@ const Scope2Applications: CollectionConfig = {
           const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
           console.log(`Generated OTP for Scope 2 ${email}: ${otp}`);
+          console.time("otp-process");
 
-          // Save OTP to application
-          await req.payload.update({
-            collection: "scope2-applications",
-            id: application.id,
-            data: {
-              otp,
-              otpExpiresAt: otpExpiresAt.toISOString(),
-            },
-          });
+          // Run DB update and Email sending in parallel to reduce wait time
+          const start = Date.now();
+          console.log(`[OTP] Starting parallel DB update and Email send for ${email}`);
 
-          // Send Email
-          req.payload.sendEmail({
-            to: email,
-            subject: "Your Dashboard Login OTP",
-            html: `<p>Your OTP for dashboard access is: <strong>${otp}</strong></p><p>This OTP expires in 10 minutes.</p>`,
-          });
+          await Promise.all([
+            req.payload.update({
+              collection: "scope2-applications",
+              id: application.id,
+              data: {
+                otp,
+                otpExpiresAt: otpExpiresAt.toISOString(),
+              },
+            }).then(() => console.log(`[OTP] DB Update completed in ${Date.now() - start}ms`)),
+            req.payload.sendEmail({
+              to: email,
+              subject: "Your Dashboard Login OTP",
+              html: `<p>Your OTP for dashboard access is: <strong>${otp}</strong></p><p>This OTP expires in 10 minutes.</p>`,
+            }).then(() => console.log(`[OTP] Email send completed in ${Date.now() - start}ms`))
+          ]);
+
+          console.timeEnd("otp-process");
 
           return Response.json({ success: true, message: "OTP sent to email" });
         } catch (error) {
@@ -420,6 +426,10 @@ const Scope2Applications: CollectionConfig = {
               energyGrid_kJ: application.energyGrid_kJ,
               energyRenew_kJ: application.energyRenew_kJ,
               energyTotal_kJ: application.energyTotal_kJ,
+              // Added for Cost Saving Card
+              electricityPurchased: application.electricityPurchased,
+              spendAmount: application.spendAmount,
+              trackingType: application.trackingType,
             },
           });
         } catch (error) {

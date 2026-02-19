@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import CostSavingCard from "./CostSavingCard";
 
 function DashboardContent() {
     const router = useRouter();
@@ -17,6 +18,10 @@ function DashboardContent() {
     const [loading, setLoading] = useState(false);
     const [userData, setUserData] = useState<any>(null);
     const [initialized, setInitialized] = useState(false);
+
+    // Resend OTP State
+    const [resendTimer, setResendTimer] = useState(0);
+    const [canResend, setCanResend] = useState(true);
 
     const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -36,6 +41,9 @@ function DashboardContent() {
 
             if (res.ok) {
                 setStep("OTP");
+                // Start Resend Timer (15 seconds)
+                setResendTimer(15);
+                setCanResend(false);
             } else {
                 setError(data.error || "Failed to send OTP");
                 // If OTP fails (e.g. invalid email in link), stay on RESTRICTED or show error
@@ -49,14 +57,38 @@ function DashboardContent() {
         }
     };
 
+    // Timer Effect
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (resendTimer > 0) {
+            interval = setInterval(() => {
+                setResendTimer((prev) => prev - 1);
+            }, 1000);
+        } else {
+            setCanResend(true);
+        }
+        return () => clearInterval(interval);
+    }, [resendTimer]);
+
     useEffect(() => {
         if (!initialized) {
+            // Check session storage first
+            if (typeof window !== "undefined") {
+                const storedUser = sessionStorage.getItem("scope2_user");
+                if (storedUser) {
+                    setUserData(JSON.parse(storedUser));
+                    setStep("DASHBOARD");
+                    setInitialized(true);
+                    return;
+                }
+            }
+
             const emailParam = searchParams.get("email");
             if (emailParam) {
                 setEmail(emailParam);
                 sendOtp(emailParam);
             } else {
-                // If no email param, ensure we are in restricted mode
+                // If no email param and no session, ensure we are in restricted mode
                 setStep("RESTRICTED");
             }
             setInitialized(true);
@@ -65,6 +97,11 @@ function DashboardContent() {
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
+        await sendOtp(email);
+    };
+
+    const handleResendOtp = async () => {
+        if (!canResend) return;
         await sendOtp(email);
     };
 
@@ -166,13 +203,24 @@ function DashboardContent() {
                             {loading ? "Verifying..." : "Verify & Login"}
                         </button>
 
-                        <button
-                            type="button"
-                            onClick={() => router.push("/")}
-                            className="w-full text-xs text-gray-500 hover:text-indigo-600 mt-4"
-                        >
-                            Cancel
-                        </button>
+                        <div className="flex justify-between items-center mt-6">
+                            <button
+                                type="button"
+                                onClick={handleResendOtp}
+                                disabled={!canResend || loading}
+                                className="text-xs text-gray-500 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {canResend ? "Didn't receive the email? Resend" : `Resend in ${resendTimer}s`}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => router.push("/")}
+                                className="text-xs text-gray-500 hover:text-indigo-600"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -197,18 +245,14 @@ function DashboardContent() {
             </nav>
 
             <main className="max-w-7xl mx-auto p-6">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center py-20">
-                    <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-indigo-600">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                        </svg>
+                <div className="bg-gray-50 min-h-full">
+                    <div className="max-w-4xl mx-auto space-y-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Welcome, {userData?.name || "User"}!</h2>
+                        </div>
+
+                        <CostSavingCard userData={userData} />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome, {userData?.name || "User"}!</h2>
-                    <p className="text-gray-500 max-w-lg mx-auto">
-                        You have successfully logged in to your Sustally dashboard.
-                        <br />
-                        (This area is under construction)
-                    </p>
                 </div>
             </main>
         </div>
