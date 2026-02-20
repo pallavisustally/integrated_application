@@ -16,11 +16,14 @@ function CertificateContent() {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDownloadingReport, setIsDownloadingReport] = useState(false);
-  const [generatedId, setGeneratedId] = useState("");
-
-  useEffect(() => {
-    setGeneratedId(`CEA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
-  }, []);
+  const formatCertificateId = (reportingYear: string) => {
+    const year = reportingYear ? (() => {
+      const m = reportingYear.match(/\d{4}/);
+      return m ? parseInt(m[0], 10) : new Date().getFullYear();
+    })() : new Date().getFullYear();
+    const yearKey = `${year}-${String(year + 1).slice(-2)}`;
+    return `GHGCAL${yearKey}00001`;
+  };
 
   const formatReportingPeriod = (dateStr: string, period: string) => {
     if (!dateStr) return "-";
@@ -69,7 +72,7 @@ function CertificateContent() {
         renewableElectricity: "Yes",
         renewableEnergyConsumption: "1000",
         onsiteExportedKwh: "0",
-        certificateId: generatedId,
+        certificateId: formatCertificateId("2024 - 2025"),
         gridEmissionFactor: "0.82",
         locationBasedEmissions: "17.77",
         marketBasedEmissions: "11.27",
@@ -110,7 +113,7 @@ function CertificateContent() {
         renewableElectricity: parsedData.renewableElectricity || "0",
         renewableEnergyConsumption: parsedData.renewableEnergyConsumption || "0",
         onsiteExportedKwh: parsedData.onsiteExportedKwh || "0",
-        certificateId: parsedData.id || generatedId, // Use DB ID or fallback
+        certificateId: parsedData.certificateId || formatCertificateId(parsedData.reportingYear || ""),
         // Metrics
         gridEmissionFactor: String(parsedData.gridEmissionFactor || "0"),
         locationBasedEmissions: String(parsedData.locationBasedEmissions || "0"),
@@ -129,7 +132,7 @@ function CertificateContent() {
     } finally {
       setLoading(false);
     }
-  }, [router, generatedId, searchParams]);
+  }, [router, searchParams]);
 
   if (loading || !data) {
     return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;

@@ -13,6 +13,32 @@ const Scope2Applications: CollectionConfig = {
     delete: ({ req: { user } }) => !!user,
   },
   hooks: {
+    beforeChange: [
+      // Generate certificateId on create: GHGCAL + reporting year + certificate count
+      async ({ data, operation, req }) => {
+        if (typeof window !== "undefined") return data;
+        if (operation !== "create" || !data) return data;
+        if (data.certificateId) return data;
+
+        try {
+          const reportingYearRaw = data.reportingYear || "";
+          const date = new Date(reportingYearRaw);
+          const year = isNaN(date.getTime()) ? new Date().getFullYear() : date.getFullYear();
+          const yearKey = `${year}-${String(year + 1).slice(-2)}`; // e.g. "2024-25"
+
+          const result = await req.payload.find({
+            collection: "scope2-applications",
+            limit: 0,
+          });
+          const nextNumber = (result.totalDocs || 0) + 1;
+          data.certificateId = `GHGCAL${yearKey}${String(nextNumber).padStart(5, "0")}`;
+        } catch (err) {
+          console.error("[Scope2] Failed to generate certificateId:", err);
+          data.certificateId = `GHGCAL${new Date().getFullYear()}-${String(new Date().getFullYear() + 1).slice(-2)}00001`;
+        }
+        return data;
+      },
+    ],
     afterChange: [
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async ({ doc, previousDoc, operation }: any) => {
@@ -102,6 +128,14 @@ const Scope2Applications: CollectionConfig = {
       type: "textarea",
       admin: {
         condition: (data, siblingData) => siblingData?.status === "REJECTED",
+      },
+    },
+    {
+      name: "certificateId",
+      type: "text",
+      admin: {
+        description: "Format: GHGCAL + reporting year + certificate count (e.g. GHGCAL2024-2500001)",
+        readOnly: true,
       },
     },
     // Page 1 - Box 2
@@ -418,6 +452,7 @@ const Scope2Applications: CollectionConfig = {
               facilityName: application.facilityName,
               email: application.email,
               id: application.id,
+              certificateId: application.certificateId,
               // Return all other fields needed for certificate
               state: application.state,
               siteCount: application.siteCount,

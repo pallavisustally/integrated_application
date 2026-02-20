@@ -252,178 +252,83 @@ function ChooseTimeContent() {
 
     if (isSuccess) {
         return (
-            <main
-                style={{
-                    minHeight: "100vh",
-                    backgroundColor: "#fff",
-                    padding: "40px 20px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    position: "relative"
-                }}
-            >
-                {/* Header with Logo at Top Right */}
-                <div style={{
-                    position: "absolute",
-                    top: "40px",
-                    right: "40px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end"
-                }}>
-                    <div className="flex items-center gap-2 opacity-80">
-                        <img
-                            src="/sustally-logo.png"
-                            alt="sustally"
-                            className="h-12 w-auto object-contain"
-                        />
-                        <div className="hidden md:flex gap-1 h-8 md:h-10">
-                            <div className="w-[1px] bg-gray-200 h-full"></div>
+            <main className="min-h-screen bg-white px-4 py-8 sm:px-6 sm:py-10 flex flex-col items-center">
+                {/* Header (logo then tick on mobile) */}
+                <div className="w-full max-w-3xl flex flex-col items-center text-center">
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 opacity-90 flex-wrap">
+                        <img src="/sustally-logo.png" alt="Sustally" className="h-10 sm:h-12 w-auto object-contain" />
+                        <div className="flex h-8 sm:h-10">
+                            <div className="w-px bg-gray-200 h-full" />
                         </div>
-                        <span className="font-medium text-gray-800 text-sm max-w-[200px] leading-tight text-left">
+                        <span className="font-medium text-gray-500 sm:text-gray-700 text-xs sm:text-sm max-w-[180px] sm:max-w-[220px] leading-tight text-left">
                             choose sustally as your sustainability ally
                         </span>
                     </div>
                 </div>
 
-                <div
-                    style={{
-                        width: "100%",
-                        maxWidth: "1000px",
-                        textAlign: "center",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: "24px",
-                        marginTop: "auto",
-                        marginBottom: "auto"
-                    }}
-                >
-                    {/* Success Checkmark with Glow */}
-                    <div style={{ position: "relative", marginBottom: "10px" }}>
-                        <div style={{
-                            width: "80px",
-                            height: "80px",
-                            borderRadius: "50%",
-                            backgroundColor: "#E8F5E9",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            boxShadow: "0 0 30px rgba(76, 175, 80, 0.2)"
-                        }}>
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                        </div>
+                <div className="w-full max-w-3xl flex-1 flex flex-col items-center justify-center text-center gap-6 mt-10">
+                    {/* Success Checkmark */}
+                    <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center shadow-[0_0_30px_rgba(76,175,80,0.20)]">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
                     </div>
 
-                    <h2 style={{
-                        fontSize: "32px",
-                        fontWeight: "700",
-                        color: "#1a1a1a",
-                        marginBottom: "8px",
-                        lineHeight: "1.2"
-                    }}>
-                        Thank you! Your assessment slot is booked.
-                    </h2>
-
-                    <p style={{
-                        fontSize: "16px",
-                        color: "#666",
-                        maxWidth: "400px",
-                        margin: "0 auto 30px"
-                    }}>
-                        Please check your email for the assessment link.
-                    </p>
+                    <div className="space-y-3">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                            Thank you! Your assessment slot is booked.
+                        </h2>
+                        <p className="text-sm sm:text-base text-gray-500 max-w-md mx-auto">
+                            Please check your email for the assessment link.
+                        </p>
+                    </div>
 
                     {/* Booking Time Card */}
-                    <div style={{
-                        backgroundColor: "#f8f9fa",
-                        border: "1px solid #e9ecef",
-                        borderRadius: "12px",
-                        padding: "20px 30px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "20px",
-                        marginBottom: "30px"
-                    }}>
-                        <div style={{
-                            width: "48px",
-                            height: "48px",
-                            borderRadius: "50%",
-                            backgroundColor: "#FFE0B2",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F57C00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="w-full max-w-md bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57C00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                                 <line x1="16" y1="2" x2="16" y2="6"></line>
                                 <line x1="8" y1="2" x2="8" y2="6"></line>
                                 <line x1="3" y1="10" x2="21" y2="10"></line>
                             </svg>
                         </div>
-                        <div style={{ textAlign: "left" }}>
-                            <div style={{ fontSize: "14px", color: "#666", marginBottom: "4px" }}>
+                        <div className="text-left min-w-0">
+                            <div className="text-xs sm:text-sm text-gray-500 truncate">
                                 {selectedDateIndex !== null ? formatDate(dates[selectedDateIndex].date) : ""}
                             </div>
-                            <div style={{ fontSize: "16px", fontWeight: "600", color: "#333" }}>
+                            <div className="text-sm sm:text-base font-semibold text-gray-900">
                                 {selectedTime}
                             </div>
                         </div>
                     </div>
 
-                    <div style={{
-                        fontSize: "20px",
-                        fontWeight: "600",
-                        color: "#333",
-                        marginBottom: "40px",
-                        letterSpacing: "0.5px"
-                    }}>
-                        Assessment ID: {assessmentId}
+                    <div className="text-base sm:text-lg font-semibold text-gray-900 tracking-wide">
+                        Assessment ID: <span className="font-bold">{assessmentId}</span>
                     </div>
 
                     {/* Email Confirmation Banner */}
-                    <div style={{
-                        backgroundColor: "#F1F8E9",
-                        borderRadius: "8px",
-                        padding: "16px 24px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "16px",
-                        maxWidth: "600px",
-                        width: "100%",
-                        border: "1px solid #C8E6C9"
-                    }}>
-                        <div style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
-                            backgroundColor: "#2E7D32",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0
-                        }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="w-full max-w-2xl bg-green-50 border border-green-200 rounded-2xl px-5 py-4 flex items-start sm:items-center gap-4 text-left">
+                        <div className="w-9 h-9 rounded-full bg-green-700 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                 <polyline points="22 4 12 14.01 9 11.01" />
                             </svg>
                         </div>
-                        <div style={{ textAlign: "left" }}>
-                            <p style={{ fontSize: "14px", fontWeight: "600", color: "#2E7D32", margin: "0 0 4px 0" }}>
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-green-800">
                                 A confirmation and assessment link has been sent to your registered contact email.
                             </p>
-                            <p style={{ fontSize: "12px", color: "#558B2F", margin: 0 }}>
+                            <p className="text-xs sm:text-sm text-green-700 mt-1">
                                 Check your inbox (and spam folder) for the access link.
                             </p>
                         </div>
                     </div>
                 </div>
+
                 {/* Resend Email Option */}
-                <div className="mt-8 flex justify-center">
+                <div className="mt-8 flex justify-center w-full">
                     <button
                         onClick={handleResendEmail}
                         disabled={isSendingEmail}

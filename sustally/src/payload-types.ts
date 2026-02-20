@@ -196,6 +196,10 @@ export interface Scope2Application {
   facilityName: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   rejectionReason?: string | null;
+  /**
+   * Format: GHGCAL + reporting year + certificate count (e.g. GHGCAL2024-2500001)
+   */
+  certificateId?: string | null;
   renewableProcurement: 'Yes' | 'No';
   onsiteExportedKwh?: string | null;
   netMeteringApplicable: 'Yes' | 'No';
@@ -379,6 +383,7 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   facilityName?: T;
   status?: T;
   rejectionReason?: T;
+  certificateId?: T;
   renewableProcurement?: T;
   onsiteExportedKwh?: T;
   netMeteringApplicable?: T;

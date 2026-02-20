@@ -196,32 +196,34 @@ function ScopeReviewContent() {
 
   if (isSubmitted) {
     return (
-      <main className="min-h-screen bg-[#f8f9fa] p-4 font-sans text-gray-900 flex flex-col items-center justify-center">
-        <div className="w-full max-w-6xl flex flex-col h-full bg-white rounded-3xl shadow-sm p-8 relative">
-          {/* Header with Logo */}
-          <div className="absolute top-8 right-8 flex items-center gap-6 opacity-90">
-            <img src="/sustally-logo.png" alt="Sustally" className="h-8 object-contain" />
-            <div className="h-8 w-[1px] bg-gray-300 mx-1"></div>
-            <div className="flex flex-col justify-center">
-              <span className="hidden md:block font-medium text-gray-500 text-xs max-w-[150px] leading-tight text-left">
-                Choose Sustally as your sustainability ally
+      <main className="min-h-screen bg-[#f8f9fa] px-4 py-8 sm:px-6 sm:py-10 font-sans text-gray-900 flex flex-col items-center">
+        <div className="w-full max-w-3xl bg-white rounded-3xl shadow-sm px-6 py-8 sm:px-10 sm:py-10">
+          {/* Header (logo then tick on mobile) */}
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 opacity-90 flex-wrap">
+              <img src="/sustally-logo.png" alt="Sustally" className="h-10 sm:h-12 w-auto object-contain" />
+              <div className="flex h-8 sm:h-10">
+                <div className="w-px bg-gray-200 h-full" />
+              </div>
+              <span className="font-medium text-gray-500 sm:text-gray-600 text-xs sm:text-sm max-w-[180px] sm:max-w-[240px] leading-tight text-left">
+                choose sustally as your sustainability ally
               </span>
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center text-center max-w-2xl mx-auto">
+          <div className="mt-10 flex flex-col items-center justify-center text-center">
             {/* Big Green Checkmark */}
-            <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-8 shadow-sm">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6 shadow-sm">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight">
               Thank you! Your assessment has been successfully completed.
             </h1>
 
-            <p className="text-gray-500 text-lg">
+            <p className="text-gray-500 text-sm sm:text-lg max-w-xl">
               You will get the certificate directly to your email once admin approves your assignment.
             </p>
           </div>
