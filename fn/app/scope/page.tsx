@@ -802,19 +802,38 @@ function TemplateContent() {
     });
   };
 
-  // Helper to prepare chart data
-  const prepareChartData = (data: MonthlyEntry[]) => {
-    return data
-      .filter(item => item.month && (parseFloat(item.electricityPurchased) > 0 || parseFloat(item.energyConsumption) > 0))
-      .sort((a, b) => a.month.localeCompare(b.month)) // Simple string sort works for YYYY-MM
-      .map(item => {
-        // Format month: 2024-01 -> Jan 24
-        const date = new Date(item.month + "-01");
-        const monthLabel = date.toLocaleDateString('default', { month: 'short', year: '2-digit' });
+  // Helper to prepare chart data for monthly view
+  const prepareMonthlyChartData = (gridData: MonthlyEntry[], renewData: MonthlyEntry[], hasRenewable: string, renewInput: string) => {
+    const monthMap = new Map<string, { grid: number, renewable: number }>();
 
+    gridData.forEach(item => {
+      if (item.month) {
+        const val = parseFloat(item.electricityPurchased) || 0;
+        if (!monthMap.has(item.month)) monthMap.set(item.month, { grid: 0, renewable: 0 });
+        monthMap.get(item.month)!.grid += val;
+      }
+    });
+
+    if (hasRenewable === "Yes" && renewInput === "Monthly") {
+      renewData.forEach(item => {
+        if (item.month) {
+          const val = parseFloat(item.electricityPurchased) || 0;
+          if (!monthMap.has(item.month)) monthMap.set(item.month, { grid: 0, renewable: 0 });
+          monthMap.get(item.month)!.renewable += val;
+        }
+      });
+    }
+
+    return Array.from(monthMap.entries())
+      .filter(([_, data]) => data.grid > 0 || data.renewable > 0)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([monthStr, data]) => {
+        const date = new Date(monthStr + "-01");
+        const monthLabel = date.toLocaleDateString('default', { month: 'short', year: '2-digit' });
         return {
           name: monthLabel,
-          value: parseFloat(item.electricityPurchased) || 0, // Using kWh for bar graph
+          Grid: parseFloat((data.grid / 1000000).toFixed(6)),
+          Renewable: parseFloat((data.renewable / 1000000).toFixed(6))
         };
       });
   };
@@ -962,6 +981,29 @@ function TemplateContent() {
       setIsSubmitting(false);
     }
   };
+
+  const monthlyChartData = prepareMonthlyChartData(formData.monthlyData, formData.renewableMonthlyData, formData.hasRenewableElectricity, formData.renewableEnergyActivityInput);
+
+  let derivedGridKWh = 0;
+  let derivedRenewKWh = 0;
+
+  if (formData.energyActivityInput === "Monthly") {
+    derivedGridKWh = formData.monthlyData.reduce((sum, row) => sum + (parseFloat(row.electricityPurchased) || 0), 0);
+  } else {
+    derivedGridKWh = parseFloat(formData.electricityPurchased) || 0;
+  }
+
+  if (formData.hasRenewableElectricity === "Yes") {
+    if (formData.renewableEnergyActivityInput === "Monthly") {
+      derivedRenewKWh = formData.renewableMonthlyData.reduce((sum, row) => sum + (parseFloat(row.electricityPurchased) || 0), 0);
+    } else {
+      derivedRenewKWh = parseFloat(formData.renewableElectricity) || 0;
+    }
+  }
+
+  const derivedGridGW = derivedGridKWh / 1000000;
+  const derivedRenewGW = derivedRenewKWh / 1000000;
+  const derivedTotalGW = derivedGridGW + derivedRenewGW;
 
   const renderYesNo = (name: keyof FormDataType, value: YesNo) => (
     <div className={`flex flex-col sm:flex-row h-auto sm:h-10 bg-gray-50 p-1 rounded-lg w-full border ${errors[name] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
@@ -2016,11 +2058,11 @@ function TemplateContent() {
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
-                              data={(!formData.energyGrid_kJ && !formData.energyRenew_kJ)
+                              data={(derivedTotalGW === 0)
                                 ? [{ name: "No Data", value: 1, color: "#e5e7eb" }]
                                 : [
-                                  { name: "Grid Electricity", value: parseFloat(((formData.energyGrid_kJ || 0) / 3600000000).toFixed(6)), color: "#9ca3af" },
-                                  { name: "Renewable / Contracted", value: parseFloat(((formData.energyRenew_kJ || 0) / 3600000000).toFixed(6)), color: "#22c55e" },
+                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
+                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
                                 ]
                               }
                               cx="50%"
@@ -2030,12 +2072,12 @@ function TemplateContent() {
                               paddingAngle={5}
                               dataKey="value"
                             >
-                              {(!formData.energyGrid_kJ && !formData.energyRenew_kJ) ? (
+                              {(derivedTotalGW === 0) ? (
                                 <Cell key="placeholder" fill="#e5e7eb" />
                               ) : (
                                 [
-                                  { name: "Grid Electricity", value: parseFloat(((formData.energyGrid_kJ || 0) / 3600000000).toFixed(6)), color: "#9ca3af" },
-                                  { name: "Renewable / Contracted", value: parseFloat(((formData.energyRenew_kJ || 0) / 3600000000).toFixed(6)), color: "#22c55e" },
+                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
+                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
                                 ].map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))
@@ -2046,15 +2088,15 @@ function TemplateContent() {
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                           <div className="text-center">
-                            <span className="text-lg font-bold text-gray-900 block">{((formData.energyTotal_kJ || 0) / 3600000000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="text-lg font-bold text-gray-900 block">{derivedTotalGW.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             <span className="text-[10px] text-gray-500 uppercase">GWh Total</span>
                           </div>
                         </div>
                       </div>
                       <div className="mt-2 text-xs space-y-1">
                         {[
-                          { name: "Grid Electricity", value: ((formData.energyGrid_kJ || 0) / 3600000000).toFixed(4) + " GWh", color: "#9ca3af" },
-                          { name: "Renewable / Contracted", value: ((formData.energyRenew_kJ || 0) / 3600000000).toFixed(4) + " GWh", color: "#22c55e" },
+                          { name: "Grid Electricity", value: derivedGridGW.toFixed(4) + " GWh", color: "#9ca3af" },
+                          { name: "Renewable / Contracted", value: derivedRenewGW.toFixed(4) + " GWh", color: "#22c55e" },
                         ].map((item, i) => (
                           <div key={i} className="flex justify-between items-center">
                             <div className="flex items-center gap-1.5">
@@ -2070,9 +2112,9 @@ function TemplateContent() {
                     {/* Bar Chart Column */}
                     <div className="flex flex-col h-[250px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        {formData.energyActivityInput === "Monthly" && prepareChartData(formData.monthlyData).length > 0 ? (
+                        {formData.energyActivityInput === "Monthly" && monthlyChartData.length > 0 ? (
                           <BarChart
-                            data={prepareChartData(formData.monthlyData)}
+                            data={monthlyChartData}
                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                           >
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -2092,17 +2134,23 @@ function TemplateContent() {
                               contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                             />
                             <Bar
-                              dataKey="value"
+                              dataKey="Grid"
                               fill="#6366F1"
                               radius={[4, 4, 0, 0]}
-                              barSize={Math.max(20, 300 / prepareChartData(formData.monthlyData).length)} // Dynamic sizing
+                              barSize={Math.max(15, 200 / monthlyChartData.length)}
+                            />
+                            <Bar
+                              dataKey="Renewable"
+                              fill="#22c55e"
+                              radius={[4, 4, 0, 0]}
+                              barSize={Math.max(15, 200 / monthlyChartData.length)}
                             />
                           </BarChart>
                         ) : (
                           <BarChart
                             data={[
-                              { name: "Grid", value: parseFloat(((formData.energyGrid_kJ || 0) / 3600000000).toFixed(6)), color: "#9ca3af" },
-                              { name: "Renewable", value: parseFloat(((formData.energyRenew_kJ || 0) / 3600000000).toFixed(6)), color: "#22c55e" },
+                              { name: "Grid", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
+                              { name: "Renewable", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
                             ]}
                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                           >
@@ -2113,8 +2161,8 @@ function TemplateContent() {
                             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                               {
                                 [
-                                  { name: "Grid", value: parseFloat(((formData.energyGrid_kJ || 0) / 3600000000).toFixed(6)), color: "#9ca3af" },
-                                  { name: "Renewable", value: parseFloat(((formData.energyRenew_kJ || 0) / 3600000000).toFixed(6)), color: "#22c55e" },
+                                  { name: "Grid", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
+                                  { name: "Renewable", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
                                 ].map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))

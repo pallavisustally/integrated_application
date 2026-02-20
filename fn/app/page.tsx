@@ -509,11 +509,11 @@ export default function HomePage() {
                 <label className="block text-xs font-bold text-gray-700 mb-2">
                   How many sites do you have?
                 </label>
-                <div className="flex flex-col sm:flex-row h-auto sm:h-10 bg-gray-100 p-1 rounded-lg w-full max-w-sm">
+                <div className="flex flex-col sm:flex-row h-auto sm:h-10 bg-gray-100 p-1 rounded-lg w-full">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, siteCount: "Single site" }))}
-                    className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.siteCount === "Single site"
+                    className={`flex-1 h-full py-2 sm:py-0 flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.siteCount === "Single site"
                       ? "bg-indigo-500 text-white shadow-md"
                       : "text-gray-500 hover:text-gray-900"
                       }`}
@@ -523,7 +523,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, siteCount: "Multiple sites" }))}
-                    className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.siteCount === "Multiple sites"
+                    className={`flex-1 h-full py-2 sm:py-0 flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.siteCount === "Multiple sites"
                       ? "bg-indigo-500 text-white shadow-sm border border-gray-200"
                       : "text-gray-500 hover:text-gray-900"
                       }`}
@@ -563,7 +563,7 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, country: "India" }))}
-                      className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.country === "India"
+                      className={`flex-1 h-full py-2 sm:py-0 flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.country === "India"
                         ? "bg-indigo-500 text-white"
                         : "text-gray-500 hover:text-gray-900"
                         }`}
@@ -573,7 +573,7 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, country: "Other" }))}
-                      className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.country === "Other"
+                      className={`flex-1 h-full py-2 sm:py-0 flex items-center justify-center rounded-md text-sm font-bold transition-all ${formData.country === "Other"
                         ? "bg-indigo-500 text-white"
                         : "text-gray-500 hover:text-gray-900"
                         }`}

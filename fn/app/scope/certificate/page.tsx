@@ -54,19 +54,47 @@ function CertificateContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const isPreview = searchParams.get("preview") === "true";
+
+    if (isPreview) {
+      // Mock data for preview
+      setData({
+        state: "Maharashtra",
+        siteCount: "Single Site",
+        facilityName: "Demo Manufacturing Ltd.",
+        reportingYear: "2024 - 2025",
+        rawReportingYear: "2024",
+        reportingPeriod: "Annually",
+        scopeBoundaryNotes: "Operational Control",
+        renewableElectricity: "Yes",
+        renewableEnergyConsumption: "1000",
+        onsiteExportedKwh: "0",
+        certificateId: generatedId,
+        gridEmissionFactor: "0.82",
+        locationBasedEmissions: "17.77",
+        marketBasedEmissions: "11.27",
+        energyGrid: "72000000000", // ~20 GWh in kJ
+        energyRenew: "36000000", // ~0.01 GWh in kJ
+        energyTotal: "72036000000",
+        electricityPurchased: "20000", // 20k units annual
+        spendAmount: "25500000", // 2.55 Cr
+        trackingType: "Spend amount",
+      });
+      setLoading(false);
+      return;
+    }
+
     // Check for session data
     const storedUser = sessionStorage.getItem("scope2_user");
 
-    const isPreview = searchParams.get("preview") === "true";
-
-    if (!storedUser && !isPreview) {
+    if (!storedUser) {
       // Not authenticated, redirect to login
       router.push("/dashboard");
       return;
     }
 
     try {
-      const parsedData = JSON.parse(storedUser || "{}");
+      const parsedData = JSON.parse(storedUser);
       const rawReportingYear = parsedData.reportingYear || "";
       const rawReportingPeriod = parsedData.reportingPeriod || "Annually";
       const formattedPeriod = formatReportingPeriod(rawReportingYear, rawReportingPeriod);
@@ -97,69 +125,47 @@ function CertificateContent() {
       });
     } catch (e) {
       console.error("Failed to parse session data", e);
-      if (!isPreview) router.push("/dashboard");
+      router.push("/dashboard");
     } finally {
-      if (isPreview && (!data || loading)) {
-        // Mock data for preview
-        setData({
-          state: "Maharashtra",
-          siteCount: "Single Site",
-          facilityName: "Demo Manufacturing Ltd.",
-          reportingYear: "2024 - 2025",
-          rawReportingYear: "2024",
-          reportingPeriod: "Annually",
-          scopeBoundaryNotes: "Operational Control",
-          renewableElectricity: "Yes",
-          renewableEnergyConsumption: "1000",
-          onsiteExportedKwh: "0",
-          certificateId: generatedId,
-          gridEmissionFactor: "0.82",
-          locationBasedEmissions: "17.77",
-          marketBasedEmissions: "11.27",
-          energyGrid: "72000000000", // ~20 GWh in kJ
-          energyRenew: "36000000", // ~0.01 GWh in kJ
-          energyTotal: "72036000000",
-          electricityPurchased: "20000", // 20k units annual
-          spendAmount: "25500000", // 2.55 Cr
-          trackingType: "Spend amount",
-        });
-      }
       setLoading(false);
     }
-  }, [router, generatedId]);
+  }, [router, generatedId, searchParams]);
 
   if (loading || !data) {
     return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;
   }
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  // Convert kJ to GWh for display (1 GWh = 3,600,000,000 kJ)
-  let energyTotalGWhRaw = parseFloat(data.energyTotal) / 3600000000;
+  // Calculate from kWh inputs directly (matching scope/page.tsx logic)
+  // This ensures the pie chart uses the same calculation as the scope 2 assessment page
+  let derivedGridKWh = 0;
+  let derivedRenewKWh = 0;
 
-  // Fallback: If kJ is 0 but we have input units or spend
-  if (energyTotalGWhRaw === 0) {
-    if (data.electricityPurchased) {
-      // Assume input is kWh. 1 GWh = 1,000,000 kWh
-      const kwh = parseFloat(data.electricityPurchased) * (data.reportingPeriod === "Monthly" ? 12 : 1);
-      energyTotalGWhRaw = kwh / 1000000;
-    } else if (data.spendAmount) {
-      // Estimate from spend. Avg tariff ~7.5 INR/kWh? This is just for visual fallback if everything fails.
-      // Better to show 0 than wrong data, but user asked why values are not coming.
-      // Let's rely on kWh input if available.
-    }
-  }
+  // Get grid electricity from kWh input (electricityPurchased)
+  derivedGridKWh = parseFloat(data.electricityPurchased) || 0;
 
-  const energyTotalGWh = energyTotalGWhRaw.toFixed(2);
-  const energyRenewGWh = (parseFloat(data.energyRenew) / 3600000000).toFixed(2);
+  // Get renewable electricity from kWh input (renewableEnergyConsumption or renewableElectricity)
+  // Check both fields as they might be named differently
+  const renewKwhValue = parseFloat(data.renewableEnergyConsumption) || parseFloat(data.renewableElectricity) || 0;
+  derivedRenewKWh = renewKwhValue;
 
-  // Mock data for charts - Updated to reflect ratio of Grid vs Renew
-  const gridEnergyGWh = energyTotalGWhRaw - parseFloat(energyRenewGWh);
-  const renewEnergyGWh = parseFloat(energyRenewGWh);
+  // Convert kWh to GWh (matching scope/page.tsx: derivedGridGW = derivedGridKWh / 1000000)
+  const derivedGridGW = derivedGridKWh / 1000000;
+  const derivedRenewGW = derivedRenewKWh / 1000000;
+  const derivedTotalGW = derivedGridGW + derivedRenewGW;
 
+  // For display in top cards (GWh)
+  const energyTotalGWh = derivedTotalGW.toFixed(2);
+  const energyRenewGWh = derivedRenewGW.toFixed(2);
+
+  // For pie chart - use GWh values (matching scope/page.tsx)
   const chartData = [
-    { name: "Grid Electricity", value: parseFloat(gridEnergyGWh.toFixed(2)), color: "#9ca3af" },
-    { name: "Renewable / Contracted", value: parseFloat(renewEnergyGWh.toFixed(2)), color: "#22c55e" },
+    { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
+    { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
   ];
+
+  // For pie chart center display - convert GWh to MWh for display
+  const energyTotalMWh = (derivedTotalGW * 1000).toFixed(2);
 
   const handleDownloadCertificate = async () => {
     if (certificateRef.current === null) {
@@ -241,44 +247,65 @@ function CertificateContent() {
 
         {/* Level 1: Metrics */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 shrink-0 h-auto lg:h-[15%] min-h-[100px]">
-          {/* Metric 1: Total Emissions (Market Based) */}
-          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-            <div className="flex justify-between items-start">
-              <p className="text-xs font-medium text-gray-500">Total Scope 2 Emissions (MB)</p>
-              <div className="p-1.5 bg-teal-50 rounded-md"><svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+          {/* Metric 1: Total Scope 2 Emissions */}
+          <div className="bg-white p-4 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-xs font-medium text-gray-500">Total Scope 2 Emissions</p>
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-xl font-bold text-gray-900">{parseFloat(data.marketBasedEmissions).toFixed(2)} <span className="text-xs font-normal text-gray-500">tCO₂e</span></h3>
+              <h3 className="text-2xl font-bold text-gray-900">{parseFloat(data.marketBasedEmissions).toFixed(2)}</h3>
+              <span className="text-xs font-normal text-gray-500">tCO₂e</span>
             </div>
           </div>
           {/* Metric 2: Location Based */}
-          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-            <div className="flex justify-between items-start">
+          <div className="bg-white p-4 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
               <p className="text-xs font-medium text-gray-500">Location-based Emissions</p>
-              <div className="p-1.5 bg-blue-50 rounded-md"><svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></div>
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-xl font-bold text-gray-900">{parseFloat(data.locationBasedEmissions).toFixed(2)} <span className="text-xs font-normal text-gray-500">tCO₂e</span></h3>
+              <h3 className="text-2xl font-bold text-gray-900">{parseFloat(data.locationBasedEmissions).toFixed(2)}</h3>
+              <span className="text-xs font-normal text-gray-500">tCO₂e</span>
             </div>
           </div>
           {/* Metric 3: Renewable Energy */}
-          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-            <div className="flex justify-between items-start">
+          <div className="bg-white p-4 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
               <p className="text-xs font-medium text-gray-500">Renewable Energy</p>
-              <div className="p-1.5 bg-yellow-50 rounded-md"><svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+              <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+              </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-xl font-bold text-gray-900">{energyRenewGWh} <span className="text-xs font-normal text-gray-500">GWh</span></h3>
+              <h3 className="text-2xl font-bold text-gray-900">{energyRenewGWh}</h3>
+              <span className="text-xs font-normal text-gray-500">GWh</span>
             </div>
           </div>
           {/* Metric 4: Total Energy */}
-          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-            <div className="flex justify-between items-start">
+          <div className="bg-white p-4 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
               <p className="text-xs font-medium text-gray-500">Total Electricity Consumed</p>
-              <div className="p-1.5 bg-cyan-50 rounded-md"><svg className="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-xl font-bold text-gray-900">{energyTotalGWh} <span className="text-xs font-normal text-gray-500">GWh</span></h3>
+              <h3 className="text-2xl font-bold text-gray-900">{energyTotalGWh}</h3>
+              <span className="text-xs font-normal text-gray-500">GWh</span>
             </div>
           </div>
         </div>
@@ -309,21 +336,35 @@ function CertificateContent() {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
-                  <span className="text-lg font-bold text-gray-900 block">{parseFloat(energyTotalGWh).toLocaleString()}</span>
+                  <span className="text-lg font-bold text-gray-900 block">{derivedTotalGW.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   <span className="text-[10px] text-gray-500 uppercase">GWh Total</span>
                 </div>
               </div>
             </div>
             <div className="mt-2 text-xs space-y-1">
-              {chartData.map((item, i) => (
-                <div key={i} className="flex justify-between items-center">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
-                    <span className="text-gray-600">{item.name}</span>
+              {chartData.map((item, i) => {
+                // Convert GWh to MWh for display
+                const valueMWh = (item.value * 1000).toFixed(2);
+                const percentage = derivedTotalGW > 0 ? ((item.value / derivedTotalGW) * 100).toFixed(0) : "0";
+                return (
+                  <div key={i} className="flex justify-between items-center">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
+                      <span className="text-gray-600">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold text-gray-900 block">{parseFloat(valueMWh).toLocaleString()} MWh</span>
+                      <span className="text-[10px] text-gray-500">{percentage}% of total</span>
+                    </div>
                   </div>
-                  <span className="font-semibold text-gray-900">{item.value}</span>
+                );
+              })}
+              <div className="pt-1 mt-1 border-t border-gray-100">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 font-medium">Total Consumption</span>
+                  <span className="font-semibold text-gray-900">{parseFloat(energyTotalMWh).toLocaleString()} MWh</span>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
 

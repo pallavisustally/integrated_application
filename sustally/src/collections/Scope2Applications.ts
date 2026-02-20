@@ -338,16 +338,19 @@ const Scope2Applications: CollectionConfig = {
 
           console.log(`[OTP] DB Update completed in ${Date.now() - start}ms`);
 
-          // Fire and forget email sending
-          // Note: In some serverless environments, this might be terminated early.
-          req.payload.sendEmail({
-            to: email,
-            subject: "Your Dashboard Login OTP",
-            html: `<p>Your OTP for dashboard access is: <strong>${otp}</strong></p><p>This OTP expires in 10 minutes.</p>`,
-          }).then(() => console.log(`[OTP] Email sent in background in ${Date.now() - start}ms`))
-            .catch(err => console.error(`[OTP] Background email failed:`, err));
-
+          // Return response immediately - don't wait for email
           console.timeEnd("otp-process");
+          
+          // Send email asynchronously in the next event loop tick to ensure non-blocking
+          setImmediate(() => {
+            req.payload.sendEmail({
+              to: email,
+              subject: "Your Dashboard Login OTP",
+              html: `<p>Your OTP for dashboard access is: <strong>${otp}</strong></p><p>This OTP expires in 10 minutes.</p>`,
+            })
+              .then(() => console.log(`[OTP] Email sent successfully to ${email} in ${Date.now() - start}ms`))
+              .catch(err => console.error(`[OTP] Background email failed for ${email}:`, err));
+          });
 
           return Response.json({ success: true, message: "OTP sent to email" });
         } catch (error) {

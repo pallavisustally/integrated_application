@@ -46,8 +46,7 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
     const pvYield = stateIrradiance * pr;
     const pvSize = solarEnergyTarget / pvYield;
 
-    const loadAvg = gridConsumption / (365 * 24);
-    const batteryCapacity = loadAvg * backupHours;
+    const batteryCapacity = pvSize * backupHours;
 
     const roofArea = pvSize * SOLAR_CONSTANTS.Area_per_kW;
 
