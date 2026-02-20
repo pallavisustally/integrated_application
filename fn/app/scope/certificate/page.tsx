@@ -139,27 +139,42 @@ function CertificateContent() {
   }
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  // Calculate from kWh inputs directly (matching scope/page.tsx logic)
-  // This ensures the pie chart uses the same calculation as the scope 2 assessment page
-  let derivedGridKWh = 0;
-  let derivedRenewKWh = 0;
+  // Use energyGrid_kJ and energyRenew_kJ when available (canonical values from scope form)
+  // Conversion: 1 GWh = 3,600,000,000 kJ
+  const energyGridKj = parseFloat(data.energyGrid) || 0;
+  const energyRenewKj = parseFloat(data.energyRenew) || 0;
+  const energyTotalKj = parseFloat(data.energyTotal) || 0;
 
-  // Get grid electricity from kWh input (electricityPurchased)
-  derivedGridKWh = parseFloat(data.electricityPurchased) || 0;
+  let derivedGridGW: number;
+  let derivedRenewGW: number;
 
-  // Get renewable electricity from kWh input (renewableEnergyConsumption or renewableElectricity)
-  // Check both fields as they might be named differently
-  const renewKwhValue = parseFloat(data.renewableEnergyConsumption) || parseFloat(data.renewableElectricity) || 0;
-  derivedRenewKWh = renewKwhValue;
+  if (energyTotalKj > 0 || energyGridKj > 0 || energyRenewKj > 0) {
+    derivedGridGW = energyGridKj / 3600000000;
+    derivedRenewGW = energyRenewKj / 3600000000;
+  } else {
+    // Fallback to kWh inputs (electricityPurchased, renewableElectricity)
+    const derivedGridKWh = parseFloat(data.electricityPurchased) || 0;
+    const derivedRenewKWh = parseFloat(data.renewableElectricity) || parseFloat(data.renewableEnergyConsumption) || 0;
+    derivedGridGW = derivedGridKWh / 1000000;
+    derivedRenewGW = derivedRenewKWh / 1000000;
+  }
 
-  // Convert kWh to GWh (matching scope/page.tsx: derivedGridGW = derivedGridKWh / 1000000)
-  const derivedGridGW = derivedGridKWh / 1000000;
-  const derivedRenewGW = derivedRenewKWh / 1000000;
   const derivedTotalGW = derivedGridGW + derivedRenewGW;
 
-  // For display in top cards (GWh)
-  const energyTotalGWh = derivedTotalGW.toFixed(2);
-  const energyRenewGWh = derivedRenewGW.toFixed(2);
+  // Format energy for display: use MWh when value < 0.01 GWh to avoid "0.00"
+  const formatEnergyDisplay = (gwh: number) => {
+    if (gwh >= 0.01) return { value: gwh.toFixed(2), unit: "GWh" };
+    const mwh = gwh * 1000;
+    return { value: mwh.toFixed(2), unit: "MWh" };
+  };
+  const totalDisplay = formatEnergyDisplay(derivedTotalGW);
+  const renewDisplay = formatEnergyDisplay(derivedRenewGW);
+
+  // For display in top cards
+  const energyTotalGWh = totalDisplay.value;
+  const energyRenewGWh = renewDisplay.value;
+  const energyTotalUnit = totalDisplay.unit;
+  const energyRenewUnit = renewDisplay.unit;
 
   // For pie chart - use GWh values (matching scope/page.tsx)
   const chartData = [
@@ -293,7 +308,7 @@ function CertificateContent() {
             </div>
             <div className="flex items-baseline gap-2">
               <h3 className="text-2xl font-bold text-gray-900">{energyRenewGWh}</h3>
-              <span className="text-xs font-normal text-gray-500">GWh</span>
+              <span className="text-xs font-normal text-gray-500">{energyRenewUnit}</span>
             </div>
           </div>
           {/* Metric 4: Total Energy */}
@@ -308,7 +323,7 @@ function CertificateContent() {
             </div>
             <div className="flex items-baseline gap-2">
               <h3 className="text-2xl font-bold text-gray-900">{energyTotalGWh}</h3>
-              <span className="text-xs font-normal text-gray-500">GWh</span>
+              <span className="text-xs font-normal text-gray-500">{energyTotalUnit}</span>
             </div>
           </div>
         </div>
@@ -339,8 +354,8 @@ function CertificateContent() {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
-                  <span className="text-lg font-bold text-gray-900 block">{derivedTotalGW.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  <span className="text-[10px] text-gray-500 uppercase">GWh Total</span>
+                  <span className="text-lg font-bold text-gray-900 block">{energyTotalGWh}</span>
+                  <span className="text-[10px] text-gray-500 uppercase">{energyTotalUnit} Total</span>
                 </div>
               </div>
             </div>
