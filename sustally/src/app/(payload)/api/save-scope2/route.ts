@@ -119,6 +119,13 @@ export const POST = async (request: Request) => {
       // Assign uploaded Media IDs
       renewableSupportingEvidenceFile: renewableEvidenceId,
       renewableEnergySourceDescription: data.renewableEnergySourceDescription || '',
+      // Energy inputs for Cost Saving Card (grid consumption / spend)
+      electricityPurchased: data.electricityPurchased != null && data.electricityPurchased !== ''
+        ? parseFloat(String(data.electricityPurchased))
+        : null,
+      spendAmount: data.spendAmount != null && data.spendAmount !== ''
+        ? parseFloat(String(data.spendAmount))
+        : null,
       // Calculated Fields
       gridEmissionFactor: parseFloat(String(data.gridEmissionFactor)) || null,
       locationBasedEmissions: parseFloat(String(data.locationBasedEmissions)) || null,

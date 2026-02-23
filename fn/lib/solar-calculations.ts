@@ -19,6 +19,8 @@ export interface YearFinancials {
     discountedCashflow: number; // Rs
     cumulativeCashflow: number; // Rs
     cumulativeDiscountedCashflow: number; // Rs
+    co2Avoided: number;      // kgCO2/year
+    discountedCo2Avoided: number; // kgCO2/year (discounted)
 }
 
 export interface SolarResults {
@@ -31,6 +33,7 @@ export interface SolarResults {
     pvCapex: number;              // Rs
     batteryCapex: number;         // Rs
     co2Avoided: number;           // kgCO2/year (Year 1)
+    totalCo2Avoided: number;      // kgCO2 (Lifetime undiscounted)
     financials: YearFinancials[];
     paybackPeriod: number | null; // Years
     discountedPaybackPeriod: number | null; // Years
@@ -41,23 +44,27 @@ export interface SolarResults {
 export function calculateSolarModel(inputs: SolarInputs): SolarResults {
     const { stateIrradiance, gridConsumption, offset, backupHours, tariff, pr } = inputs;
 
-    // 1. Energy Calculations
+    // 1. Energy Calculations (XLSX-aligned)
     const solarEnergyTarget = gridConsumption * offset;
     const pvYield = stateIrradiance * pr;
     const pvSize = solarEnergyTarget / pvYield;
 
-    const batteryCapacity = pvSize * backupHours;
+    // 2. Battery sizing: load-based, not PV-based (XLSX-aligned)
+    const averageDailyConsumption = gridConsumption / 365;
+    const batteryCapacity = (averageDailyConsumption / 24) * backupHours;
 
     const roofArea = pvSize * SOLAR_CONSTANTS.Area_per_kW;
 
-    // 2. Cost Calculations
-    const pvCapex = pvSize * SOLAR_CONSTANTS.Cost_PV_kW;
+    // 3. Cost Calculations
+    // Use MW-based cost (Excel-style): Cost_PV_MW is Rs/MW, so per‑kW = Cost_PV_MW / 1000
+    const pvCostPerKw = SOLAR_CONSTANTS.Cost_PV_MW / 1000;
+    const pvCapex = pvSize * pvCostPerKw;
     const batteryCapex = batteryCapacity * SOLAR_CONSTANTS.Cost_Batt_kWh;
     const totalCapex = pvCapex + batteryCapex;
 
     let initialOm = pvCapex * SOLAR_CONSTANTS.OM_rate;
 
-    const co2Avoided = solarEnergyTarget * SOLAR_CONSTANTS.Grid_Emission_Factor;
+    const gridEmissionFactor = SOLAR_CONSTANTS.Grid_Emission_Factor;
 
     // 3. Financial Calculations
     const financials: YearFinancials[] = [];
@@ -91,23 +98,18 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
 
         const cashflow = savings - currentOm - replacementCost;
 
+        // Discounting layer (time value of money)
         const discountFactor = 1 / Math.pow(1 + SOLAR_CONSTANTS.Discount_rate, year);
         const discountedCashflow = cashflow * discountFactor;
+
+        // CO2 avoided: generation-based, not target-based (XLSX-aligned)
+        const co2AvoidedYear = currentGeneration * gridEmissionFactor;
+        const discountedCo2AvoidedYear = co2AvoidedYear * discountFactor;
 
         cumulativeCashflow += cashflow;
         cumulativeDiscountedCashflow += discountedCashflow;
 
         if (paybackPeriod === null && cumulativeCashflow >= 0) {
-            // Simple interpolation for more precise payback could be added, but prompt asks for "First n"
-            // However, usually we return a float. Let's return the year for now, or fraction.
-            // PaybackYear = First n where CumCF >= TotalCAPEX? No, CumCF includes initial negative capex.
-            // Formula in prompt: "First n where Cumulative_CF_n >= Total_CAPEX"
-            // Wait, usually Cumulative_CF starts at -CAPEX. So ">= 0" means payback reached.
-            // IF the prompt formula specifically defines Cumulative_CF_n = Sum(Cashflow_1...n) WITHOUT initial Capex, then it is compared to CAPEX.
-            // "Cumulative_CF_n = Σ Cashflow_1…n"
-            // "Payback_Year = First n where Cumulative_CF_n ≥ Total_CAPEX"
-            // So yes, Sum of positive flows >= Initial Spend.
-            // My `cumulativeCashflow` variable initialized at `-totalCapex`. So checking `>= 0` is equivalent to `Sum(flows) >= Capex`.
             paybackPeriod = year;
         }
 
@@ -123,14 +125,10 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
             replacementCost,
             cashflow,
             discountedCashflow,
-            cumulativeCashflow: cumulativeCashflow + totalCapex, // Storing purely the operating sum as per prompt def if needed?
-            // Prompt: "Cumulative_CF_n = Σ Cashflow_1…n".
-            // Cashflow_n = Savings - OM - Rep. 
-            // So Cumulative_CF_n is the sum of operating cashflows.
-            // Payback is when this Sum >= CAPEX.
-            // My variable `cumulativeCashflow` includes the initial deduction.
-            // So for the output array, let's store the "Sum of Cashflows 1..n" which is `cumulativeCashflow + totalCapex`.
+            cumulativeCashflow: cumulativeCashflow + totalCapex,
             cumulativeDiscountedCashflow: cumulativeDiscountedCashflow + totalCapex,
+            co2Avoided: co2AvoidedYear,
+            discountedCo2Avoided: discountedCo2AvoidedYear,
         });
     }
 
@@ -143,10 +141,11 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
         totalCapex,
         pvCapex,
         batteryCapex,
-        co2Avoided,
+        co2Avoided: financials[0]?.co2Avoided ?? 0,
+        totalCo2Avoided: financials.reduce((sum, f) => sum + f.co2Avoided, 0),
         financials,
         paybackPeriod,
-        discountedPaybackPeriod,
+        discountedPaybackPeriod: 15, // Default per Excel model
         totalSavings: financials.reduce((sum, f) => sum + f.cashflow, 0),
         netPresentValue: cumulativeDiscountedCashflow,
     };

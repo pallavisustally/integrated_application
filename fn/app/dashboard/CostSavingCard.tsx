@@ -17,20 +17,26 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
         const irradiance = stateData ? stateData.irradiance : 1500; // Default fallback
         const tariff = stateData ? stateData.tariff : 7; // Default fallback
 
-        // Determine grid consumption
-        // If electricityPurchased (units) is available, use it.
-        // If not, but spendAmount is available, estimate units = spend / tariff.
+        // Determine grid consumption (annual kWh)
+        // 1. electricityPurchased (units) - primary source
+        // 2. spendAmount - estimate units = spend / tariff
+        // 3. energyGrid_kJ - derive from energy data (1 kWh = 3600 kJ)
         let annualConsumption = 0;
-        if (userData.electricityPurchased) {
-            annualConsumption = parseFloat(userData.electricityPurchased);
+        if (userData.electricityPurchased != null && userData.electricityPurchased !== '') {
+            annualConsumption = parseFloat(String(userData.electricityPurchased));
             if (userData.reportingPeriod === 'Monthly') annualConsumption *= 12;
-        } else if (userData.spendAmount) {
-            const annualSpend = parseFloat(userData.spendAmount) * (userData.reportingPeriod === 'Monthly' ? 12 : 1);
-            annualConsumption = annualSpend / tariff;
+        } else if (userData.spendAmount != null && userData.spendAmount !== '') {
+            const annualSpend = parseFloat(String(userData.spendAmount)) * (userData.reportingPeriod === 'Monthly' ? 12 : 1);
+            annualConsumption = tariff > 0 ? annualSpend / tariff : 0;
+        } else {
+            // Fallback: derive from energyGrid_kJ (certificate page uses energyGrid, verify-otp uses energyGrid_kJ)
+            const energyGridKj = parseFloat(String(userData.energyGrid || userData.energyGrid_kJ || '0')) || 0;
+            if (energyGridKj > 0) {
+                annualConsumption = energyGridKj / 3600; // 1 kWh = 3600 kJ
+            }
         }
 
-        // Avoid NaN
-        if (isNaN(annualConsumption) || annualConsumption === 0) annualConsumption = 10000; // Fallback for preview
+        if (isNaN(annualConsumption) || annualConsumption === 0) annualConsumption = 10000; // Last-resort fallback for preview
 
         const inputs = {
             stateIrradiance: irradiance,

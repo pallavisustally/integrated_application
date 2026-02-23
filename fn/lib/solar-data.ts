@@ -12,7 +12,8 @@ export interface StateData {
 
 export const SOLAR_CONSTANTS = {
     Area_per_kW: 10,       // m2/kW (Approximate standard)
-    Cost_PV_kW: 45000,     // Rs/kW (Avg of 3-10kW range)
+    Cost_PV_kW: 42300,     // Rs/kW (derived from 4.23 Cr/MW)
+    Cost_PV_MW: 4.23e7,    // Rs/MW (Excel-aligned: 4.23 crore per MW)
     Cost_Batt_kWh: 12000,  // Rs/kWh (Estimated from example)
     PV_Degradation: 0.01,  // 1% per year
     OM_rate: 0.01,         // 1% of CAPEX
