@@ -57,24 +57,29 @@ export const POST = async (request: Request) => {
 
     // Helper to upload file to Media collection
     const uploadFile = async (file: File) => {
-      if (!file) return null
+      try {
+        if (!file) return null
 
-      const arrayBuffer = await file.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
+        const arrayBuffer = await file.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
 
-      const result = await payload.create({
-        collection: 'media',
-        data: {
-          alt: file.name,
-        },
-        file: {
-          data: buffer,
-          name: file.name,
-          mimetype: file.type,
-          size: file.size,
-        },
-      })
-      return result.id
+        const result = await payload.create({
+          collection: 'media',
+          data: {
+            alt: file.name || 'uploaded_evidence',
+          },
+          file: {
+            data: buffer,
+            name: file.name || 'evidence_file',
+            mimetype: file.type || 'application/octet-stream',
+            size: file.size || buffer.length,
+          },
+        })
+        return result.id
+      } catch (uploadErr) {
+        console.warn('Could not upload file to media collection:', uploadErr)
+        return null // Return null so the main submission still succeeds instead of 500 crashing
+      }
     }
 
     // Handle File Uploads

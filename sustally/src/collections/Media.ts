@@ -18,7 +18,7 @@ export const Media: CollectionConfig = {
     },
   ],
   upload: {
-    staticDir: path.resolve(dirname, '../../media'),
+    staticDir: process.env.VERCEL ? '/tmp/media' : path.resolve(dirname, '../../media'),
     imageSizes: [
       {
         name: 'thumbnail',

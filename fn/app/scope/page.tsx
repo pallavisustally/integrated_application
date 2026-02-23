@@ -703,68 +703,62 @@ function TemplateContent() {
         }
       }
 
-      if (formData.renewableProcurement === "Yes") {
-        if (!formData.hasRenewableElectricity) {
-          newErrors.hasRenewableElectricity = "Required";
-          missingFields.push("Renewable Electricity (Yes/No)");
-        }
+      if (!formData.hasRenewableElectricity) {
+        newErrors.hasRenewableElectricity = "Required";
+        missingFields.push("Renewable Electricity (Yes/No)");
+      }
 
-        // Page 2 - Box 2 Validation
-        if (page === 2 && formData.hasRenewableElectricity === "Yes") {
-          if (formData.renewableEnergyActivityInput === "Monthly") {
-            let hasError = false;
-            formData.renewableMonthlyData.forEach((row) => {
-              if (!row.month) {
-                hasError = true;
-                // You might want to set specific row errors here if your UI supports it,
-                // but for now we'll just flag the general error.
-              }
-              if (!row.electricityPurchased || !isValidNumber(row.electricityPurchased)) {
-                hasError = true;
-              }
-            });
+      // Page 2 - Box 2 Validation
+      if (page === 2 && formData.hasRenewableElectricity === "Yes") {
+        if (formData.renewableEnergyActivityInput === "Monthly") {
+          let hasError = false;
+          formData.renewableMonthlyData.forEach((row) => {
+            if (!row.month) {
+              hasError = true;
+              // You might want to set specific row errors here if your UI supports it,
+              // but for now we'll just flag the general error.
+            }
+            if (!row.electricityPurchased || !isValidNumber(row.electricityPurchased)) {
+              hasError = true;
+            }
+          });
 
-            if (hasError) {
-              // You might want to assign specific error keys to highlight rows
-              // using a naming convention like `renewable_monthly_${row.id}_field`
-              // For now, let's just push a general message if we don't have row-level error display logic ready for renewable
-              // OR better: implement row-level validation keys
-              missingFields.push("Renewable Monthly Data (Check all fields)");
-              // To make it robust:
-              /*
-              formData.renewableMonthlyData.forEach(row => {
-                 if(!row.month) newErrors[`renewable_monthly_${row.id}_month`] = "Required";
-                 if(!row.electricityPurchased) newErrors[`renewable_monthly_${row.id}_electricityPurchased`] = "Required";
-              })
-              */
-            }
-          } else {
-            // Yearly Validation
-            if (!formData.renewableElectricity?.trim()) {
-              newErrors.renewableElectricity = "Required";
-              missingFields.push("Renewable Electricity");
-            } else if (!isValidNumber(formData.renewableElectricity)) {
-              newErrors.renewableElectricity = "Invalid number";
-              missingFields.push("Renewable Electricity (Invalid)");
-            }
+          if (hasError) {
+            // You might want to assign specific error keys to highlight rows
+            // using a naming convention like `renewable_monthly_${row.id}_field`
+            // For now, let's just push a general message if we don't have row-level error display logic ready for renewable
+            // OR better: implement row-level validation keys
+            missingFields.push("Renewable Monthly Data (Check all fields)");
+            // To make it robust:
+            /*
+            formData.renewableMonthlyData.forEach(row => {
+               if(!row.month) newErrors[`renewable_monthly_${row.id}_month`] = "Required";
+               if(!row.electricityPurchased) newErrors[`renewable_monthly_${row.id}_electricityPurchased`] = "Required";
+            })
+            */
+          }
+        } else {
+          // Yearly Validation
+          if (!formData.renewableElectricity?.trim()) {
+            newErrors.renewableElectricity = "Required";
+            missingFields.push("Renewable Electricity");
+          } else if (!isValidNumber(formData.renewableElectricity)) {
+            newErrors.renewableElectricity = "Invalid number";
+            missingFields.push("Renewable Electricity (Invalid)");
+          }
 
-            if (!formData.renewableEnergyConsumption?.trim()) {
-              newErrors.renewableEnergyConsumption = "Required";
-              missingFields.push("Renewable Energy Consumption");
-            } else if (!isValidNumber(formData.renewableEnergyConsumption)) {
-              newErrors.renewableEnergyConsumption = "Invalid number";
-              missingFields.push("Renewable Energy Consumption (Invalid)");
-            }
+          if (!formData.renewableEnergyConsumption?.trim()) {
+            newErrors.renewableEnergyConsumption = "Required";
+            missingFields.push("Renewable Energy Consumption");
+          } else if (!isValidNumber(formData.renewableEnergyConsumption)) {
+            newErrors.renewableEnergyConsumption = "Invalid number";
+            missingFields.push("Renewable Energy Consumption (Invalid)");
           }
         }
       }
     }
 
     setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0 || missingFields.length > 0) {
-      console.log("Validation errors:", newErrors);
-      console.log("Missing fields:", missingFields);
-    }
     return Object.keys(newErrors).length === 0 && missingFields.length === 0;
   };
 
