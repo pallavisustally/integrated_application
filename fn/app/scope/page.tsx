@@ -1011,9 +1011,9 @@ function TemplateContent() {
         try {
           const { url } = await upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' });
           energyEvidanceUrl = url;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Vercel blob upload error:", error);
-          alert("Evidence upload failed. Ensure you have BLOB_READ_WRITE_TOKEN set.");
+          alert(`Evidence upload failed: ${error.message || "Unknown error"}. Check console for details.`);
         }
       }
 
@@ -1022,8 +1022,9 @@ function TemplateContent() {
         try {
           const { url } = await upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' });
           renewableEvidanceUrl = url;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Vercel blob upload error:", error);
+          alert(`Evidence upload failed: ${error.message || "Unknown error"}. Check console for details.`);
         }
       }
 

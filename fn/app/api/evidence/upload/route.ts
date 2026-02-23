@@ -14,6 +14,7 @@ export async function POST(request: Request): Promise<NextResponse> {
                 return {
                     allowedContentTypes: ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
                     maximumSizeInBytes: 50 * 1024 * 1024, // 50MB
+                    allowOverwrite: true, // Allow replacing files with the exact same name
                     tokenPayload: JSON.stringify({
                         // Optional data
                     }),

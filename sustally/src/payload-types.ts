@@ -151,10 +151,6 @@ export interface User {
 export interface Media {
   id: string;
   alt: string;
-  /**
-   * Link to view the file in Google Drive. Click to open.
-   */
-  googleDriveLink?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -238,6 +234,11 @@ export interface Scope2Application {
    * Supporting evidence uploaded by the user. View the image/file in the admin panel.
    */
   energySupportingEvidenceFile?: (string | null) | Media;
+  /**
+   * Direct URL link to the Vercel Blob evidence file.
+   */
+  energySupportingEvidenceFileUrl?: string | null;
+  energySupportingEvidenceFileName?: string | null;
   energySourceDescription?: string | null;
   hasRenewableElectricity: 'Yes' | 'No';
   renewableElectricity?: string | null;
@@ -246,6 +247,11 @@ export interface Scope2Application {
    * Supporting evidence for renewable electricity. View the image/file in the admin panel.
    */
   renewableSupportingEvidenceFile?: (string | null) | Media;
+  /**
+   * Direct URL link to the Vercel Blob evidence file.
+   */
+  renewableSupportingEvidenceFileUrl?: string | null;
+  renewableSupportingEvidenceFileName?: string | null;
   renewableEnergySourceDescription?: string | null;
   gridEmissionFactor?: number | null;
   locationBasedEmissions?: number | null;
@@ -368,7 +374,6 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
-  googleDriveLink?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -450,11 +455,15 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   spendAmount?: T;
   electricityPurchased?: T;
   energySupportingEvidenceFile?: T;
+  energySupportingEvidenceFileUrl?: T;
+  energySupportingEvidenceFileName?: T;
   energySourceDescription?: T;
   hasRenewableElectricity?: T;
   renewableElectricity?: T;
   renewableEnergyConsumption?: T;
   renewableSupportingEvidenceFile?: T;
+  renewableSupportingEvidenceFileUrl?: T;
+  renewableSupportingEvidenceFileName?: T;
   renewableEnergySourceDescription?: T;
   gridEmissionFactor?: T;
   locationBasedEmissions?: T;
