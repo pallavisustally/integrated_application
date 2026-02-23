@@ -132,6 +132,31 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
         });
     }
 
+    // Compute Excel-style fractional simple payback:
+    // Payback = (y - 1) + |Cum_{y-1}| / CF_y
+    // where Cum_n is cumulative cashflow starting from -CAPEX at year 0
+    let fractionalPayback: number | null = null;
+    if (paybackPeriod != null && paybackPeriod > 0) {
+        const y = paybackPeriod;
+
+        // Helper to get raw cumulative at year n (including initial -CAPEX)
+        const getRawCumulative = (yearIndex: number) => {
+            // yearIndex is n, 0-based cumulative: n = 0 => -totalCapex
+            if (yearIndex === 0) return -totalCapex;
+            const fin = financials[yearIndex - 1];
+            return -totalCapex + (fin?.cumulativeCashflow ?? 0);
+        };
+
+        const rawCumPrev = getRawCumulative(y - 1); // Cum_{y-1}
+        const cfY = financials[y - 1]?.cashflow ?? 0; // CF_y
+
+        if (cfY !== 0) {
+            fractionalPayback = (y - 1) + Math.abs(rawCumPrev) / cfY;
+        } else {
+            fractionalPayback = y;
+        }
+    }
+
     return {
         solarEnergyTarget,
         pvYield,
@@ -144,7 +169,7 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
         co2Avoided: financials[0]?.co2Avoided ?? 0,
         totalCo2Avoided: financials.reduce((sum, f) => sum + f.co2Avoided, 0),
         financials,
-        paybackPeriod,
+        paybackPeriod: fractionalPayback ?? paybackPeriod,
         discountedPaybackPeriod: 15, // Default per Excel model
         totalSavings: financials.reduce((sum, f) => sum + f.cashflow, 0),
         netPresentValue: cumulativeDiscountedCashflow,
