@@ -27,8 +27,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
         return NextResponse.json(jsonResponse);
     } catch (error) {
+        console.error("Vercel Blob Backend Error inside `/api/evidence/upload`:", error);
         return NextResponse.json(
-            { error: (error as Error).message },
+            { error: (error as Error).message, details: error },
             { status: 400 }
         );
     }

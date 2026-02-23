@@ -226,7 +226,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                         <div>
                                             <p className="text-sm font-semibold text-indigo-600">{data.energySupportingEvidenceFileName || "Energy Evidence"}</p>
                                         </div>
-                                        <a href={`/api/evidence/download?url=${encodeURIComponent(data.energySupportingEvidenceFileUrl)}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium whitespace-nowrap">
+                                        <a href={data.energySupportingEvidenceFileUrl.includes('/api/evidence/download') ? data.energySupportingEvidenceFileUrl : `/api/evidence/download?url=${encodeURIComponent(data.energySupportingEvidenceFileUrl)}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium whitespace-nowrap">
                                             View File
                                         </a>
                                     </div>
@@ -238,7 +238,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                         <div>
                                             <p className="text-sm font-semibold text-indigo-600">{data.renewableSupportingEvidenceFileName || "Renewable Evidence"}</p>
                                         </div>
-                                        <a href={`/api/evidence/download?url=${encodeURIComponent(data.renewableSupportingEvidenceFileUrl)}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium whitespace-nowrap">
+                                        <a href={data.renewableSupportingEvidenceFileUrl.includes('/api/evidence/download') ? data.renewableSupportingEvidenceFileUrl : `/api/evidence/download?url=${encodeURIComponent(data.renewableSupportingEvidenceFileUrl)}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium whitespace-nowrap">
                                             View File
                                         </a>
                                     </div>

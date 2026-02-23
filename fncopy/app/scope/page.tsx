@@ -812,8 +812,8 @@ function TemplateContent() {
       if (formData.energySupportingEvidenceFile instanceof File) {
         const file = formData.energySupportingEvidenceFile;
         try {
-          const { url } = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/evidence/upload' });
-          energyEvidanceUrl = url;
+          const { url } = await upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' });
+          energyEvidanceUrl = `${window.location.origin}/api/evidence/download?url=${encodeURIComponent(url)}`;
         } catch (error) {
           console.error("Vercel blob upload error:", error);
           alert("Evidence upload failed. Ensure you have BLOB_READ_WRITE_TOKEN set.");
@@ -823,8 +823,8 @@ function TemplateContent() {
       if (formData.renewableSupportingEvidenceFile instanceof File) {
         const file = formData.renewableSupportingEvidenceFile;
         try {
-          const { url } = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/evidence/upload' });
-          renewableEvidanceUrl = url;
+          const { url } = await upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' });
+          renewableEvidanceUrl = `${window.location.origin}/api/evidence/download?url=${encodeURIComponent(url)}`;
         } catch (error) {
           console.error("Vercel blob upload error:", error);
         }

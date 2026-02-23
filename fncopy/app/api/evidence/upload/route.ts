@@ -8,10 +8,13 @@ export async function POST(request: Request): Promise<NextResponse> {
         const jsonResponse = await handleUpload({
             body,
             request,
+            token: process.env.BLOB_READ_WRITE_TOKEN,
             onBeforeGenerateToken: async (pathname: string) => {
                 // Here you can verify user authentication if needed.
                 return {
-                    allowedContentTypes: ['image/jpeg', 'image/png', 'application/pdf'],
+                    allowedContentTypes: ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+                    maximumSizeInBytes: 50 * 1024 * 1024, // 50MB
+                    allowOverwrite: true, // Allow replacing files with the exact same name
                     tokenPayload: JSON.stringify({
                         // Optional data
                     }),
@@ -24,8 +27,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
         return NextResponse.json(jsonResponse);
     } catch (error) {
+        console.error("Vercel Blob Backend Error inside `/api/evidence/upload`:", error);
         return NextResponse.json(
-            { error: (error as Error).message },
+            { error: (error as Error).message, details: error },
             { status: 400 }
         );
     }

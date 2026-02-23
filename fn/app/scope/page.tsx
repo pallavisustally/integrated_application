@@ -1010,7 +1010,7 @@ function TemplateContent() {
         const file = formData.energySupportingEvidenceFile;
         try {
           const { url } = await upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' });
-          energyEvidanceUrl = url;
+          energyEvidanceUrl = `${window.location.origin}/api/evidence/download?url=${encodeURIComponent(url)}`;
         } catch (error: any) {
           console.error("Vercel blob upload error:", error);
           alert(`Evidence upload failed: ${error.message || "Unknown error"}. Check console for details.`);
@@ -1021,7 +1021,7 @@ function TemplateContent() {
         const file = formData.renewableSupportingEvidenceFile;
         try {
           const { url } = await upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' });
-          renewableEvidanceUrl = url;
+          renewableEvidanceUrl = `${window.location.origin}/api/evidence/download?url=${encodeURIComponent(url)}`;
         } catch (error: any) {
           console.error("Vercel blob upload error:", error);
           alert(`Evidence upload failed: ${error.message || "Unknown error"}. Check console for details.`);
