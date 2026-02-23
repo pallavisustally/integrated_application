@@ -28,7 +28,13 @@ const Scope2Applications: CollectionConfig = {
 
           const result = await req.payload.find({
             collection: "scope2-applications",
+            // Count only certificates for this reporting year
             limit: 0,
+            where: {
+              certificateId: {
+                like: `GHGCAL${yearKey}`,
+              },
+            },
           });
           const nextNumber = (result.totalDocs || 0) + 1;
           data.certificateId = `GHGCAL${yearKey}${String(nextNumber).padStart(5, "0")}`;
@@ -318,14 +324,15 @@ const Scope2Applications: CollectionConfig = {
       path: "/generate-otp",
       method: "post",
       handler: async (req) => {
-        const { email } = req.json ? await req.json() : { email: "" };
+        const body = req.json ? await req.json() : {};
+        const email = (typeof body.email === "string" ? body.email : "").trim().toLowerCase();
 
         if (!email) {
           return Response.json({ error: "Email is required" }, { status: 400 });
         }
 
         try {
-          // Find application by email
+          // Find application by email (case-insensitive)
           const result = await req.payload.find({
             collection: "scope2-applications",
             overrideAccess: true,
@@ -400,7 +407,9 @@ const Scope2Applications: CollectionConfig = {
       path: "/verify-otp",
       method: "post",
       handler: async (req) => {
-        const { email, otp } = req.json ? await req.json() : { email: "", otp: "" };
+        const body = req.json ? await req.json() : {};
+        const email = (typeof body.email === "string" ? body.email : "").trim().toLowerCase();
+        const otp = (typeof body.otp === "string" ? body.otp : String(body.otp || "")).trim();
 
         if (!email || !otp) {
           return Response.json(
@@ -426,10 +435,11 @@ const Scope2Applications: CollectionConfig = {
           }
 
           const application = result.docs[0];
+          const storedOtp = String(application.otp || "").trim();
 
-          // Check if OTP matches and is not expired
+          // Check if OTP matches and is not expired (normalize both to strings to avoid type mismatch)
           if (
-            application.otp !== otp ||
+            storedOtp !== otp ||
             !application.otpExpiresAt ||
             new Date(application.otpExpiresAt) < new Date()
           ) {

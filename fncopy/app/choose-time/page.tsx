@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Modal from "../../components/Modal"; // Adjust path as needed based on file structure
 import MainLayout from "../../components/MainLayout";
@@ -74,6 +74,28 @@ function ChooseTimeContent() {
     const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const [assessmentId] = useState(() => Math.random().toString(36).substring(2, 10).toUpperCase());
 
+    useEffect(() => {
+        const saved = sessionStorage.getItem("chooseTimeData");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.selectedDateIndex !== undefined) setSelectedDateIndex(parsed.selectedDateIndex);
+                if (parsed.selectedShift !== undefined) setSelectedShift(parsed.selectedShift);
+                if (parsed.selectedTime !== undefined) setSelectedTime(parsed.selectedTime);
+                if (parsed.termsAccepted !== undefined) setTermsAccepted(parsed.termsAccepted);
+            } catch (e) { }
+        }
+    }, []);
+
+    useEffect(() => {
+        sessionStorage.setItem("chooseTimeData", JSON.stringify({
+            selectedDateIndex,
+            selectedShift,
+            selectedTime,
+            termsAccepted
+        }));
+    }, [selectedDateIndex, selectedShift, selectedTime, termsAccepted]);
+
 
     // Dates: Tomorrow (1 day) and Day After (2 days)
     const date1 = getFutureDate(1);
@@ -136,7 +158,7 @@ function ChooseTimeContent() {
             totalEnergy: totalEnergyStr || "-",
             renewablePercentage: renewablePercentage,
             assignmentDate: assignmentDate,
-            assignmentSlot: assignmentTime,
+            assignmentSlot: selectedShift || "-",
             assignmentTime: assignmentTime,
             assessmentId: assessmentId,
             assessmentLink: assessmentLink,
@@ -389,7 +411,7 @@ function ChooseTimeContent() {
                         disabled={isSendingEmail}
                         className="text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {isSendingEmail ? "Sending..." : "Didn't receive the email? Resend"}
+                        {isSendingEmail ? "Sending..." : "Resend"}
                     </button>
                 </div>
             </main>

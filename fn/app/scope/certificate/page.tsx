@@ -396,8 +396,7 @@ function CertificateContent() {
             <h3 className="text-indigo-900 text-xs font-semibold mb-3">Available Reports</h3>
             <div className="flex-1 flex flex-col gap-2 overflow-y-auto">
               <div
-                className={`flex items-center justify-between p-2 bg-white rounded-lg border border-indigo-50 hover:border-indigo-200 transition-colors cursor-pointer ${isDownloadingReport ? 'opacity-70 pointer-events-none' : ''}`}
-                onClick={handleDownloadReport}
+                className={`flex items-center justify-between p-2 bg-white rounded-lg border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloadingReport ? 'opacity-70 pointer-events-none' : ''}`}
               >
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
@@ -408,7 +407,10 @@ function CertificateContent() {
                     <p className="text-[10px] text-gray-500">Detailed analysis</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-gray-400">
+                <span
+                  className="text-[10px] font-bold text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors"
+                  onClick={handleDownloadReport}
+                >
                   {isDownloadingReport ? (
                     <span className="animate-pulse">Loading...</span>
                   ) : (
@@ -418,8 +420,7 @@ function CertificateContent() {
               </div>
 
               <div
-                className={`flex items-center justify-between p-2 bg-white rounded-lg border border-indigo-50 hover:border-indigo-200 transition-colors cursor-pointer ${isDownloading ? 'opacity-70 pointer-events-none' : ''}`}
-                onClick={handleDownloadCertificate}
+                className={`flex items-center justify-between p-2 bg-white rounded-lg border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloading ? 'opacity-70 pointer-events-none' : ''}`}
               >
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600">
@@ -430,7 +431,10 @@ function CertificateContent() {
                     <p className="text-[10px] text-gray-500">Official proof</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-gray-400">
+                <span
+                  className="text-[10px] font-bold text-green-600 cursor-pointer hover:text-green-800 transition-colors"
+                  onClick={handleDownloadCertificate}
+                >
                   {isDownloading ? (
                     <span className="animate-pulse">Loading...</span>
                   ) : (

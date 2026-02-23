@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MainLayout from "@/components/MainLayout";
 
@@ -89,6 +89,19 @@ export default function HomePage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem("step1FormData");
+    if (saved) {
+      try {
+        setFormData(JSON.parse(saved));
+      } catch (e) { }
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("step1FormData", JSON.stringify(formData));
+  }, [formData]);
 
   const isOtherActive = !PREDEFINED_SECTORS.includes(formData.sector);
 

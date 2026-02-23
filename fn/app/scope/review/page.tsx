@@ -67,18 +67,18 @@ const ReviewCard = ({
   accentColor: string;
   colSpan?: number;
 }) => (
-  <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group hover:shadow-md transition-shadow duration-300 md:col-span-${colSpan}`}>
+  <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col relative group hover:shadow-md transition-shadow duration-300 md:col-span-${colSpan} h-[420px]`}>
     <div
-      className="absolute left-0 top-0 bottom-0 w-1"
+      className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
       style={{ backgroundColor: accentColor }}
     ></div>
-    <div className="flex items-center gap-3 mb-6">
+    <div className="flex items-center gap-3 mb-6 flex-shrink-0">
       <div className={`p-2 rounded-lg bg-opacity-10`} style={{ backgroundColor: `${accentColor}20` }}>
         {icon}
       </div>
       <h3 className="font-semibold text-gray-900 text-sm tracking-wide uppercase">{title}</h3>
     </div>
-    <div className="flex-1">
+    <div className="flex-1 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 hover:[&::-webkit-scrollbar-thumb]:bg-gray-400">
       {children}
     </div>
   </div>
@@ -266,122 +266,113 @@ function ScopeReviewContent() {
         </div>
 
         {/* CONTENT GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0 pb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0 pb-6">
 
-          {/* Left Column */}
-          <div className="flex flex-col gap-4">
-
-            {/* Identity & Business */}
-            {(formData.userCompany || formData.userName) && (
-              <ReviewCard title="Company Details" icon={<BoundaryIcon />} accentColor="#4b5563">
-                <DetailGrid>
-                  <DetailRow label="Name" value={formData.userName} />
-                  <DetailRow label="Company" value={formData.userCompany} />
-                  <DetailRow label="Email" value={formData.userEmail} />
-                  <DetailRow label="Mobile" value={formData.userMobile || "-"} />
-                </DetailGrid>
-              </ReviewCard>
-            )}
-
-            {/* Boundary & Site Details */}
-            <ReviewCard title="Boundary & Site Details" icon={<BoundaryIcon />} accentColor="#6366f1">
+          {/* Identity & Business */}
+          {(formData.userCompany || formData.userName) && (
+            <ReviewCard title="Company Details" icon={<BoundaryIcon />} accentColor="#4b5563">
               <DetailGrid>
-                <DetailRow label="State / Grid Region" value={formData.state || "Not specified"} />
-                <DetailRow label="Facility Name" value={formData.facilityName || "Not specified"} />
-                <DetailRow label="Site Count" value={formData.siteCount || "1"}
-                  subLabel={formData.siteCount === "Multiple sites" ? `(${formData.siteCountNumber} sites)` : undefined} />
-                <DetailRow label="Reporting Year" value={getFinancialYear(formData.reportingYear)} />
-                <DetailRow label="Period" value={formData.reportingPeriod} />
-                <DetailRow label="Consolidation Approach" value={formData.conditionalApproach} />
-                {formData.utilityProvider && <DetailRow label="Utility Provider" value={formData.utilityProvider} />}
-                <DetailRow label="Scope Boundary Notes" value={formData.scopeBoundaryNotes || "-"} fullWidth />
+                <DetailRow label="Name" value={formData.userName} />
+                <DetailRow label="Company" value={formData.userCompany} />
+                <DetailRow label="Email" value={formData.userEmail} />
+                <DetailRow label="Mobile" value={formData.userMobile || "-"} />
               </DetailGrid>
             </ReviewCard>
+          )}
 
-            {/* Electricity Characteristics */}
-            <ReviewCard title="Electricity Characteristics" icon={<EnergyIcon />} accentColor="#f59e0b">
-              <DetailGrid>
-                <DetailRow label="Renewable Procurement" value={formData.renewableProcurement} />
-                <DetailRow label="Net Metering" value={formData.netMeteringApplicable} />
-                {formData.onsiteExportedKwh && <DetailRow label="On-site Generated Exported" value={`${formData.onsiteExportedKwh} kWh`} />}
-              </DetailGrid>
-            </ReviewCard>
+          {/* Boundary & Site Details */}
+          <ReviewCard title="Boundary & Site Details" icon={<BoundaryIcon />} accentColor="#6366f1">
+            <DetailGrid>
+              <DetailRow label="State / Grid Region" value={formData.state || "Not specified"} />
+              <DetailRow label="Facility Name" value={formData.facilityName || "Not specified"} />
+              <DetailRow label="Site Count" value={formData.siteCount || "1"}
+                subLabel={formData.siteCount === "Multiple sites" ? `(${formData.siteCountNumber} sites)` : undefined} />
+              <DetailRow label="Reporting Year" value={getFinancialYear(formData.reportingYear)} />
+              <DetailRow label="Period" value={formData.reportingPeriod} />
+              <DetailRow label="Consolidation Approach" value={formData.conditionalApproach} />
+              {formData.utilityProvider && <DetailRow label="Utility Provider" value={formData.utilityProvider} />}
+              <DetailRow label="Scope Boundary Notes" value={formData.scopeBoundaryNotes || "-"} fullWidth />
+            </DetailGrid>
+          </ReviewCard>
 
-          </div>
+          {/* Grid Energy Consumption */}
+          <ReviewCard title="Grid Energy Consumption" icon={<EnergyIcon />} accentColor="#f59e0b">
+            <DetailGrid>
+              <DetailRow label="Input Type" value={formData.energyActivityInput} />
+              <DetailRow label="Category" value={formData.energyCategory} />
+              <DetailRow label="Tracking Type" value={formData.trackingType} />
 
-          {/* Right Column */}
-          <div className="flex flex-col gap-4">
+              {formData.energyActivityInput === "Yearly" ? (
+                <>
+                  <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
+                  <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
+                  <DetailRow label="Data Source" value={formData.dataSourceType} />
+                  {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount} />}
+                </>
+              ) : (
+                <div className="col-span-1 md:col-span-2">
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Grid)</p>
+                  <MonthlyTable data={formData.monthlyData} type="Grid" />
+                </div>
+              )}
+              <DetailRow label="Evidence File" value={formData.energySupportingEvidenceFile || "No file uploaded"}
+                subLabel={formData.energySourceDescription} fullWidth />
 
-            {/* Energy Data */}
-            <ReviewCard title="Grid Energy Consumption" icon={<EnergyIcon />} accentColor="#f59e0b" colSpan={2}>
-              <DetailGrid>
-                <DetailRow label="Input Type" value={formData.energyActivityInput} />
-                <DetailRow label="Category" value={formData.energyCategory} />
-                <DetailRow label="Tracking Type" value={formData.trackingType} />
+            </DetailGrid>
+          </ReviewCard>
 
-                {formData.energyActivityInput === "Yearly" ? (
-                  <>
-                    <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
-                    <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
-                    <DetailRow label="Data Source" value={formData.dataSourceType} />
-                    {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount} />}
-                  </>
-                ) : (
-                  <div className="col-span-1 md:col-span-2">
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Grid)</p>
-                    <MonthlyTable data={formData.monthlyData} type="Grid" />
-                  </div>
-                )}
-                <DetailRow label="Evidence File" value={formData.energySupportingEvidenceFile || "No file uploaded"}
-                  subLabel={formData.energySourceDescription} fullWidth />
+          {/* Electricity Characteristics */}
+          <ReviewCard title="Electricity Characteristics" icon={<EnergyIcon />} accentColor="#f59e0b">
+            <DetailGrid>
+              <DetailRow label="Renewable Procurement" value={formData.renewableProcurement} />
+              <DetailRow label="Net Metering" value={formData.netMeteringApplicable} />
+              {formData.onsiteExportedKwh && <DetailRow label="On-site Generated Exported" value={`${formData.onsiteExportedKwh} kWh`} />}
+            </DetailGrid>
+          </ReviewCard>
 
-              </DetailGrid>
-            </ReviewCard>
+          {/* Renewable Data */}
+          <ReviewCard title="Renewable Energy" icon={<RenewableIcon />} accentColor="#10b981">
+            <DetailGrid>
+              <DetailRow label="Has Renewable Electricity?" value={formData.hasRenewableElectricity} />
 
-            {/* Renewable Data */}
-            <ReviewCard title="Renewable Energy" icon={<RenewableIcon />} accentColor="#10b981" colSpan={2}>
-              <DetailGrid>
-                <DetailRow label="Has Renewable Electricity?" value={formData.hasRenewableElectricity} />
+              {formData.hasRenewableElectricity === "Yes" && (
+                <>
+                  <DetailRow label="Input Type" value={formData.renewableEnergyActivityInput || "Yearly"} />
 
-                {formData.hasRenewableElectricity === "Yes" && (
-                  <>
-                    <DetailRow label="Input Type" value={formData.renewableEnergyActivityInput || "Yearly"} />
+                  {formData.renewableEnergyActivityInput === "Monthly" ? (
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Renewable)</p>
+                      <MonthlyTable data={formData.renewableMonthlyData} type="Renewable" />
+                    </div>
+                  ) : (
+                    <>
+                      <DetailRow label="Renewable Electricity" value={`${formData.renewableElectricity} kWh`} />
+                      <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
+                    </>
+                  )}
+                  <DetailRow label="Evidence File" value={formData.renewableSupportingEvidenceFile || "No file uploaded"}
+                    subLabel={formData.renewableEnergySourceDescription} fullWidth />
 
-                    {formData.renewableEnergyActivityInput === "Monthly" ? (
-                      <div className="col-span-1 md:col-span-2">
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Renewable)</p>
-                        <MonthlyTable data={formData.renewableMonthlyData} type="Renewable" />
+                  {/* Emissions Impact */}
+                  <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-dashed border-gray-200">
+                    <h4 className="text-xs font-bold text-gray-700 mb-2">Estimated Impact</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase">Location Based</p>
+                        <p className="text-sm font-bold text-gray-900">{formData.locationBasedEmissions ? Number(formData.locationBasedEmissions).toFixed(4) : "-"} tonnes CO2e</p>
                       </div>
-                    ) : (
-                      <>
-                        <DetailRow label="Renewable Electricity" value={`${formData.renewableElectricity} kWh`} />
-                        <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
-                      </>
-                    )}
-                    <DetailRow label="Evidence File" value={formData.renewableSupportingEvidenceFile || "No file uploaded"}
-                      subLabel={formData.renewableEnergySourceDescription} fullWidth />
-
-                    {/* Emissions Impact */}
-                    <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-dashed border-gray-200">
-                      <h4 className="text-xs font-bold text-gray-700 mb-2">Estimated Impact</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-[10px] text-gray-500 uppercase">Location Based</p>
-                          <p className="text-sm font-bold text-gray-900">{formData.locationBasedEmissions ? Number(formData.locationBasedEmissions).toFixed(4) : "-"} tonnes CO2e</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-gray-500 uppercase">Market Based</p>
-                          <p className="text-sm font-bold text-gray-900">{formData.marketBasedEmissions ? Number(formData.marketBasedEmissions).toFixed(4) : "-"} tonnes CO2e</p>
-                        </div>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase">Market Based</p>
+                        <p className="text-sm font-bold text-gray-900">{formData.marketBasedEmissions ? Number(formData.marketBasedEmissions).toFixed(4) : "-"} tonnes CO2e</p>
                       </div>
                     </div>
+                  </div>
 
-                  </>
-                )}
-              </DetailGrid>
-            </ReviewCard>
+                </>
+              )}
+            </DetailGrid>
+          </ReviewCard>
 
-          </div>
         </div>
 
         {/* FOOTER ACTIONS */}

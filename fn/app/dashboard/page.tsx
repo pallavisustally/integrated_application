@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import CostSavingCard from "./CostSavingCard";
@@ -10,9 +10,14 @@ function DashboardContent() {
     const searchParams = useSearchParams();
 
     // States: "RESTRICTED" -> "OTP" -> "DASHBOARD"
-    const [step, setStep] = useState<"RESTRICTED" | "OTP" | "DASHBOARD">("RESTRICTED");
+    const [step, setStep] = useState<"RESTRICTED" | "OTP" | "DASHBOARD">(() => {
+        return searchParams.get("email") ? "OTP" : "RESTRICTED";
+    });
 
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(() => {
+        const param = searchParams.get("email");
+        return param ? param.trim().toLowerCase() : "";
+    });
     const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -23,18 +28,22 @@ function DashboardContent() {
     const [resendTimer, setResendTimer] = useState(0);
     const [canResend, setCanResend] = useState(true);
 
+    // Prevent double OTP send on mount (React Strict Mode)
+    const hasSentInitialOtp = useRef(false);
+
     const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     const sendOtp = async (emailAddress: string) => {
+        const normalizedEmail = String(emailAddress || "").trim().toLowerCase();
+        if (!normalizedEmail) return;
         setError("");
         setLoading(true);
 
         try {
-            // Updated endpoint to Scope 2
             const res = await fetch(`${NEXT_PUBLIC_API_URL}/api/scope2-applications/generate-otp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: emailAddress }),
+                body: JSON.stringify({ email: normalizedEmail }),
             });
 
             const data = await res.json();
@@ -83,17 +92,19 @@ function DashboardContent() {
                 }
             }
 
-            const emailParam = searchParams.get("email");
-            if (emailParam) {
-                setEmail(emailParam);
-                sendOtp(emailParam);
+            if (email) {
+                // Prevent double send on React Strict Mode remount
+                if (!hasSentInitialOtp.current) {
+                    hasSentInitialOtp.current = true;
+                    sendOtp(email);
+                }
             } else {
                 // If no email param and no session, ensure we are in restricted mode
                 setStep("RESTRICTED");
             }
             setInitialized(true);
         }
-    }, [searchParams, initialized]);
+    }, [email, initialized]);
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -115,7 +126,10 @@ function DashboardContent() {
             const res = await fetch(`${NEXT_PUBLIC_API_URL}/api/scope2-applications/verify-otp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, otp }),
+                body: JSON.stringify({
+                    email: String(email || "").trim().toLowerCase(),
+                    otp: String(otp || "").trim(),
+                }),
             });
 
             const data = await res.json();
@@ -210,7 +224,7 @@ function DashboardContent() {
                                 disabled={!canResend || loading}
                                 className="text-xs text-gray-500 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {canResend ? "Didn't receive the email? Resend" : `Resend in ${resendTimer}s`}
+                                {canResend ? "Resend" : `Resend in ${resendTimer}s`}
                             </button>
 
                             <button

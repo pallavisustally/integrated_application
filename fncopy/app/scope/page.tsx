@@ -188,6 +188,31 @@ function TemplateContent() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    const savedFormData = sessionStorage.getItem("scopeFormData");
+    if (savedFormData) {
+      try {
+        const parsed = JSON.parse(savedFormData);
+        if (parsed.reportingYear) {
+          parsed.reportingYear = new Date(parsed.reportingYear);
+        }
+        setFormData((prev) => ({ ...prev, ...parsed }));
+      } catch (e) { }
+    }
+    const savedPage = sessionStorage.getItem("scopeFormPage");
+    if (savedPage) {
+      setPage(Number(savedPage) as 1 | 2);
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("scopeFormData", JSON.stringify(formData));
+  }, [formData]);
+
+  useEffect(() => {
+    sessionStorage.setItem("scopeFormPage", String(page));
+  }, [page]);
+
   // Countdown Logic
   const [timeLeft, setTimeLeft] = useState<{
     days: number;

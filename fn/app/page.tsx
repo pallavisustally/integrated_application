@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // Icons as components to avoid external dependencies
@@ -129,6 +129,24 @@ export default function HomePage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem("step1FormData");
+    if (saved) {
+      try {
+        setFormData(JSON.parse(saved));
+      } catch (e) { }
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      sessionStorage.setItem("step1FormData", JSON.stringify(formData));
+    }
+  }, [formData, isLoaded]);
 
   // Helper to check if current sector is custom (not in predefined list)
   const isCustomSector = !PREDEFINED_SECTORS.includes(formData.sector) && formData.sector !== "";
