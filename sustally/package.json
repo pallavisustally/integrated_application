@@ -28,6 +28,7 @@
     "@types/pdfkit": "^0.17.4",
     "cross-env": "^7.0.3",
     "dotenv": "16.4.7",
+    "googleapis": "^171.4.0",
     "graphql": "^16.8.1",
     "jspdf": "^4.0.0",
     "next": "15.4.10",

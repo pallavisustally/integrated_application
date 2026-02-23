@@ -255,6 +255,17 @@ const Scope2Applications: CollectionConfig = {
       displayPreview: true,
     },
     {
+      name: "energySupportingEvidenceFileUrl",
+      type: "text",
+      admin: {
+        description: "Direct URL link to the Vercel Blob evidence file.",
+      }
+    },
+    {
+      name: "energySupportingEvidenceFileName",
+      type: "text",
+    },
+    {
       name: "energySourceDescription",
       type: "textarea",
       required: false,
@@ -285,6 +296,17 @@ const Scope2Applications: CollectionConfig = {
         description: "Supporting evidence for renewable electricity. View the image/file in the admin panel.",
       },
       displayPreview: true,
+    },
+    {
+      name: "renewableSupportingEvidenceFileUrl",
+      type: "text",
+      admin: {
+        description: "Direct URL link to the Vercel Blob evidence file.",
+      }
+    },
+    {
+      name: "renewableSupportingEvidenceFileName",
+      type: "text",
     },
     {
       name: "renewableEnergySourceDescription",
@@ -389,7 +411,7 @@ const Scope2Applications: CollectionConfig = {
 
           // Return response immediately - don't wait for email
           console.timeEnd("otp-process");
-          
+
           // Send email asynchronously in the next event loop tick to ensure non-blocking
           setImmediate(() => {
             req.payload.sendEmail({

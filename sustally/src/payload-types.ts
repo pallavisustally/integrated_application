@@ -151,6 +151,10 @@ export interface User {
 export interface Media {
   id: string;
   alt: string;
+  /**
+   * Link to view the file in Google Drive. Click to open.
+   */
+  googleDriveLink?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -364,6 +368,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  googleDriveLink?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

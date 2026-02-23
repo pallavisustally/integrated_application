@@ -112,12 +112,16 @@ export const POST = async (request: Request) => {
       trackingType: data.trackingType || '',
       // Assign uploaded Media IDs
       energySupportingEvidenceFile: energyEvidenceId,
+      energySupportingEvidenceFileUrl: data.energySupportingEvidenceFileUrl || '',
+      energySupportingEvidenceFileName: data.energySupportingEvidenceFileName || '',
       energySourceDescription: data.energySourceDescription || '',
       hasRenewableElectricity: data.hasRenewableElectricity || '',
       renewableElectricity: data.renewableElectricity || '',
       renewableEnergyConsumption: data.renewableEnergyConsumption || '',
       // Assign uploaded Media IDs
       renewableSupportingEvidenceFile: renewableEvidenceId,
+      renewableSupportingEvidenceFileUrl: data.renewableSupportingEvidenceFileUrl || '',
+      renewableSupportingEvidenceFileName: data.renewableSupportingEvidenceFileName || '',
       renewableEnergySourceDescription: data.renewableEnergySourceDescription || '',
       // Energy inputs for Cost Saving Card (grid consumption / spend)
       electricityPurchased: data.electricityPurchased != null && data.electricityPurchased !== ''

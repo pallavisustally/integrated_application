@@ -7,6 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { TARIFF_DATA, TariffRate } from "../lib/electricityTariffData";
 import Combobox from "./Combobox";
 import MainLayout from "@/components/MainLayout";
+import { upload } from '@vercel/blob/client';
 
 const STATE_OPTIONS = [
   "Andaman and Nicobar Islands",
@@ -805,11 +806,42 @@ function TemplateContent() {
     setIsSubmitting(true);
     try {
       // Prepare data for API (convert File objects to filenames)
+      let energyEvidanceUrl = "";
+      let renewableEvidanceUrl = "";
+
+      if (formData.energySupportingEvidenceFile instanceof File) {
+        const file = formData.energySupportingEvidenceFile;
+        try {
+          const { url } = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/evidence/upload' });
+          energyEvidanceUrl = url;
+        } catch (error) {
+          console.error("Vercel blob upload error:", error);
+          alert("Evidence upload failed. Ensure you have BLOB_READ_WRITE_TOKEN set.");
+        }
+      }
+
+      if (formData.renewableSupportingEvidenceFile instanceof File) {
+        const file = formData.renewableSupportingEvidenceFile;
+        try {
+          const { url } = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/evidence/upload' });
+          renewableEvidanceUrl = url;
+        } catch (error) {
+          console.error("Vercel blob upload error:", error);
+        }
+      }
+
       // Prepare data for API (FormData)
       const formDataToSend = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (value instanceof File) {
-          formDataToSend.append(key, value);
+          // Send URLs instead of file binaries
+          if (key === "energySupportingEvidenceFile" && energyEvidanceUrl) {
+            formDataToSend.append("energySupportingEvidenceFileUrl", energyEvidanceUrl);
+            formDataToSend.append("energySupportingEvidenceFileName", value.name);
+          } else if (key === "renewableSupportingEvidenceFile" && renewableEvidanceUrl) {
+            formDataToSend.append("renewableSupportingEvidenceFileUrl", renewableEvidanceUrl);
+            formDataToSend.append("renewableSupportingEvidenceFileName", value.name);
+          }
         } else if (key === "monthlyData") {
           formDataToSend.append(key, JSON.stringify(value));
         } else if (value !== null && value !== undefined) {

@@ -218,6 +218,33 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Energy Consumption" value={data.renewableEnergyConsumption || "-"} />
                             </DetailGrid>
                         </ReviewCard>
+
+                        <ReviewCard title="Uploaded Evidence" icon={<EvidenceIcon />} accentColor="#8b5cf6">
+                            <div className="flex flex-col gap-4">
+                                {data.energySupportingEvidenceFileUrl ? (
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div>
+                                            <p className="text-sm font-semibold text-indigo-600">{data.energySupportingEvidenceFileName || "Energy Evidence"}</p>
+                                        </div>
+                                        <a href={data.energySupportingEvidenceFileUrl} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium">
+                                            View File
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-400 italic">No energy evidence uploaded.</p>
+                                )}
+                                {data.renewableSupportingEvidenceFileUrl && (
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div>
+                                            <p className="text-sm font-semibold text-indigo-600">{data.renewableSupportingEvidenceFileName || "Renewable Evidence"}</p>
+                                        </div>
+                                        <a href={data.renewableSupportingEvidenceFileUrl} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium">
+                                            View File
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </ReviewCard>
                     </div>
                 </div>
 
