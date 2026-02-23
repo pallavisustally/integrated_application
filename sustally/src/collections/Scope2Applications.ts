@@ -249,6 +249,10 @@ const Scope2Applications: CollectionConfig = {
       name: "energySupportingEvidenceFile",
       type: "upload",
       relationTo: "media",
+      admin: {
+        description: "Supporting evidence uploaded by the user. View the image/file in the admin panel.",
+      },
+      displayPreview: true,
     },
     {
       name: "energySourceDescription",
@@ -277,6 +281,10 @@ const Scope2Applications: CollectionConfig = {
       name: "renewableSupportingEvidenceFile",
       type: "upload",
       relationTo: "media",
+      admin: {
+        description: "Supporting evidence for renewable electricity. View the image/file in the admin panel.",
+      },
+      displayPreview: true,
     },
     {
       name: "renewableEnergySourceDescription",

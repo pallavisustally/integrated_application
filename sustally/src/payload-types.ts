@@ -162,6 +162,24 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -212,11 +230,17 @@ export interface Scope2Application {
   trackingType: 'Unit consumption' | 'Spend amount' | 'Both';
   spendAmount?: number | null;
   electricityPurchased?: number | null;
+  /**
+   * Supporting evidence uploaded by the user. View the image/file in the admin panel.
+   */
   energySupportingEvidenceFile?: (string | null) | Media;
   energySourceDescription?: string | null;
   hasRenewableElectricity: 'Yes' | 'No';
   renewableElectricity?: string | null;
   renewableEnergyConsumption?: string | null;
+  /**
+   * Supporting evidence for renewable electricity. View the image/file in the admin panel.
+   */
   renewableSupportingEvidenceFile?: (string | null) | Media;
   renewableEnergySourceDescription?: string | null;
   gridEmissionFactor?: number | null;
@@ -351,6 +375,30 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

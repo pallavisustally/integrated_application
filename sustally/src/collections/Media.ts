@@ -19,6 +19,20 @@ export const Media: CollectionConfig = {
   ],
   upload: {
     staticDir: path.resolve(dirname, '../../media'),
+    imageSizes: [
+      {
+        name: 'thumbnail',
+        width: 400,
+        height: 300,
+        position: 'centre',
+      },
+      {
+        name: 'card',
+        width: 768,
+        height: 480,
+        position: 'centre',
+      },
+    ],
     adminThumbnail: 'card',
     mimeTypes: ['image/*', 'application/pdf'],
   },
