@@ -192,6 +192,7 @@ function DashboardContent() {
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify OTP</h1>
                         <p className="text-gray-500 text-sm">Enter the code sent to {email}</p>
+                        <p className="text-gray-400 text-xs mt-2">Wait for a few mins for the OTP to arrive in your inbox, if not resend again.</p>
                     </div>
 
                     <form onSubmit={handleVerifyOtp} className="space-y-4">

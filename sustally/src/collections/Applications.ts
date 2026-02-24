@@ -155,17 +155,16 @@ const Applications: CollectionConfig = {
             },
           });
 
-          // Return response immediately - don't wait for email
-          // Send email asynchronously in the next event loop tick to ensure non-blocking
-          setImmediate(() => {
-            req.payload.sendEmail({
+          try {
+            await req.payload.sendEmail({
               to: email,
               subject: "Your Dashboard Login OTP",
               html: `<p>Your OTP for dashboard access is: <strong>${otp}</strong></p><p>This OTP expires in 10 minutes.</p>`,
-            })
-              .then(() => console.log(`[OTP] Email sent successfully to ${email}`))
-              .catch(err => console.error(`[OTP] Background email failed for ${email}:`, err));
-          });
+            });
+            console.log(`[OTP] Email sent successfully to ${email}`);
+          } catch (err) {
+            console.error(`[OTP] Email failed for ${email}:`, err);
+          }
 
           return Response.json({ success: true, message: "OTP sent to email" });
         } catch (error) {
