@@ -145,45 +145,41 @@ function CertificateContent() {
   const energyRenewKj = parseFloat(data.energyRenew) || 0;
   const energyTotalKj = parseFloat(data.energyTotal) || 0;
 
-  let derivedGridGW: number;
-  let derivedRenewGW: number;
+  let derivedGridKWh: number;
+  let derivedRenewKWh: number;
 
   if (energyTotalKj > 0 || energyGridKj > 0 || energyRenewKj > 0) {
-    derivedGridGW = energyGridKj / 3600000000;
-    derivedRenewGW = energyRenewKj / 3600000000;
+    derivedGridKWh = energyGridKj / 3600;
+    derivedRenewKWh = energyRenewKj / 3600;
   } else {
     // Fallback to kWh inputs (electricityPurchased, renewableElectricity)
-    const derivedGridKWh = parseFloat(data.electricityPurchased) || 0;
-    const derivedRenewKWh = parseFloat(data.renewableElectricity) || parseFloat(data.renewableEnergyConsumption) || 0;
-    derivedGridGW = derivedGridKWh / 1000000;
-    derivedRenewGW = derivedRenewKWh / 1000000;
+    const fallbackGridKWh = parseFloat(data.electricityPurchased) || 0;
+    const fallbackRenewKWh = parseFloat(data.renewableElectricity) || parseFloat(data.renewableEnergyConsumption) || 0;
+    derivedGridKWh = fallbackGridKWh;
+    derivedRenewKWh = fallbackRenewKWh;
   }
 
-  const derivedTotalGW = derivedGridGW + derivedRenewGW;
+  const derivedTotalKWh = derivedGridKWh + derivedRenewKWh;
 
-  // Format energy for display: use MWh when value < 0.01 GWh to avoid "0.00"
-  const formatEnergyDisplay = (gwh: number) => {
-    if (gwh >= 0.01) return { value: gwh.toFixed(2), unit: "GWh" };
-    const mwh = gwh * 1000;
-    return { value: mwh.toFixed(2), unit: "MWh" };
+  const formatEnergyDisplay = (kwh: number) => {
+    return { value: kwh.toLocaleString(undefined, { maximumFractionDigits: 2 }), unit: "kWh" };
   };
-  const totalDisplay = formatEnergyDisplay(derivedTotalGW);
-  const renewDisplay = formatEnergyDisplay(derivedRenewGW);
+  const totalDisplay = formatEnergyDisplay(derivedTotalKWh);
+  const renewDisplay = formatEnergyDisplay(derivedRenewKWh);
 
   // For display in top cards
-  const energyTotalGWh = totalDisplay.value;
-  const energyRenewGWh = renewDisplay.value;
+  const energyTotalKWh = totalDisplay.value;
+  const energyRenewKWh = renewDisplay.value;
   const energyTotalUnit = totalDisplay.unit;
   const energyRenewUnit = renewDisplay.unit;
 
-  // For pie chart - use GWh values (matching scope/page.tsx)
+  // For pie chart - use kWh values 
   const chartData = [
-    { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
-    { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
+    { name: "Grid Electricity", value: parseFloat(derivedGridKWh.toFixed(2)), color: "#9ca3af" },
+    { name: "Renewable / Contracted", value: parseFloat(derivedRenewKWh.toFixed(2)), color: "#22c55e" },
   ];
 
-  // For pie chart center display - convert GWh to MWh for display
-  const energyTotalMWh = (derivedTotalGW * 1000).toFixed(2);
+  const energyTotalMWhDisp = derivedTotalKWh.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
   const handleDownloadCertificate = async () => {
     if (certificateRef.current === null) {
@@ -307,7 +303,7 @@ function CertificateContent() {
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-2xl font-bold text-gray-900">{energyRenewGWh}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">{energyRenewKWh}</h3>
               <span className="text-xs font-normal text-gray-500">{energyRenewUnit}</span>
             </div>
           </div>
@@ -322,16 +318,16 @@ function CertificateContent() {
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-2xl font-bold text-gray-900">{energyTotalGWh}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">{energyTotalKWh}</h3>
               <span className="text-xs font-normal text-gray-500">{energyTotalUnit}</span>
             </div>
           </div>
         </div>
 
         {/* Level 2: Charts & Cost & Downloads */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 h-auto lg:h-[40%] min-h-[250px]">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 flex-1 h-auto min-h-[90px]">
           {/* Pie Chart */}
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-4 flex flex-col h-[300px] lg:h-full">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2 flex flex-col h-[300px] lg:h-full">
             <h3 className="text-gray-500 text-xs font-medium mb-2">Electricity Consumption Breakdown</h3>
             <div className="flex-1 w-full relative">
               <ResponsiveContainer width="100%" height="100%">
@@ -354,16 +350,15 @@ function CertificateContent() {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
-                  <span className="text-lg font-bold text-gray-900 block">{energyTotalGWh}</span>
+                  <span className="text-lg font-bold text-gray-900 block">{energyTotalKWh}</span>
                   <span className="text-[10px] text-gray-500 uppercase">{energyTotalUnit} Total</span>
                 </div>
               </div>
             </div>
             <div className="mt-2 text-xs space-y-1">
               {chartData.map((item, i) => {
-                // Convert GWh to MWh for display
-                const valueMWh = (item.value * 1000).toFixed(2);
-                const percentage = derivedTotalGW > 0 ? ((item.value / derivedTotalGW) * 100).toFixed(0) : "0";
+                const valueKWh = item.value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+                const percentage = derivedTotalKWh > 0 ? ((item.value / derivedTotalKWh) * 100).toFixed(0) : "0";
                 return (
                   <div key={i} className="flex justify-between items-center">
                     <div className="flex items-center gap-1.5">
@@ -371,7 +366,7 @@ function CertificateContent() {
                       <span className="text-gray-600">{item.name}</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-semibold text-gray-900 block">{parseFloat(valueMWh).toLocaleString()} MWh</span>
+                      <span className="font-semibold text-gray-900 block">{valueKWh} kWh</span>
                       <span className="text-[10px] text-gray-500">{percentage}% of total</span>
                     </div>
                   </div>
@@ -380,80 +375,80 @@ function CertificateContent() {
               <div className="pt-1 mt-1 border-t border-gray-100">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 font-medium">Total Consumption</span>
-                  <span className="font-semibold text-gray-900">{parseFloat(energyTotalMWh).toLocaleString()} MWh</span>
+                  <span className="font-semibold text-gray-900">{energyTotalMWhDisp} kWh</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Cost Projection (Solar Model) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-4 flex flex-col h-full overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2 flex flex-col h-full overflow-hidden">
             <CostSavingCard userData={data} />
           </div>
 
           {/* Downloads */}
-          <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl shadow-sm border border-indigo-100 col-span-1 lg:col-span-4 flex flex-col h-[300px] lg:h-full">
+          <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl shadow-sm border border-indigo-100 col-span-1 lg:col-span-1 flex flex-col h-[300px] lg:h-full">
             <h3 className="text-indigo-900 text-xs font-semibold mb-3">Available Reports</h3>
-            <div className="flex-1 flex flex-col gap-2 overflow-y-auto">
+            <div className="flex-1 flex flex-col gap-3">
               <div
-                className={`flex items-center justify-between p-2 bg-white rounded-lg border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloadingReport ? 'opacity-70 pointer-events-none' : ''}`}
+                className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloadingReport ? 'opacity-70 pointer-events-none' : ''}`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                   </div>
                   <div className="leading-tight">
-                    <p className="text-xs font-medium text-gray-800">Assessment report</p>
-                    <p className="text-[10px] text-gray-500">Detailed analysis</p>
+                    <p className="text-sm font-semibold text-gray-800">Assessment report</p>
+                    <p className="text-xs text-gray-500">Detailed analysis</p>
                   </div>
                 </div>
-                <span
-                  className="text-[10px] font-bold text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors"
+                <button
+                  className="text-xs font-bold text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors uppercase"
                   onClick={handleDownloadReport}
                 >
                   {isDownloadingReport ? (
                     <span className="animate-pulse">Loading...</span>
                   ) : (
-                    "DOWNLOAD"
+                    "Download"
                   )}
-                </span>
+                </button>
               </div>
 
               <div
-                className={`flex items-center justify-between p-2 bg-white rounded-lg border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloading ? 'opacity-70 pointer-events-none' : ''}`}
+                className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloading ? 'opacity-70 pointer-events-none' : ''}`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                   </div>
                   <div className="leading-tight">
-                    <p className="text-xs font-medium text-gray-800">Verification certificate</p>
-                    <p className="text-[10px] text-gray-500">Official proof</p>
+                    <p className="text-sm font-semibold text-gray-800">Verification certificate</p>
+                    <p className="text-xs text-gray-500">Official proof</p>
                   </div>
                 </div>
-                <span
-                  className="text-[10px] font-bold text-green-600 cursor-pointer hover:text-green-800 transition-colors"
+                <button
+                  className="text-xs font-bold text-green-600 cursor-pointer hover:text-green-800 transition-colors uppercase"
                   onClick={handleDownloadCertificate}
                 >
                   {isDownloading ? (
                     <span className="animate-pulse">Loading...</span>
                   ) : (
-                    "DOWNLOAD"
+                    "Download"
                   )}
-                </span>
+                </button>
               </div>
 
-              <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-indigo-50 hover:border-indigo-200 transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <div className="flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                   </div>
                   <div className="leading-tight">
-                    <p className="text-xs font-medium text-gray-800">BRSR P6 Report</p>
-                    <p className="text-[10px] text-gray-500">SEBI compliant</p>
+                    <p className="text-sm font-semibold text-gray-800">BRSR P6 Report</p>
+                    <p className="text-xs text-gray-500">SEBI compliant</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-gray-400">PDF</span>
+                <span className="text-xs font-bold text-gray-400">PDF</span>
               </div>
             </div>
           </div>
@@ -506,18 +501,20 @@ function CertificateContent() {
 
           <div id="next-steps-section" className="w-full lg:w-[30%] bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-center gap-3 next-steps-target">
             <div className="text-center mb-1">
-              <h4 className="font-semibold text-gray-900 text-sm">Next Steps</h4>
-              <p className="text-[10px] text-gray-500">Complete assessment for other sites</p>
+              <h4 className="font-semibold text-gray-900 text-sm">Assessment Complete</h4>
+              <p className="text-[10px] text-gray-500">Thank you for your submission</p>
             </div>
-            <button onClick={() => router.push('/scope')} className="w-full py-2.5 bg-gray-900 text-white font-medium rounded-lg hover:bg-black transition-opacity text-xs flex items-center justify-center gap-2">
-              Continue to next site
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-            </button>
             <button onClick={() => {
               sessionStorage.removeItem("scope2_user");
-              router.push('/dashboard');
-            }} className="w-full py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-opacity text-xs border border-gray-200">
-              Exit to Dashboard
+              // Try to go back to the email client if navigated in the same tab, otherwise close the tab
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.close();
+              }
+            }} className="w-full py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-black transition-opacity text-xs border border-gray-800 flex items-center justify-center gap-2">
+              Finish & Exit
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             </button>
           </div>
         </div>

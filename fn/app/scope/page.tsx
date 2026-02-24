@@ -902,8 +902,8 @@ function TemplateContent() {
         const monthLabel = date.toLocaleDateString('default', { month: 'short', year: '2-digit' });
         return {
           name: monthLabel,
-          Grid: parseFloat((data.grid / 1000000).toFixed(6)),
-          Renewable: parseFloat((data.renewable / 1000000).toFixed(6))
+          Grid: parseFloat(data.grid.toFixed(2)),
+          Renewable: parseFloat(data.renewable.toFixed(2))
         };
       });
   };
@@ -1105,8 +1105,8 @@ function TemplateContent() {
     }
   }
 
-  const derivedGridGW = derivedGridKWh / 1000000;
-  const derivedRenewGW = derivedRenewKWh / 1000000;
+  const derivedGridGW = derivedGridKWh;
+  const derivedRenewGW = derivedRenewKWh;
   const derivedTotalGW = derivedGridGW + derivedRenewGW;
 
   const renderYesNo = (name: keyof FormDataType, value: YesNo) => (
@@ -1366,7 +1366,7 @@ function TemplateContent() {
                           }
                           showMonthYearPicker
                           minDate={new Date(2020, 0, 1)}
-                          maxDate={new Date(2025, 11, 31)}
+                          maxDate={new Date(2024, 11, 31)}
                           dateFormat="MM/yyyy"
                           wrapperClassName="w-full"
                           customInput={
@@ -1403,8 +1403,8 @@ function TemplateContent() {
                           <option value="">Select Financial Year</option>
                           {(() => {
                             const years = [];
-                            // 5 years backward from 2025 means 2020 to 2025 inclusive
-                            for (let year = 2020; year <= 2025; year++) {
+                            // 5 years backward from 2024 means 2020 to 2024 inclusive
+                            for (let year = 2020; year <= 2024; year++) {
                               years.push(year);
                             }
                             // Sort descending for better UX
@@ -2236,8 +2236,8 @@ function TemplateContent() {
                               data={(derivedTotalGW === 0)
                                 ? [{ name: "No Data", value: 1, color: "#e5e7eb" }]
                                 : [
-                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
-                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
+                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
+                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
                                 ]
                               }
                               cx="50%"
@@ -2251,8 +2251,8 @@ function TemplateContent() {
                                 <Cell key="placeholder" fill="#e5e7eb" />
                               ) : (
                                 [
-                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
-                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
+                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
+                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
                                 ].map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))
@@ -2264,14 +2264,14 @@ function TemplateContent() {
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                           <div className="text-center">
                             <span className="text-lg font-bold text-gray-900 block">{derivedTotalGW.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            <span className="text-[10px] text-gray-500 uppercase">GWh Total</span>
+                            <span className="text-[10px] text-gray-500 uppercase">kWh Total</span>
                           </div>
                         </div>
                       </div>
                       <div className="mt-2 text-xs space-y-1">
                         {[
-                          { name: "Grid Electricity", value: derivedGridGW.toFixed(4) + " GWh", color: "#9ca3af" },
-                          { name: "Renewable / Contracted", value: derivedRenewGW.toFixed(4) + " GWh", color: "#22c55e" },
+                          { name: "Grid Electricity", value: derivedGridGW.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " kWh", color: "#9ca3af" },
+                          { name: "Renewable / Contracted", value: derivedRenewGW.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " kWh", color: "#22c55e" },
                         ].map((item, i) => (
                           <div key={i} className="flex justify-between items-center">
                             <div className="flex items-center gap-1.5">
@@ -2324,8 +2324,8 @@ function TemplateContent() {
                         ) : (
                           <BarChart
                             data={[
-                              { name: "Grid", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
-                              { name: "Renewable", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
+                              { name: "Grid", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
+                              { name: "Renewable", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
                             ]}
                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                           >
@@ -2336,8 +2336,8 @@ function TemplateContent() {
                             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                               {
                                 [
-                                  { name: "Grid", value: parseFloat(derivedGridGW.toFixed(6)), color: "#9ca3af" },
-                                  { name: "Renewable", value: parseFloat(derivedRenewGW.toFixed(6)), color: "#22c55e" },
+                                  { name: "Grid", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
+                                  { name: "Renewable", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
                                 ].map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))
