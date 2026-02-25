@@ -31,8 +31,8 @@ function StarRating({
                     >
                         <svg
                             className={`w-8 h-8 transition-colors ${star <= (hover || value)
-                                    ? "text-indigo-600"
-                                    : "text-gray-300"
+                                ? "text-indigo-600"
+                                : "text-gray-300"
                                 }`}
                             fill={star <= (hover || value) ? "currentColor" : "none"}
                             stroke="currentColor"
@@ -62,11 +62,48 @@ export default function FeedbackPage() {
     });
     const [comment, setComment] = useState("");
 
-    const handleFinish = () => {
-        sessionStorage.removeItem("scope2_user");
-        // Ideally we'd send the feedback to the backend here. For now, just exit.
-        alert("Thank you for your feedback!");
-        router.push("/dashboard"); // or wherever the user is supposed to land
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSkip = () => {
+        // Just go to dashboard without clearing session storage, so no OTP is asked for
+        router.push("/dashboard");
+    };
+
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        try {
+            let email = "";
+            const userStr = sessionStorage.getItem("scope2_user");
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    email = user.email || "";
+                } catch (e) {
+                    // Ignore parse error
+                }
+            }
+
+            const payload = {
+                email,
+                experience: ratings.experience,
+                ease: ratings.ease,
+                usefulness: ratings.usefulness,
+                recommend: ratings.recommend,
+                comment,
+            };
+
+            const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+            await fetch(`${NEXT_PUBLIC_API_URL}/api/feedback`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+        } catch (error) {
+            console.error("Failed to submit feedback", error);
+        } finally {
+            router.push("/scope/feedback/thank-you");
+        }
     };
 
     return (
@@ -152,16 +189,18 @@ export default function FeedbackPage() {
                 {/* Footer actions */}
                 <div className="bg-gray-50/50 p-6 flex flex-row items-center justify-between border-t border-gray-100 rounded-b-[20px]">
                     <button
-                        onClick={handleFinish}
+                        onClick={handleSkip}
                         className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors px-4 py-2"
+                        disabled={isSubmitting}
                     >
                         Skip
                     </button>
                     <button
-                        onClick={handleFinish}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-3 px-8 rounded-lg shadow-sm transition-colors"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-3 px-8 rounded-lg shadow-sm transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        Submit Feedback
+                        {isSubmitting ? "Submitting..." : "Submit Feedback"}
                     </button>
                 </div>
             </div>

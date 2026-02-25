@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 import Applications from "./collections/Applications";
 import Scope2Applications from "./collections/Scope2Applications";
+import Feedback from "./collections/Feedback";
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 
@@ -20,7 +21,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Applications, Scope2Applications],
+  collections: [Users, Media, Applications, Scope2Applications, Feedback],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
