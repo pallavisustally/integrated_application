@@ -66,7 +66,7 @@ export default function FeedbackPage() {
 
     const handleSkip = () => {
         // Just go to dashboard without clearing session storage, so no OTP is asked for
-        router.push("/dashboard");
+        router.push("/dashboard?view=dashboard");
     };
 
     const handleSubmit = async () => {

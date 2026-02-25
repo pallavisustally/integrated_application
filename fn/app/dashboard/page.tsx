@@ -9,10 +9,9 @@ function DashboardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // States: "RESTRICTED" -> "OTP" -> "DASHBOARD"
-    const [step, setStep] = useState<"RESTRICTED" | "OTP" | "DASHBOARD">(() => {
-        return searchParams.get("email") ? "OTP" : "RESTRICTED";
-    });
+    // States: "LOADING" -> "RESTRICTED" -> "OTP" -> "DASHBOARD"
+    const [step, setStep] = useState<"LOADING" | "RESTRICTED" | "OTP" | "DASHBOARD">("LOADING");
+
 
     const [email, setEmail] = useState(() => {
         const param = searchParams.get("email");
@@ -86,13 +85,18 @@ function DashboardContent() {
                 const storedUser = sessionStorage.getItem("scope2_user");
                 if (storedUser) {
                     setUserData(JSON.parse(storedUser));
-                    setStep("DASHBOARD");
+                    if (searchParams.get("view") === "dashboard") {
+                        setStep("DASHBOARD");
+                    } else {
+                        router.replace("/scope/certificate");
+                    }
                     setInitialized(true);
                     return;
                 }
             }
 
             if (email) {
+                setStep("OTP");
                 // Prevent double send on React Strict Mode remount
                 if (!hasSentInitialOtp.current) {
                     hasSentInitialOtp.current = true;
@@ -143,7 +147,7 @@ function DashboardContent() {
                 }
 
                 // Redirect to Scope 2 Certificate Page (Clean URL)
-                router.push(`/scope/certificate`);
+                router.replace(`/scope/certificate`);
             } else {
                 setError(data.error || "Invalid OTP");
             }
@@ -163,6 +167,14 @@ function DashboardContent() {
     };
 
     // Render Logic
+    if (step === "LOADING") {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
+
     if (step === "RESTRICTED") {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
