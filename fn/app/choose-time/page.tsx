@@ -355,11 +355,14 @@ function ChooseTimeContent() {
                 </div>
 
                 {/* Resend Email Option */}
-                <div className="mt-8 flex justify-center w-full">
+                <div className="mt-8 flex justify-center items-center gap-1.5 w-full text-sm">
+                    <span className="text-gray-600">
+                        Didn't receive email at <span className="font-semibold text-gray-900">{searchParams.get("email")}</span>?
+                    </span>
                     <button
                         onClick={handleResendEmail}
                         disabled={isSendingEmail}
-                        className="text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="text-indigo-600 hover:text-indigo-800 font-semibold hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isSendingEmail ? "Sending..." : "Resend"}
                     </button>

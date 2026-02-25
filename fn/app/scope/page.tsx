@@ -1006,26 +1006,39 @@ function TemplateContent() {
       let energyEvidanceUrl = "";
       let renewableEvidanceUrl = "";
 
+      const uploadTasks: Promise<void>[] = [];
+
       if (formData.energySupportingEvidenceFile instanceof File) {
         const file = formData.energySupportingEvidenceFile;
-        try {
-          const { url } = await upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' });
-          energyEvidanceUrl = `${window.location.origin}/api/evidence/download?url=${encodeURIComponent(url)}`;
-        } catch (error: any) {
-          console.error("Vercel blob upload error:", error);
-          alert(`Evidence upload failed: ${error.message || "Unknown error"}. Check console for details.`);
-        }
+        uploadTasks.push(
+          upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' })
+            .then(({ url }) => {
+              energyEvidanceUrl = `${window.location.origin}/api/evidence/download?url=${encodeURIComponent(url)}`;
+            })
+            .catch((error: any) => {
+              console.error("Vercel blob upload error:", error);
+              throw new Error(`Energy evidence upload failed: ${error.message || "Unknown error"}`);
+            })
+        );
       }
 
       if (formData.renewableSupportingEvidenceFile instanceof File) {
         const file = formData.renewableSupportingEvidenceFile;
-        try {
-          const { url } = await upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' });
-          renewableEvidanceUrl = `${window.location.origin}/api/evidence/download?url=${encodeURIComponent(url)}`;
-        } catch (error: any) {
-          console.error("Vercel blob upload error:", error);
-          alert(`Evidence upload failed: ${error.message || "Unknown error"}. Check console for details.`);
-        }
+        uploadTasks.push(
+          upload(file.name, file, { access: 'private', handleUploadUrl: '/api/evidence/upload' })
+            .then(({ url }) => {
+              renewableEvidanceUrl = `${window.location.origin}/api/evidence/download?url=${encodeURIComponent(url)}`;
+            })
+            .catch((error: any) => {
+              console.error("Vercel blob upload error:", error);
+              throw new Error(`Renewable evidence upload failed: ${error.message || "Unknown error"}`);
+            })
+        );
+      }
+
+      // Wait for all uploads to complete in parallel
+      if (uploadTasks.length > 0) {
+        await Promise.all(uploadTasks);
       }
 
       // Prepare data for API (FormData)

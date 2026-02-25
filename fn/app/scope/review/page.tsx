@@ -253,15 +253,21 @@ function ScopeReviewContent() {
           <div className="flex-1 max-w-md mx-4 hidden md:block">
             <div className="flex justify-between items-end mb-2">
               <span className="text-xs font-bold text-indigo-900 tracking-widest uppercase">4 of 6 - Review & Submit</span>
-              <span className="text-sm font-bold text-gray-400">100%</span>
+              <span className="text-sm font-bold text-gray-400">68%</span>
             </div>
             <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 transition-all duration-500 ease-out rounded-full" style={{ width: "100%" }}></div>
+              <div className="h-full bg-indigo-500 transition-all duration-500 ease-out rounded-full" style={{ width: "68%" }}></div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 opacity-90">
-            <img src="/sustally-logo.png" alt="Sustally" className="h-8 md:h-10 w-auto object-contain" />
+          <div className="flex items-center gap-3 opacity-90">
+            <img src="/sustally-logo.png" alt="Sustally" className="h-10 w-auto object-contain" />
+            <div className="flex gap-1 h-12">
+              <div className="w-[1px] bg-gray-300 h-full"></div>
+            </div>
+            <span className="font-medium text-gray-400 text-sm max-w-[200px] leading-tight text-left">
+              choose sustally as your sustainability ally
+            </span>
           </div>
         </div>
 
@@ -321,18 +327,21 @@ function ScopeReviewContent() {
             </DetailGrid>
           </ReviewCard>
 
-          {/* Electricity Characteristics */}
-          <ReviewCard title="Electricity Characteristics" icon={<EnergyIcon />} accentColor="#f59e0b">
+          {/* Electricity Characteristics & Renewable Energy */}
+          <ReviewCard title="Electricity Characteristics & Renewable Energy" icon={<RenewableIcon />} accentColor="#10b981">
             <DetailGrid>
+              {/* Electricity Characteristics Section */}
+              <div className="col-span-1 md:col-span-2 pb-2 mb-2">
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200 pb-1">Electricity Characteristics</h4>
+              </div>
               <DetailRow label="Renewable Procurement" value={formData.renewableProcurement} />
               <DetailRow label="Net Metering" value={formData.netMeteringApplicable} />
               {formData.onsiteExportedKwh && <DetailRow label="On-site Generated Exported" value={`${formData.onsiteExportedKwh} kWh`} />}
-            </DetailGrid>
-          </ReviewCard>
 
-          {/* Renewable Data */}
-          <ReviewCard title="Renewable Energy" icon={<RenewableIcon />} accentColor="#10b981">
-            <DetailGrid>
+              {/* Renewable Energy Section */}
+              <div className="col-span-1 md:col-span-2 pb-2 mb-2 mt-4">
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200 pb-1">Renewable Energy</h4>
+              </div>
               <DetailRow label="Has Renewable Electricity?" value={formData.hasRenewableElectricity} />
 
               {formData.hasRenewableElectricity === "Yes" && (
@@ -352,22 +361,6 @@ function ScopeReviewContent() {
                   )}
                   <DetailRow label="Evidence File" value={formData.renewableSupportingEvidenceFile || "No file uploaded"}
                     subLabel={formData.renewableEnergySourceDescription} fullWidth />
-
-                  {/* Emissions Impact */}
-                  <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-dashed border-gray-200">
-                    <h4 className="text-xs font-bold text-gray-700 mb-2">Estimated Impact</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-[10px] text-gray-500 uppercase">Location Based</p>
-                        <p className="text-sm font-bold text-gray-900">{formData.locationBasedEmissions ? Number(formData.locationBasedEmissions).toFixed(4) : "-"} tonnes CO2e</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-500 uppercase">Market Based</p>
-                        <p className="text-sm font-bold text-gray-900">{formData.marketBasedEmissions ? Number(formData.marketBasedEmissions).toFixed(4) : "-"} tonnes CO2e</p>
-                      </div>
-                    </div>
-                  </div>
-
                 </>
               )}
             </DetailGrid>

@@ -206,21 +206,19 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                     </div>
 
                     {/* Renewable Energy Display (New) */}
-                    {userData?.renewableEnergyConsumption && (
-                        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 flex flex-col justify-center">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-blue-600">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                                    </svg>
-                                </div>
-                                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide leading-tight">Renewable<br />Energy</p>
+                    <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 flex flex-col justify-center">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-blue-600">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                </svg>
                             </div>
-                            <div>
-                                <p className="font-bold text-gray-800 text-sm">{userData.renewableEnergyConsumption} kWh</p>
-                            </div>
+                            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide leading-tight">Renewable<br />Energy</p>
                         </div>
-                    )}
+                        <div>
+                            <p className="font-bold text-gray-800 text-sm">{results.solarEnergyTarget.toFixed(2)} kWh</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
