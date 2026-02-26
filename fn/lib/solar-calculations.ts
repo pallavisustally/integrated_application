@@ -136,6 +136,8 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
     // Payback = (y - 1) + |Cum_{y-1}| / CF_y
     // where Cum_n is cumulative cashflow starting from -CAPEX at year 0
     let fractionalPayback: number | null = null;
+    let fractionalDiscountedPayback: number | null = null;
+
     if (paybackPeriod != null && paybackPeriod > 0) {
         const y = paybackPeriod;
 
@@ -157,6 +159,26 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
         }
     }
 
+    if (discountedPaybackPeriod != null && discountedPaybackPeriod > 0) {
+        const y = discountedPaybackPeriod;
+
+        // Helper to get raw discounted cumulative at year n (including initial -CAPEX)
+        const getRawDiscountedCumulative = (yearIndex: number) => {
+            if (yearIndex === 0) return -totalCapex;
+            const fin = financials[yearIndex - 1];
+            return -totalCapex + (fin?.cumulativeDiscountedCashflow ?? 0);
+        };
+
+        const rawDiscCumPrev = getRawDiscountedCumulative(y - 1);
+        const dcfY = financials[y - 1]?.discountedCashflow ?? 0;
+
+        if (dcfY !== 0) {
+            fractionalDiscountedPayback = (y - 1) + Math.abs(rawDiscCumPrev) / dcfY;
+        } else {
+            fractionalDiscountedPayback = y;
+        }
+    }
+
     return {
         solarEnergyTarget,
         pvYield,
@@ -170,7 +192,7 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
         totalCo2Avoided: financials.reduce((sum, f) => sum + f.co2Avoided, 0),
         financials,
         paybackPeriod: fractionalPayback ?? paybackPeriod,
-        discountedPaybackPeriod: 15, // Default per Excel model
+        discountedPaybackPeriod: fractionalDiscountedPayback ?? discountedPaybackPeriod,
         totalSavings: financials.reduce((sum, f) => sum + f.cashflow, 0),
         netPresentValue: cumulativeDiscountedCashflow,
     };
