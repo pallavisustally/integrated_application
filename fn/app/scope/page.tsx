@@ -1312,14 +1312,17 @@ function TemplateContent() {
                     <label className="block text-xs font-bold text-gray-700 mb-2">
                       Turnover of your site <span className="text-gray-400 font-normal ml-1">Optional</span>
                     </label>
-                    <input
-                      type="text"
-                      name="energyIntensityPerRupee"
-                      value={formData.energyIntensityPerRupee || ""}
-                      onChange={handleChange}
-                      placeholder="e.g., 0.05"
-                      className="w-full h-10 px-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">Rs.</span>
+                      <input
+                        type="text"
+                        name="energyIntensityPerRupee"
+                        value={formData.energyIntensityPerRupee || ""}
+                        onChange={handleChange}
+                        placeholder="e.g., 2000"
+                        className="w-full h-10 pl-9 pr-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                      />
+                    </div>
                     <p className="text-[10px] text-gray-400 mt-1.5">
                       Optional input
                     </p>
@@ -1863,7 +1866,7 @@ function TemplateContent() {
                                     placeholder="Auto-calculated"
                                     className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
                                   />
-                                  <span className="absolute right-3 top-3 text-[10px] text-gray-400">kJ</span>
+                                  <span className="absolute right-3 top-3 text-[10px] text-gray-400">GJ</span>
                                 </div>
                                 {errors.energyConsumption && <p className="text-red-500 text-xs mt-1">{errors.energyConsumption}</p>}
                               </div>
@@ -2161,7 +2164,7 @@ function TemplateContent() {
                                     placeholder="Auto-calculated"
                                     className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
                                   />
-                                  <span className="absolute right-3 top-3 text-[10px] text-gray-400">kJ</span>
+                                  <span className="absolute right-3 top-3 text-[10px] text-gray-400">GJ</span>
                                 </div>
                                 {errors.renewableEnergyConsumption && <p className="text-red-500 text-xs mt-1">{errors.renewableEnergyConsumption}</p>}
                               </div>

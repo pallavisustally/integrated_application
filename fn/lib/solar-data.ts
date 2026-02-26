@@ -17,7 +17,8 @@ export const SOLAR_CONSTANTS = {
     Cost_Batt_kWh: 12000,  // Rs/kWh (Estimated from example)
     PV_Degradation: 0.01,  // 1% per year
     OM_rate: 0.01,         // 1% of CAPEX
-    OM_escalation: 0.05,   // 5% per year
+    OM_escalation: 0.05,   // 5% per year (O&M escalation g_o)
+    Tariff_escalation: 0.05, // 5% per year (Tariff escalation g_t)
     Battery_replace_frac: 0.8, // 80% of original cost
     Battery_replace_year: 10,  // Year 10
     Discount_rate: 0.10,   // 10%

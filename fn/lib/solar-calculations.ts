@@ -73,6 +73,7 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
 
     let currentGeneration = solarEnergyTarget;
     let currentOm = initialOm;
+    let currentTariff = tariff;
 
     let paybackPeriod: number | null = null;
     let discountedPaybackPeriod: number | null = null;
@@ -81,15 +82,17 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
         // Degradation & Escalation (from Year 2 onwards usually, but prompt implies simple loop)
         // "IF year > 1: Generation = Generation * (1 - deg), OM = OM * (1 + esc)"
         if (year > 1) {
-            currentGeneration = financials[year - 2].generation * (1 - SOLAR_CONSTANTS.PV_Degradation);
-            currentOm = financials[year - 2].omCost * (1 + SOLAR_CONSTANTS.OM_escalation);
+            currentGeneration = currentGeneration * (1 - SOLAR_CONSTANTS.PV_Degradation);
+            currentOm = currentOm * (1 + SOLAR_CONSTANTS.OM_escalation);
+            currentTariff = currentTariff * (1 + SOLAR_CONSTANTS.Tariff_escalation);
         } else {
             // Year 1
             currentGeneration = solarEnergyTarget;
             currentOm = initialOm;
+            currentTariff = tariff;
         }
 
-        const savings = currentGeneration * tariff;
+        const savings = currentGeneration * currentTariff;
 
         let replacementCost = 0;
         if (year === SOLAR_CONSTANTS.Battery_replace_year) {
