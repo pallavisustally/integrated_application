@@ -187,8 +187,8 @@ function CertificateContent() {
   const energyTotalMWhDisp = derivedTotalKWh.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
   // Use the form's calculated energyConsumption (which is already in GJ)
-  const gridGjValue = parseFloat(data.energyConsumption) || 0;
-  const renewGjValue = parseFloat(data.renewableEnergyConsumption) || 0;
+  const gridGjValue = parseFloat(data.energyConsumption) || (parseFloat(data.electricityPurchased) * 0.0036) || 0;
+  const renewGjValue = parseFloat(data.renewableEnergyConsumption) || (parseFloat(data.renewableElectricity) * 0.0036) || 0;
   const totalGjValue = gridGjValue + renewGjValue;
 
   const formatGj = (val: number) => {
@@ -748,7 +748,11 @@ function CertificateContent() {
               </tr>
               <tr>
                 <td className="border border-black p-2">Energy intensity per rupee of turnover<br />(Total energy consumed / Revenue from operations)</td>
-                <td className="border border-black p-2">{data.energyIntensityPerRupee || "NA"}</td>
+                <td className="border border-black p-2">
+                  {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
+                    ? (totalGjValue / parseFloat(data.energyIntensityPerRupee)).toLocaleString("en-IN", { maximumFractionDigits: 4 })
+                    : "NA"}
+                </td>
               </tr>
               <tr>
                 <td className="border border-black p-2 font-bold">Energy intensity per rupee of turnover adjusted for Purchasing Power Parity (PPP)<br /><span className="font-normal">(Total energy consumed / Revenue from operations adjusted for PPP)</span></td>

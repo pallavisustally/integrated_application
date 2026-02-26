@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     applications: Application;
     'scope2-applications': Scope2Application;
+    feedback: Feedback;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +83,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     applications: ApplicationsSelect<false> | ApplicationsSelect<true>;
     'scope2-applications': Scope2ApplicationsSelect<false> | Scope2ApplicationsSelect<true>;
+    feedback: FeedbackSelect<false> | FeedbackSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -212,6 +214,7 @@ export interface Scope2Application {
   utilityProvider?: string | null;
   siteCount: string;
   facilityName: string;
+  energyIntensityPerRupee?: string | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   rejectionReason?: string | null;
   /**
@@ -230,6 +233,7 @@ export interface Scope2Application {
   trackingType: 'Unit consumption' | 'Spend amount' | 'Both';
   spendAmount?: number | null;
   electricityPurchased?: number | null;
+  energyConsumption?: string | null;
   /**
    * Supporting evidence uploaded by the user. View the image/file in the admin panel.
    */
@@ -261,6 +265,21 @@ export interface Scope2Application {
   energyTotal_kJ?: number | null;
   otp?: string | null;
   otpExpiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "feedback".
+ */
+export interface Feedback {
+  id: string;
+  email?: string | null;
+  experience?: number | null;
+  ease?: number | null;
+  usefulness?: number | null;
+  recommend?: number | null;
+  comment?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -303,6 +322,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'scope2-applications';
         value: string | Scope2Application;
+      } | null)
+    | ({
+        relationTo: 'feedback';
+        value: string | Feedback;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -439,6 +462,7 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   utilityProvider?: T;
   siteCount?: T;
   facilityName?: T;
+  energyIntensityPerRupee?: T;
   status?: T;
   rejectionReason?: T;
   certificateId?: T;
@@ -454,6 +478,7 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   trackingType?: T;
   spendAmount?: T;
   electricityPurchased?: T;
+  energyConsumption?: T;
   energySupportingEvidenceFile?: T;
   energySupportingEvidenceFileUrl?: T;
   energySupportingEvidenceFileName?: T;
@@ -473,6 +498,20 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   energyTotal_kJ?: T;
   otp?: T;
   otpExpiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "feedback_select".
+ */
+export interface FeedbackSelect<T extends boolean = true> {
+  email?: T;
+  experience?: T;
+  ease?: T;
+  usefulness?: T;
+  recommend?: T;
+  comment?: T;
   updatedAt?: T;
   createdAt?: T;
 }

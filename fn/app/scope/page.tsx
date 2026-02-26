@@ -1310,7 +1310,7 @@ function TemplateContent() {
                   {/* Energy Intensity Per Rupee */}
                   <div className="col-span-1 md:col-span-2">
                     <label className="block text-xs font-bold text-gray-700 mb-2">
-                      Energy intensity per rupee of turnover <span className="text-gray-400 font-normal ml-1">Optional</span>
+                      Turnover of your site <span className="text-gray-400 font-normal ml-1">Optional</span>
                     </label>
                     <input
                       type="text"

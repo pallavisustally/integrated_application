@@ -119,6 +119,11 @@ const Scope2Applications: CollectionConfig = {
       required: true,
     },
     {
+      name: "energyIntensityPerRupee",
+      type: "text",
+      required: false,
+    },
+    {
       name: "status",
       type: "select",
       options: [
@@ -244,6 +249,10 @@ const Scope2Applications: CollectionConfig = {
           siblingData?.trackingType === "Both",
       },
       required: false,
+    },
+    {
+      name: "energyConsumption",
+      type: "text",
     },
     {
       name: "energySupportingEvidenceFile",
@@ -494,9 +503,11 @@ const Scope2Applications: CollectionConfig = {
               // Return all other fields needed for certificate
               state: application.state,
               siteCount: application.siteCount,
+              energyIntensityPerRupee: application.energyIntensityPerRupee,
               reportingYear: application.reportingYear,
               reportingPeriod: application.reportingPeriod,
               scopeBoundaryNotes: application.scopeBoundaryNotes,
+              energyConsumption: application.energyConsumption,
               renewableElectricity: application.renewableElectricity,
               renewableEnergyConsumption: application.renewableEnergyConsumption,
               onsiteExportedKwh: application.onsiteExportedKwh,

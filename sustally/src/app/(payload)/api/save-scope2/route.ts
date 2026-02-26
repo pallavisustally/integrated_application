@@ -99,6 +99,7 @@ export const POST = async (request: Request) => {
       utilityProvider: data.utilityProvider || '',
       siteCount: data.siteCount || '',
       facilityName: data.facilityName || '',
+      energyIntensityPerRupee: data.energyIntensityPerRupee || '',
       email: data.userEmail || '',
       renewableProcurement: data.renewableProcurement || '',
       onsiteExportedKwh: data.onsiteExportedKwh || '',
@@ -110,6 +111,7 @@ export const POST = async (request: Request) => {
       energyActivityInput: data.energyActivityInput || '',
       energyCategory: data.energyCategory || '',
       trackingType: data.trackingType || '',
+      energyConsumption: data.energyConsumption || '',
       // Assign uploaded Media IDs
       energySupportingEvidenceFile: energyEvidenceId,
       energySupportingEvidenceFileUrl: data.energySupportingEvidenceFileUrl || '',

@@ -291,6 +291,7 @@ function ScopeReviewContent() {
             <DetailGrid>
               <DetailRow label="State / Grid Region" value={formData.state || "Not specified"} />
               <DetailRow label="Facility Name" value={formData.facilityName || "Not specified"} />
+              <DetailRow label="Turnover of your site" value={formData.energyIntensityPerRupee || "Not specified"} />
               <DetailRow label="Site Count" value={formData.siteCount || "1"}
                 subLabel={formData.siteCount === "Multiple sites" ? `(${formData.siteCountNumber} sites)` : undefined} />
               <DetailRow label="Reporting Year" value={getFinancialYear(formData.reportingYear)} />
