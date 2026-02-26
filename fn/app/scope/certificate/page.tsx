@@ -37,7 +37,7 @@ function CertificateContent() {
       const year = date.getFullYear();
 
       if (period === "Annually" || period === "Yearly") {
-        return `${year} - ${year + 1}`;
+        return `${year}-${String(year + 1).slice(-2)}`;
       } else if (period === "Monthly") {
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const monthIndex = date.getMonth();
