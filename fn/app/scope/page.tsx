@@ -71,6 +71,7 @@ type FormDataType = {
   utilityProvider: string;
   siteCount: string;
   facilityName: string;
+  energyIntensityPerRupee: string;
 
   // Page 1 - Box 2
   renewableProcurement: YesNo;
@@ -147,6 +148,7 @@ function TemplateContent() {
       return "1"; // Default for Single Site
     })(),
     facilityName: "",
+    energyIntensityPerRupee: "",
 
     renewableProcurement: "Yes",
     onsiteExportedKwh: "",
@@ -1303,6 +1305,24 @@ function TemplateContent() {
                       Based on your earlier input
                     </p>
                     {errors.facilityName && <p className="text-red-500 text-xs mt-1">{errors.facilityName}</p>}
+                  </div>
+
+                  {/* Energy Intensity Per Rupee */}
+                  <div className="col-span-1 md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                      Energy intensity per rupee of turnover <span className="text-gray-400 font-normal ml-1">Optional</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="energyIntensityPerRupee"
+                      value={formData.energyIntensityPerRupee || ""}
+                      onChange={handleChange}
+                      placeholder="e.g., 0.05"
+                      className="w-full h-10 px-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1.5">
+                      Optional input
+                    </p>
                   </div>
                 </div>
               </section>
