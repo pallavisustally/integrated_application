@@ -169,16 +169,40 @@ function ScopeReviewContent() {
     setIsSubmitting(true);
     // Simulate final submission
     try {
-      // If we want to clean up or do anything else
-      // Maybe make another API call if needed, but the user said "Review & Submit"
-      // And the previous page already did a "Submit".
-      // Use a timeout to simulate processing
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (!formData) throw new Error("No data found to submit.");
+
+      const formDataToSend = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === "monthlyData" || key === "renewableMonthlyData") {
+          formDataToSend.append(key, typeof value === "string" ? value : JSON.stringify(value));
+        } else if (value !== null && value !== undefined) {
+          if (key === "energySupportingEvidenceFile") {
+            formDataToSend.append("energySupportingEvidenceFileName", String(value));
+          } else if (key === "renewableSupportingEvidenceFile") {
+            formDataToSend.append("renewableSupportingEvidenceFileName", String(value));
+          } else {
+            formDataToSend.append(key, String(value));
+          }
+        }
+      });
+
+      const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
+      const saveResponse = await fetch(`${apiUrl}/api/save-scope2`, {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      const saveResult = await saveResponse.json();
+
+      if (!saveResponse.ok || !saveResult.success) {
+        throw new Error(saveResult.error || "Failed to save application");
+      }
 
       setIsSubmitted(true);
       localStorage.removeItem("scope2ReviewData"); // Clean up
-    } catch (e) {
-      setNotification({ message: "Something went wrong.", type: "error" });
+    } catch (e: any) {
+      setNotification({ message: e.message || "Something went wrong.", type: "error" });
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -196,11 +220,11 @@ function ScopeReviewContent() {
 
   if (isSubmitted) {
     return (
-      <main className="min-h-screen bg-[#f8f9fa] px-4 py-8 sm:px-6 sm:py-10 font-sans text-gray-900 flex flex-col items-center">
-        <div className="w-full max-w-3xl bg-white rounded-3xl shadow-sm px-6 py-8 sm:px-10 sm:py-10">
+      <main className="min-h-screen bg-[#f8f9fa] px-4 py-8 sm:px-6 sm:py-10 font-sans text-gray-900 flex flex-col items-center justify-center">
+        <div className="w-full max-w-[95%] md:max-w-4xl lg:max-w-5xl bg-white rounded-3xl shadow-md px-6 py-12 sm:px-10 sm:py-16 md:py-20 lg:py-24 mx-auto flex flex-col items-center justify-center">
           {/* Header (logo then tick on mobile) */}
-          <div className="flex flex-col items-center text-center">
-            <div className="flex items-center justify-center gap-2 sm:gap-3 opacity-90 flex-wrap">
+          <div className="flex flex-col items-center text-center w-full">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 opacity-90 flex-wrap w-full">
               <img src="/sustally-logo.png" alt="Sustally" className="h-10 sm:h-12 w-auto object-contain" />
               <div className="flex h-8 sm:h-10">
                 <div className="w-px bg-gray-200 h-full" />

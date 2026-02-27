@@ -312,7 +312,7 @@ function ChooseTimeContent() {
                     </div>
 
                     {/* Booking Time Card */}
-                    <div className="w-full max-w-md bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-4">
+                    <div className="w-full max-w-md bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-center gap-6">
                         <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57C00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -322,7 +322,7 @@ function ChooseTimeContent() {
                             </svg>
                         </div>
                         <div className="text-left min-w-0">
-                            <div className="text-xs sm:text-sm text-gray-500 truncate">
+                            <div className="text-sm sm:text-base font-semibold text-gray-900 truncate">
                                 {selectedDateIndex !== null ? formatDate(dates[selectedDateIndex].date) : ""}
                             </div>
                             <div className="text-sm sm:text-base font-semibold text-gray-900">
@@ -331,8 +331,8 @@ function ChooseTimeContent() {
                         </div>
                     </div>
 
-                    <div className="text-base sm:text-lg font-semibold text-gray-900 tracking-wide">
-                        Assessment ID: <span className="font-bold">{assessmentId}</span>
+                    <div className="text-base sm:text-lg font-normal text-gray-900 tracking-wide">
+                        Assessment ID: <span className="font-normal">{assessmentId}</span>
                     </div>
 
                     {/* Email Confirmation Banner */}

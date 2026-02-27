@@ -1043,44 +1043,7 @@ function TemplateContent() {
         await Promise.all(uploadTasks);
       }
 
-      // Prepare data for API (FormData)
-      const formDataToSend = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value instanceof File) {
-          // Send URLs instead of file binaries
-          if (key === "energySupportingEvidenceFile" && energyEvidanceUrl) {
-            formDataToSend.append("energySupportingEvidenceFileUrl", energyEvidanceUrl);
-            formDataToSend.append("energySupportingEvidenceFileName", value.name);
-          } else if (key === "renewableSupportingEvidenceFile" && renewableEvidanceUrl) {
-            formDataToSend.append("renewableSupportingEvidenceFileUrl", renewableEvidanceUrl);
-            formDataToSend.append("renewableSupportingEvidenceFileName", value.name);
-          }
-        } else if (key === "monthlyData") {
-          formDataToSend.append(key, JSON.stringify(value));
-        } else if (value !== null && value !== undefined) {
-          // Handle Date objects explicitly if needed, but String() usually works for ISO if not careful.
-          // Here reportingYear is a Date. String(date) gives full text. toISOString is better for machines.
-          if (value instanceof Date) {
-            formDataToSend.append(key, value.toISOString());
-          } else {
-            formDataToSend.append(key, String(value));
-          }
-        }
-      });
-
-      // Save to Payload CMS (Directly to Sustally)
-      const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
-      // NOTE: Do NOT set Content-Type header when sending FormData, the browser sets it with boundary
-      const saveResponse = await fetch(`${apiUrl}/api/save-scope2`, {
-        method: "POST",
-        body: formDataToSend,
-      });
-
-      const saveResult = await saveResponse.json();
-
-      if (!saveResponse.ok || !saveResult.success) {
-        throw new Error(saveResult.error || "Failed to save application");
-      }
+      // Moved API saving logic to review page to decrease click-to-load latency
 
       // Save to LocalStorage for Review Page (to avoid URL limits)
       const reviewData = {
@@ -2003,6 +1966,10 @@ function TemplateContent() {
                         Energy source description
                       </label>
                       <textarea
+                        name="energySourceDescription"
+                        value={formData.energySourceDescription || ""}
+                        onChange={handleChange}
+                        maxLength={200}
                         placeholder="Describe the energy source or any relevant details..."
                         className="w-full px-2 py-1 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none min-h-[40px]"
                       />
@@ -2251,6 +2218,7 @@ function TemplateContent() {
                           name="renewableEnergySourceDescription"
                           value={formData.renewableEnergySourceDescription || ""}
                           onChange={handleChange}
+                          maxLength={200}
                           placeholder="Describe renewable energy source..."
                           className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none min-h-[40px]"
                         />
