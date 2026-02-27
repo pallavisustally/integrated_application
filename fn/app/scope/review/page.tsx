@@ -315,7 +315,7 @@ function ScopeReviewContent() {
             <DetailGrid>
               <DetailRow label="State / Grid Region" value={formData.state || "Not specified"} />
               <DetailRow label="Facility Name" value={formData.facilityName || "Not specified"} />
-              <DetailRow label="Turnover of your site" value={formData.energyIntensityPerRupee || "Not specified"} />
+              <DetailRow label="Turnover of your site" value={formData.energyIntensityPerRupee ? `${formData.energyIntensityPerRupee} INR` : "Not specified"} />
               <DetailRow label="Site Count" value={formData.siteCount || "1"}
                 subLabel={formData.siteCount === "Multiple sites" ? `(${formData.siteCountNumber} sites)` : undefined} />
               <DetailRow label="Reporting Year" value={getFinancialYear(formData.reportingYear)} />
@@ -338,7 +338,7 @@ function ScopeReviewContent() {
                   <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
                   <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
                   <DetailRow label="Data Source" value={formData.dataSourceType} />
-                  {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount} />}
+                  {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount ? `${formData.spendAmount} INR` : "-"} />}
                 </>
               ) : (
                 <div className="col-span-1 md:col-span-2">

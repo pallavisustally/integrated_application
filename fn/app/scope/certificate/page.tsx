@@ -471,8 +471,7 @@ function CertificateContent() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                   </div>
                   <div className="leading-tight">
-                    <p className="text-sm font-semibold text-gray-800">Verification certificate</p>
-                    <p className="text-xs text-gray-500">Official proof</p>
+                    <p className="text-sm font-semibold text-gray-800">Recognition certificate</p>
                   </div>
                 </div>
                 <button
@@ -631,7 +630,7 @@ function CertificateContent() {
                 <p className="text-lg font-Cormorant Garamond style italic size-medium Line-height-relaxed text-gray-700 leading-relaxed italic">
                   in recognition of leadership in environmental transparency through the
                   proactive initiation of a Scope 2 emissions assessment for the reporting
-                  period <span className="font-semibold not-italic">{data.reportingYear}</span>{" "}
+                  period <span className="font-semibold not-italic">{fyYear}</span>{" "}
                   conducted during
                 </p>
 
