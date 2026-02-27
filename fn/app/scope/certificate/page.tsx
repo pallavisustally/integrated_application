@@ -400,7 +400,7 @@ function CertificateContent() {
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
                   <span className="text-lg font-bold text-gray-900 block">{energyTotalKWh}</span>
-                  <span className="text-[10px] text-gray-500 uppercase">{energyTotalUnit} Total</span>
+                  <span className="text-[10px] text-gray-500">{energyTotalUnit} <span className="uppercase">Total</span></span>
                 </div>
               </div>
             </div>
