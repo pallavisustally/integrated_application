@@ -46,10 +46,9 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@sustally.com';
 
 export async function sendAdminNotification(submission: Scope2Submission) {
     const transporter = await getTransporter();
-    const PAYLOAD_URL = process.env.PAYLOAD_PUBLIC_SERVER_URL || 'https://render-beryl.vercel.app';
-    // Update review link to point to the correct admin URL in Sustally
-    const reviewLink = `${PAYLOAD_URL}/admin/collections/scope2-applications/${submission.id}`;
-
+    const DASHBOARD_URL = process.env.ADMIN_DASHBOARD_URL || 'http://localhost:3002';
+    // Update review link to point to the correct admin dashboard URL
+    const reviewLink = `${DASHBOARD_URL}`;
     const facilityName = (submission.data.facilityName as string) || 'Unknown Facility';
 
     const mailOptions = {
