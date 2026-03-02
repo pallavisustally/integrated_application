@@ -62,17 +62,21 @@ export default buildConfig({
     process.env.PAYLOAD_PUBLIC_SERVER_URL || '',
     process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     'http://localhost:3000', // Explicitly adding localhost:3000 for dev
+    'http://127.0.0.1:3000',
     'http://localhost:3001',
     'http://localhost:3002',
     'https://sustally.vercel.app',
+    '*',
   ].filter(Boolean),
   csrf: [
     process.env.PAYLOAD_PUBLIC_SERVER_URL || '',
     process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     'http://localhost:3000',
+    'http://127.0.0.1:3000',
     'http://localhost:3001',
     'http://localhost:3002',
     'https://sustally.vercel.app',
+    '*',
   ].filter(Boolean),
   plugins: [],
 })
