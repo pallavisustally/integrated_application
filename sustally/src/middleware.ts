@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin')
     // Get allowed origins from environment variable or use defaults
-    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
+    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
     const allowedOrigins = corsOriginsEnv.split(',').map(origin => origin.trim())
 
     // Create response

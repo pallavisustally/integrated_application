@@ -6,7 +6,7 @@ import { sendAdminNotification, Scope2Submission } from '../../../../lib/email'
 export const OPTIONS = async (request: Request) => {
   // Handle CORS preflight
   const origin = request.headers.get('origin')
-  const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
+  const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
   const allowedOrigins = corsOriginsEnv.split(',').map(origin => origin.trim())
 
   const headers = new Headers()
@@ -162,7 +162,7 @@ export const POST = async (request: Request) => {
 
     // Get origin for CORS
     const origin = request.headers.get('origin')
-    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
+    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
     const allowedOrigins = corsOriginsEnv.split(',').map(origin => origin.trim())
 
     const headers = new Headers({
@@ -186,7 +186,7 @@ export const POST = async (request: Request) => {
     console.error('Error saving scope2 application:', error)
 
     const origin = request.headers.get('origin')
-    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
+    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
     const allowedOrigins = corsOriginsEnv.split(',').map(origin => origin.trim())
 
     const errorHeaders = new Headers({
