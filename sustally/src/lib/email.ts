@@ -46,7 +46,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@sustally.com';
 
 export async function sendAdminNotification(submission: Scope2Submission) {
     const transporter = await getTransporter();
-    const DASHBOARD_URL = process.env.ADMIN_DASHBOARD_URL || 'http://localhost:3002';
+    const DASHBOARD_URL = process.env.ADMIN_DASHBOARD_URL || 'https://new-rho-plum.vercel.app';
     // Update review link to point to the correct admin dashboard URL
     const reviewLink = `${DASHBOARD_URL}`;
     const facilityName = (submission.data.facilityName as string) || 'Unknown Facility';
