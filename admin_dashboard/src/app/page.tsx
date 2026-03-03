@@ -51,7 +51,11 @@ export default function AdminDashboard() {
         }
       } catch (err) {
         console.error('Failed to fetch applications:', err);
-        setApiError('Backend unreachable. Ensure Sustally is running: cd sustally && pnpm dev (port 3001).');
+        if (API_URL.includes('localhost')) {
+          setApiError('Backend unreachable. Ensure Sustally is running locally on port 3001.');
+        } else {
+          setApiError(`Backend unreachable at ${API_URL}. Please verify the backend is deployed and running.`);
+        }
       }
     };
 
@@ -175,7 +179,12 @@ export default function AdminDashboard() {
           <div>
             <p className="font-semibold">Cannot connect to backend</p>
             <p className="mt-1">{apiError}</p>
-            <p className="mt-2 text-amber-700">Start Sustally in a separate terminal: <code className="bg-amber-100 px-1.5 py-0.5 rounded">cd sustally && pnpm dev</code></p>
+            {apiError.includes('localhost') && (
+              <p className="mt-2 text-amber-700">Start Sustally in a separate terminal: <code className="bg-amber-100 px-1.5 py-0.5 rounded">cd sustally && pnpm dev</code></p>
+            )}
+            {!apiError.includes('localhost') && (
+              <p className="mt-2 text-amber-700"><strong>Action required:</strong> Ensure <code className="bg-amber-100 px-1.5 py-0.5 rounded">NEXT_PUBLIC_SUSTALLY_API_URL</code> environment variable is set to your deployed backend URL in Vercel settings.</p>
+            )}
           </div>
         </div>
       )}
