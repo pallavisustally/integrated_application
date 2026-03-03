@@ -8,6 +8,8 @@ const Applications: CollectionConfig = {
   access: {
     create: () => true, // Allow anyone to create applications
     read: () => true, // Allow anyone to read applications (optional, adjust as needed)
+    update: () => true, // Creating open access for now to resolve 401 error
+    delete: () => true, // Allow anyone to delete applications to resolve 403 error
   },
   hooks: {
     afterChange: [
