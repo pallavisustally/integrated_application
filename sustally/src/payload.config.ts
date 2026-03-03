@@ -67,6 +67,7 @@ export default buildConfig({
     'http://localhost:3001',
     'http://localhost:3002',
     'https://sustally.vercel.app',
+    'https://new-rho-plum.vercel.app',
     '*',
   ].filter(Boolean),
   csrf: [
@@ -77,6 +78,7 @@ export default buildConfig({
     'http://localhost:3001',
     'http://localhost:3002',
     'https://sustally.vercel.app',
+    'https://new-rho-plum.vercel.app',
     '*',
   ].filter(Boolean),
   plugins: [],
