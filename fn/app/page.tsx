@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Combobox from "./scope/Combobox";
+import { SECTOR_OPTIONS } from "./data/sectorInitiatives";
 
 // Icons as components to avoid external dependencies
 const UserIcon = () => (
@@ -103,13 +105,7 @@ type FormDataType = {
   legalEntityId: string;
 };
 
-const PREDEFINED_SECTORS = [
-  "Manufacturing",
-  "Services",
-  "Trading",
-  "FMCG",
-  "Auto / Engineering",
-];
+// PREDEFINED_SECTORS removed
 
 export default function HomePage() {
   const router = useRouter();
@@ -119,7 +115,7 @@ export default function HomePage() {
     mobile: "",
     email: "",
     company: "",
-    sector: "Manufacturing", // Default selection
+    sector: "", // Empty default
     natureOfBusiness: "",
     siteCount: "Single site",
     siteCountNumber: "",
@@ -149,15 +145,11 @@ export default function HomePage() {
   }, [formData, isLoaded]);
 
   // Helper to check if current sector is custom (not in predefined list)
-  const isCustomSector = !PREDEFINED_SECTORS.includes(formData.sector) && formData.sector !== "";
-  // If sector is empty string, we treat it as custom mode active but no value yet, 
-  // or we need a specific state for "Other selected but empty"? 
-  // actually if sector is "", it's not in predefined, so isCustomSector is true (if we remove '&& formData.sector !== ""').
-  // Let's use a derived state or just check inclusion.
+  const isCustomSector = !SECTOR_OPTIONS.includes(formData.sector) && formData.sector !== "";
 
   // We need to know if "Other" button is active. 
   // If sector is NOT in predefined list, "Other" is active.
-  const isOtherActive = !PREDEFINED_SECTORS.includes(formData.sector);
+  const isOtherActive = !SECTOR_OPTIONS.includes(formData.sector);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -169,11 +161,10 @@ export default function HomePage() {
     }
   };
 
-  const handleSectorClick = (sectorName: string) => {
-    if (sectorName === "Other") {
-      setFormData((prev) => ({ ...prev, sector: "" })); // Clear sector to show input
-    } else {
-      setFormData((prev) => ({ ...prev, sector: sectorName }));
+  const handleSectorChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, sector: value }));
+    if (errors.sector) {
+      setErrors((prev) => ({ ...prev, sector: "" }));
     }
   };
 
@@ -389,56 +380,15 @@ export default function HomePage() {
                   </label>
 
                   {/* Sector Selection */}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {[
-                      { name: "Manufacturing", icon: <FactoryIcon /> },
-                      { name: "Services", icon: <BriefcaseIcon /> },
-                      { name: "Trading", icon: <TrendingUpIcon /> },
-                      { name: "FMCG", icon: <ShoppingBagIcon /> },
-                      { name: "Auto / Engineering", icon: <CogIcon /> },
-                    ].map(s => (
-                      <button
-                        key={s.name}
-                        type="button"
-                        onClick={() => handleSectorClick(s.name)}
-                        className={`px-3 h-10 rounded-lg text-xs font-medium transition-colors border flex items-center gap-2 ${formData.sector === s.name
-                          ? "bg-white border-indigo-200 text-indigo-700 shadow-sm"
-                          : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
-                          }`}
-                      >
-                        {s.icon}
-                        {s.name}
-                      </button>
-                    ))}
-
-                    {/* Other Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleSectorClick("Other")}
-                      className={`px-3 h-10 rounded-lg text-xs font-medium transition-colors border flex items-center gap-2 ${isOtherActive
-                        ? "bg-white border-indigo-200 text-indigo-700 shadow-sm"
-                        : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
-                        }`}
-                    >
-                      <DotsHorizontalIcon />
-                      Other
-                    </button>
+                  <div className="mb-2">
+                    <Combobox
+                      options={SECTOR_OPTIONS}
+                      value={formData.sector}
+                      onChange={handleSectorChange}
+                      placeholder="Select sector..."
+                      error={!!errors.sector}
+                    />
                   </div>
-
-                  {/* Conditional Input for Other */}
-                  {isOtherActive && (
-                    <div className="animate-in fade-in slide-in-from-top-1 mb-2">
-                      <input
-                        type="text"
-                        name="sector"
-                        value={formData.sector}
-                        onChange={handleChange}
-                        placeholder="Enter your sector"
-                        autoFocus
-                        className={`w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.sector ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                      />
-                    </div>
-                  )}
                   {errors.sector && <p className="text-red-500 text-[10px] mt-0.5">{errors.sector}</p>}
 
                 </div>
