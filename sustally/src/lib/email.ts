@@ -130,11 +130,17 @@ export async function sendRejectionEmail(userEmail: string, submission: Scope2Su
       <h1>Assessment Update Required</h1>
       <p>Thank you for submitting your Scope 2 assessment for <strong>${facilityName}</strong>.</p>
       <p>After review, we have identified areas that need further clarification or correction.</p>
-      ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+      ${reason ? `<p><strong>Reason (also attached):</strong> ${reason}</p>` : ''}
       <p>Please log in to your dashboard to retry your assessment.</p>
       <br />
       <p>Best regards,<br/>Sustally Team</p>
     `,
+        attachments: reason ? [
+            {
+                filename: 'Feedback.txt',
+                content: reason
+            }
+        ] : []
     };
 
     try {

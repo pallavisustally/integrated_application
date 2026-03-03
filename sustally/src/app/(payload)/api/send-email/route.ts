@@ -34,6 +34,33 @@ export const POST = async (request: Request) => {
       throw new APIError('Email address is required', 400)
     }
 
+    // Save slot booking to DB when it's a slot booking (has assignment details)
+    const isSlotBooking = data.assignmentDate || data.assignmentSlot || data.assignmentTime
+    if (isSlotBooking) {
+      try {
+        await payload.create({
+          collection: 'slot-bookings',
+          data: {
+            name: data.name || '',
+            email: data.email || '',
+            mobile: data.mobile || '',
+            company: data.company || '',
+            sector: data.sector || '',
+            natureOfBusiness: data.natureOfBusiness || '',
+            country: data.country || '',
+            assignmentDate: data.assignmentDate || '',
+            assignmentSlot: data.assignmentSlot || '',
+            assignmentTime: data.assignmentTime || '',
+            assessmentId: data.assessmentId || '',
+            assessmentLink: data.assessmentLink || '',
+          },
+        })
+      } catch (saveErr) {
+        console.warn('[send-email] Failed to save slot booking:', saveErr)
+        // Continue with email - don't fail the whole request
+      }
+    }
+
     // Extract review details from request
     // const renewableEnergyStr = data.renewableEnergy || '0';
     // const totalEnergyStr = data.totalEnergy || '0';

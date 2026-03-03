@@ -214,7 +214,7 @@ function ChooseTimeContent() {
     const sendBookingEmail = async (data: any) => {
         setIsSendingEmail(true);
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://render-beryl.vercel.app";
+            const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
             const response = await fetch(`${apiUrl}/api/send-email`, {
                 method: "POST",
                 headers: {

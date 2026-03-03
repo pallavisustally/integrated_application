@@ -128,6 +128,7 @@ const Scope2Applications: CollectionConfig = {
       type: "select",
       options: [
         { label: "Pending", value: "PENDING" },
+        { label: "In Progress", value: "IN_PROGRESS" },
         { label: "Approved", value: "APPROVED" },
         { label: "Rejected", value: "REJECTED" },
       ],

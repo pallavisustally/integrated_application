@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     applications: Application;
     'scope2-applications': Scope2Application;
+    'slot-bookings': SlotBooking;
     feedback: Feedback;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -83,6 +84,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     applications: ApplicationsSelect<false> | ApplicationsSelect<true>;
     'scope2-applications': Scope2ApplicationsSelect<false> | Scope2ApplicationsSelect<true>;
+    'slot-bookings': SlotBookingsSelect<false> | SlotBookingsSelect<true>;
     feedback: FeedbackSelect<false> | FeedbackSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -215,7 +217,7 @@ export interface Scope2Application {
   siteCount: string;
   facilityName: string;
   energyIntensityPerRupee?: string | null;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'IN_PROGRESS' | 'APPROVED' | 'REJECTED';
   rejectionReason?: string | null;
   /**
    * Format: GHGCAL + reporting year + certificate count (e.g. GHGCAL2024-2500001)
@@ -265,6 +267,39 @@ export interface Scope2Application {
   energyTotal_kJ?: number | null;
   otp?: string | null;
   otpExpiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "slot-bookings".
+ */
+export interface SlotBooking {
+  id: string;
+  name?: string | null;
+  email: string;
+  mobile?: string | null;
+  company?: string | null;
+  sector?: string | null;
+  natureOfBusiness?: string | null;
+  country?: string | null;
+  /**
+   * Date of the booked assessment slot
+   */
+  assignmentDate?: string | null;
+  /**
+   * Shift (e.g. Morning, Afternoon, Evening)
+   */
+  assignmentSlot?: string | null;
+  /**
+   * Specific time slot
+   */
+  assignmentTime?: string | null;
+  assessmentId?: string | null;
+  /**
+   * Link to access the assessment
+   */
+  assessmentLink?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -322,6 +357,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'scope2-applications';
         value: string | Scope2Application;
+      } | null)
+    | ({
+        relationTo: 'slot-bookings';
+        value: string | SlotBooking;
       } | null)
     | ({
         relationTo: 'feedback';
@@ -498,6 +537,26 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   energyTotal_kJ?: T;
   otp?: T;
   otpExpiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "slot-bookings_select".
+ */
+export interface SlotBookingsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  mobile?: T;
+  company?: T;
+  sector?: T;
+  natureOfBusiness?: T;
+  country?: T;
+  assignmentDate?: T;
+  assignmentSlot?: T;
+  assignmentTime?: T;
+  assessmentId?: T;
+  assessmentLink?: T;
   updatedAt?: T;
   createdAt?: T;
 }
