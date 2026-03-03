@@ -10,7 +10,7 @@ const Scope2Applications: CollectionConfig = {
     create: () => true, // Allow anyone to create applications
     read: () => true, // Allow anyone to read applications
     update: () => true, // Creating open access for now to resolve 401 error
-    delete: ({ req: { user } }) => !!user,
+    delete: () => true, // Allow anyone to delete applications to resolve 403 error
   },
   hooks: {
     beforeChange: [
