@@ -208,12 +208,11 @@ export default function AssessmentViewPage() {
             </div>
           </div>
           <div className="flex-1 flex justify-center shrink-0">
-            <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${
-              status === 'APPROVED' ? 'bg-green-100 text-green-700 border-green-200' :
-              status === 'REJECTED' ? 'bg-red-100 text-red-700 border-red-200' :
-              status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-              'bg-orange-100 text-orange-700 border-orange-200'
-            }`}>{status.replace('_', ' ')}</span>
+            <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${status === 'APPROVED' ? 'bg-green-100 text-green-700 border-green-200' :
+                status === 'REJECTED' ? 'bg-red-100 text-red-700 border-red-200' :
+                  status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                    'bg-orange-100 text-orange-700 border-orange-200'
+              }`}>{status.replace('_', ' ')}</span>
           </div>
           <div className="flex items-center gap-3 opacity-90 flex-1 justify-end shrink-0">
             <Image src="/sustally-logo.png" alt="Sustally" width={100} height={40} className="object-contain h-10 w-auto" style={{ width: 'auto', height: 'auto' }} />
@@ -241,11 +240,6 @@ export default function AssessmentViewPage() {
                 <DetailRow label="Assignment Date" value={slotBooking.assignmentDate || '-'} />
                 <DetailRow label="Assignment Slot" value={slotBooking.assignmentSlot || '-'} />
                 <DetailRow label="Assignment Time" value={slotBooking.assignmentTime || '-'} />
-                {slotBooking.assessmentLink && (
-                  <div className="col-span-2">
-                    <DetailRow label="Assessment Link" value={<a href={slotBooking.assessmentLink} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">Open Link</a>} />
-                  </div>
-                )}
               </DetailGrid>
             </ReviewCard>
           )}
