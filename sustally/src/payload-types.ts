@@ -212,6 +212,8 @@ export interface Application {
 export interface Scope2Application {
   id: string;
   email?: string | null;
+  sector?: string | null;
+  natureOfBusiness?: string | null;
   state: string;
   utilityProvider?: string | null;
   siteCount: string;
@@ -497,6 +499,8 @@ export interface ApplicationsSelect<T extends boolean = true> {
  */
 export interface Scope2ApplicationsSelect<T extends boolean = true> {
   email?: T;
+  sector?: T;
+  natureOfBusiness?: T;
   state?: T;
   utilityProvider?: T;
   siteCount?: T;
