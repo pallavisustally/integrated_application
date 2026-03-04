@@ -93,7 +93,7 @@ type FormDataType = {
   // ---------------- PAGE 2 ----------------
 
   // Page 2 - Box 1 (Energy Activity)
-  energyActivityInput: "Monthly" | "Yearly" | "";
+  energyActivityInput: "Monthly" | "Quarterly" | "Yearly" | "";
   energyCategory: string;
   electricityPurchased: string;
   dataSourceType: string;
@@ -109,7 +109,7 @@ type FormDataType = {
   renewableEnergyConsumption: string;
   renewableSupportingEvidenceFile: File | null;
   renewableEnergySourceDescription: string;
-  renewableEnergyActivityInput: "Monthly" | "Yearly" | "";
+  renewableEnergyActivityInput: "Monthly" | "Quarterly" | "Yearly" | "";
   renewableMonthlyData: MonthlyEntry[];
 
   // Calculated fields
@@ -494,6 +494,23 @@ function TemplateContent() {
     }
   };
 
+  const generateQuarterlyDataForYear = (date: Date | null): MonthlyEntry[] => {
+    if (!date) return [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+    const year = date.getFullYear();
+    const result: MonthlyEntry[] = [];
+    for (let i = 0; i < 4; i++) {
+      result.push({
+        id: Math.random().toString(36).substr(2, 9),
+        month: `Q${i + 1} ${year}-${String(year + 1).slice(-2)}`,
+        electricityPurchased: "",
+        dataSourceType: "",
+        energyConsumption: "",
+        spend: ""
+      });
+    }
+    return result;
+  };
+
   const generateMonthlyDataForYear = (date: Date | null): MonthlyEntry[] => {
     if (!date) return [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
     const year = date.getFullYear();
@@ -545,6 +562,8 @@ function TemplateContent() {
         };
         if (value === "Monthly" && prev.reportingPeriod !== "Monthly") {
           updates.monthlyData = generateMonthlyDataForYear(prev.reportingYear);
+        } else if (value === "Quarterly") {
+          updates.monthlyData = generateQuarterlyDataForYear(prev.reportingYear);
         } else {
           updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
         }
@@ -692,7 +711,7 @@ function TemplateContent() {
             missingFields.push("Spend Amount (Invalid)");
           }
         }
-      } else if (formData.energyActivityInput === "Monthly") {
+      } else if ((formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly")) {
         // Validation for Monthly Data
         if (formData.monthlyData.length === 0) {
           missingFields.push("At least one monthly entry is required");
@@ -737,7 +756,7 @@ function TemplateContent() {
 
       // Page 2 - Box 2 Validation
       if (page === 2 && formData.hasRenewableElectricity === "Yes") {
-        if (formData.renewableEnergyActivityInput === "Monthly") {
+        if ((formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly")) {
           let hasError = false;
           formData.renewableMonthlyData.forEach((row) => {
             if (!row.month) {
@@ -924,8 +943,13 @@ function TemplateContent() {
       .filter(([_, data]) => data.grid > 0 || data.renewable > 0)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([monthStr, data]) => {
-        const date = new Date(monthStr + "-01");
-        const monthLabel = date.toLocaleDateString('default', { month: 'short', year: '2-digit' });
+        let monthLabel = monthStr;
+        if (!monthStr.startsWith("Q") && monthStr.includes("-")) {
+          const date = new Date(monthStr + "-01");
+          if (!isNaN(date.getTime())) {
+            monthLabel = date.toLocaleDateString('default', { month: 'short', year: '2-digit' });
+          }
+        }
         return {
           name: monthLabel,
           Grid: parseFloat(data.grid.toFixed(2)),
@@ -1093,14 +1117,14 @@ function TemplateContent() {
   let derivedGridKWh = 0;
   let derivedRenewKWh = 0;
 
-  if (formData.energyActivityInput === "Monthly") {
+  if ((formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly")) {
     derivedGridKWh = formData.monthlyData.reduce((sum, row) => sum + (parseFloat(row.electricityPurchased) || 0), 0);
   } else {
     derivedGridKWh = parseFloat(formData.electricityPurchased) || 0;
   }
 
   if (formData.hasRenewableElectricity === "Yes") {
-    if (formData.renewableEnergyActivityInput === "Monthly") {
+    if ((formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly")) {
       derivedRenewKWh = formData.renewableMonthlyData.reduce((sum, row) => sum + (parseFloat(row.electricityPurchased) || 0), 0);
     } else {
       derivedRenewKWh = parseFloat(formData.renewableElectricity) || 0;
@@ -1417,14 +1441,40 @@ function TemplateContent() {
                             const selectedYear = parseInt(e.target.value);
                             const date = new Date(selectedYear, 0, 1);
                             setFormData((prev) => {
-                              const results = calculateScope2(prev.electricityPurchased, prev.renewableElectricity, date);
-                              const updates: any = { ...prev, reportingYear: date, ...results };
-                              if (prev.energyActivityInput === "Monthly" && prev.reportingPeriod !== "Monthly") {
+                              let currentElec = prev.electricityPurchased;
+                              let currentRenew = prev.renewableElectricity;
+
+                              const updates: any = { ...prev, reportingYear: date };
+
+                              if (prev.energyActivityInput === "Quarterly") {
+                                updates.monthlyData = generateQuarterlyDataForYear(date);
+                                currentElec = "";
+                                updates.electricityPurchased = "";
+                                updates.energyConsumption = "";
+                                updates.spendAmount = "";
+                              } else if (prev.energyActivityInput === "Monthly" && prev.reportingPeriod !== "Monthly") {
                                 updates.monthlyData = generateMonthlyDataForYear(date);
+                                currentElec = "";
+                                updates.electricityPurchased = "";
+                                updates.energyConsumption = "";
+                                updates.spendAmount = "";
                               }
-                              if (prev.renewableEnergyActivityInput === "Monthly" && prev.reportingPeriod !== "Monthly") {
+
+                              if (prev.renewableEnergyActivityInput === "Quarterly") {
+                                updates.renewableMonthlyData = generateQuarterlyDataForYear(date);
+                                currentRenew = "";
+                                updates.renewableElectricity = "";
+                                updates.renewableEnergyConsumption = "";
+                              } else if (prev.renewableEnergyActivityInput === "Monthly" && prev.reportingPeriod !== "Monthly") {
                                 updates.renewableMonthlyData = generateMonthlyDataForYear(date);
+                                currentRenew = "";
+                                updates.renewableElectricity = "";
+                                updates.renewableEnergyConsumption = "";
                               }
+
+                              const results = calculateScope2(currentElec, currentRenew, date);
+                              Object.assign(updates, results);
+
                               return updates;
                             });
                           }}
@@ -1460,20 +1510,44 @@ function TemplateContent() {
                               type="button"
                               onClick={() => setFormData(prev => {
                                 const updates: any = { ...prev, reportingPeriod: p as any };
-                                if (prev.energyActivityInput === "Monthly") {
-                                  if (p !== "Monthly") {
-                                    updates.monthlyData = generateMonthlyDataForYear(prev.reportingYear);
-                                  } else {
-                                    updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+                                let currentElec = prev.electricityPurchased;
+                                let currentRenew = prev.renewableElectricity;
+
+                                if (p === "Quarterly") {
+                                  if (prev.energyActivityInput === "Monthly" || prev.energyActivityInput === "Quarterly") {
+                                    updates.energyActivityInput = "Quarterly";
+                                    updates.monthlyData = generateQuarterlyDataForYear(prev.reportingYear);
+                                    currentElec = ""; updates.electricityPurchased = ""; updates.energyConsumption = ""; updates.spendAmount = "";
+                                  }
+                                  if (prev.renewableEnergyActivityInput === "Monthly" || prev.renewableEnergyActivityInput === "Quarterly") {
+                                    updates.renewableEnergyActivityInput = "Quarterly";
+                                    updates.renewableMonthlyData = generateQuarterlyDataForYear(prev.reportingYear);
+                                    currentRenew = ""; updates.renewableElectricity = ""; updates.renewableEnergyConsumption = "";
+                                  }
+                                } else {
+                                  if (prev.energyActivityInput === "Monthly" || prev.energyActivityInput === "Quarterly") {
+                                    updates.energyActivityInput = "Monthly";
+                                    if (p !== "Monthly") {
+                                      updates.monthlyData = generateMonthlyDataForYear(prev.reportingYear);
+                                    } else {
+                                      updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+                                    }
+                                    currentElec = ""; updates.electricityPurchased = ""; updates.energyConsumption = ""; updates.spendAmount = "";
+                                  }
+                                  if (prev.renewableEnergyActivityInput === "Monthly" || prev.renewableEnergyActivityInput === "Quarterly") {
+                                    updates.renewableEnergyActivityInput = "Monthly";
+                                    if (p !== "Monthly") {
+                                      updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
+                                    } else {
+                                      updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+                                    }
+                                    currentRenew = ""; updates.renewableElectricity = ""; updates.renewableEnergyConsumption = "";
                                   }
                                 }
-                                if (prev.renewableEnergyActivityInput === "Monthly") {
-                                  if (p !== "Monthly") {
-                                    updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
-                                  } else {
-                                    updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
-                                  }
-                                }
+
+                                const results = calculateScope2(currentElec, currentRenew, prev.reportingYear);
+                                Object.assign(updates, results);
+
                                 return updates;
                               })}
                               className={`flex-1 h-full min-h-[32px] flex items-center justify-center rounded text-center transition-all ${formData.reportingPeriod === p
@@ -1591,7 +1665,7 @@ function TemplateContent() {
                           Energy activity input <span className="text-red-500">*</span>
                         </label>
                         <div className={`flex flex-row h-10 bg-gray-50 p-1 rounded-lg border w-fit ${errors.energyActivityInput ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
-                          {["Monthly", "Yearly"].map((m) => (
+                          {(formData.reportingPeriod === "Quarterly" ? ["Quarterly", "Yearly"] : ["Monthly", "Yearly"]).map((m) => (
                             <button
                               key={m}
                               type="button"
@@ -1671,13 +1745,13 @@ function TemplateContent() {
 
                     {/* Dynamic Inputs based on Energy Activity Input */}
                     <div className="mt-4">
-                      {formData.energyActivityInput === "Monthly" ? (
+                      {(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") ? (
                         <>
                           <div className="overflow-x-auto border border-gray-200 rounded-lg">
                             <table className="w-full text-xs text-left text-gray-700">
                               <thead className="text-[10px] text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                  <th className="px-3 py-2 font-bold min-w-[130px]">Month</th>
+                                  <th className="px-3 py-2 font-bold min-w-[130px]">{formData.energyActivityInput === "Quarterly" ? "Quarter" : "Month"}</th>
                                   {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
                                     <>
                                       <th className="px-3 py-2 font-bold min-w-[130px]">Electricity purchased (<span className="normal-case">kWh</span>)</th>
@@ -1702,9 +1776,17 @@ function TemplateContent() {
                                 {formData.monthlyData.map((row, index) => (
                                   <tr key={row.id} className="border-b border-gray-100 last:border-none group hover:bg-gray-50/50">
                                     <td className="px-3 py-2">
-                                      {formData.reportingPeriod !== "Monthly" ? (
+                                      {formData.energyActivityInput === "Quarterly" ? (
+                                        <input
+                                          type="text"
+                                          value={row.month}
+                                          onChange={(e) => handleRowChange(row.id, "month", e.target.value)}
+                                          className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
+                                          placeholder="e.g. Q1 2024"
+                                        />
+                                      ) : formData.reportingPeriod !== "Monthly" ? (
                                         <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
-                                          {row.month ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : ""}
+                                          {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
                                         </div>
                                       ) : (
                                         <input
@@ -1812,7 +1894,7 @@ function TemplateContent() {
                                       </>
                                     )}
                                     <td className="px-2 py-2 text-right">
-                                      {formData.reportingPeriod === "Monthly" && (
+                                      {(formData.reportingPeriod === "Monthly" || formData.energyActivityInput === "Quarterly") && (
                                         <button
                                           type="button"
                                           onClick={() => handleDeleteRow(row.id)}
@@ -1829,7 +1911,7 @@ function TemplateContent() {
                                 ))}
                               </tbody>
                             </table>
-                            {formData.reportingPeriod === "Monthly" && (
+                            {(formData.reportingPeriod === "Monthly" || formData.energyActivityInput === "Quarterly") && (
                               <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
                                 <button
                                   type="button"
@@ -1839,7 +1921,7 @@ function TemplateContent() {
                                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                   </svg>
-                                  Add Month
+                                  {formData.energyActivityInput === "Quarterly" ? "Add Quarter" : "Add Month"}
                                 </button>
                               </div>
                             )}
@@ -2130,7 +2212,7 @@ function TemplateContent() {
                             </div>
                           </div>
 
-                          {formData.renewableEnergyActivityInput === "Monthly" ? (
+                          {(formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly") ? (
                             <div className="overflow-x-auto border border-gray-200 rounded-lg">
                               <table className="w-full text-xs text-left text-gray-700">
                                 <thead className="text-[10px] text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
@@ -2145,9 +2227,17 @@ function TemplateContent() {
                                   {formData.renewableMonthlyData.map((row) => (
                                     <tr key={row.id} className="border-b border-gray-100 last:border-none group hover:bg-gray-50/50">
                                       <td className="px-3 py-2">
-                                        {formData.reportingPeriod !== "Monthly" ? (
+                                        {formData.renewableEnergyActivityInput === "Quarterly" ? (
+                                          <input
+                                            type="text"
+                                            value={row.month}
+                                            onChange={(e) => handleRenewableRowChange(row.id, "month", e.target.value)}
+                                            className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
+                                            placeholder="e.g. Q1 2024"
+                                          />
+                                        ) : formData.reportingPeriod !== "Monthly" ? (
                                           <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
-                                            {row.month ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : ""}
+                                            {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
                                           </div>
                                         ) : (
                                           <input
@@ -2155,6 +2245,7 @@ function TemplateContent() {
                                             value={row.month}
                                             onChange={(e) => handleRenewableRowChange(row.id, "month", e.target.value)}
                                             className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
+                                            placeholder="Select month"
                                           />
                                         )}
                                       </td>
@@ -2181,7 +2272,7 @@ function TemplateContent() {
                                         </div>
                                       </td>
                                       <td className="px-2 py-2 text-right">
-                                        {formData.reportingPeriod === "Monthly" && (
+                                        {(formData.reportingPeriod === "Monthly" || formData.energyActivityInput === "Quarterly") && (
                                           <button
                                             type="button"
                                             onClick={() => handleDeleteRenewableRow(row.id)}
@@ -2197,7 +2288,7 @@ function TemplateContent() {
                                   ))}
                                 </tbody>
                               </table>
-                              {formData.reportingPeriod === "Monthly" && (
+                              {(formData.reportingPeriod === "Monthly" || formData.energyActivityInput === "Quarterly") && (
                                 <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
                                   <button
                                     type="button"
@@ -2207,7 +2298,7 @@ function TemplateContent() {
                                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                     </svg>
-                                    Add Month
+                                    {formData.energyActivityInput === "Quarterly" ? "Add Quarter" : "Add Month"}
                                   </button>
                                 </div>
                               )}
@@ -2405,7 +2496,7 @@ function TemplateContent() {
                     {/* Bar Chart Column */}
                     <div className="flex flex-col h-[250px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        {formData.energyActivityInput === "Monthly" && monthlyChartData.length > 0 ? (
+                        {(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? (
                           <BarChart
                             data={monthlyChartData}
                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}

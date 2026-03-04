@@ -6,6 +6,7 @@ import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import CostSavingCard from "../../dashboard/CostSavingCard";
+import { SECTOR_INITIATIVES } from "../../data/sectorInitiatives";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -85,6 +86,7 @@ function CertificateContent() {
         electricityPurchased: "20000", // 20k units annual
         spendAmount: "25500000", // 2.55 Cr
         trackingType: "Spend amount",
+        sector: "Automobile and Auto Components", // Mock sector for preview
       });
       setLoading(false);
       return;
@@ -130,6 +132,7 @@ function CertificateContent() {
         electricityPurchased: parsedData.electricityPurchased,
         spendAmount: parsedData.spendAmount,
         trackingType: parsedData.trackingType,
+        sector: parsedData.sector || "-",
       });
     } catch (e) {
       console.error("Failed to parse session data", e);
@@ -519,42 +522,59 @@ function CertificateContent() {
           <div id="ai-insights-section" className="w-full lg:w-[70%] flex flex-col ai-insights-target">
             <div className="flex items-center gap-2 mb-2 shrink-0">
               <svg className="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-              <h3 className="text-sm font-semibold text-gray-800">Operational AI Insights</h3>
+              <h3 className="text-sm font-semibold text-gray-800">Sector Recommendations</h3>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1">
-              <div className="bg-green-50 rounded-lg p-3 border border-green-100 flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-semibold text-gray-900 text-xs">Production Efficiency</h4>
-                  <span className="bg-red-500 text-white text-[8px] uppercase font-bold px-1.5 py-0.5 rounded-full">High</span>
-                </div>
-                <p className="text-[10px] text-gray-600 leading-snug line-clamp-3">Manufacturing efficiency reached 89.2%, up 6.8%. Scale successful practices.</p>
-                <button className="w-full bg-white text-gray-800 text-[10px] font-semibold py-1.5 rounded border border-green-200 hover:bg-green-50 transition-colors flex items-center justify-between px-2">
-                  Audit Lines
-                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                </button>
-              </div>
-              <div className="bg-blue-50 rounded-lg p-3 border border-blue-100 flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-semibold text-gray-900 text-xs">Inventory Opt.</h4>
-                  <span className="bg-red-500 text-white text-[8px] uppercase font-bold px-1.5 py-0.5 rounded-full">High</span>
-                </div>
-                <p className="text-[10px] text-gray-600 leading-snug line-clamp-3">Electronics category showing 6.2x turnover rate. Increase allocation by 20%.</p>
-                <button className="w-full bg-white text-gray-800 text-[10px] font-semibold py-1.5 rounded border border-blue-200 hover:bg-blue-50 transition-colors flex items-center justify-between px-2">
-                  Update Plan
-                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                </button>
-              </div>
-              <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-100 flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-semibold text-gray-900 text-xs">Delivery Risk</h4>
-                  <span className="bg-gray-800 text-white text-[8px] uppercase font-bold px-1.5 py-0.5 rounded-full shrink-0">Med</span>
-                </div>
-                <p className="text-[10px] text-gray-600 leading-snug line-clamp-3">On-time delivery dipped to 92% in Week 3. Investigate bottlenecks.</p>
-                <button className="w-full bg-white text-gray-800 text-[10px] font-semibold py-1.5 rounded border border-yellow-200 hover:bg-yellow-50 transition-colors flex items-center justify-between px-2">
-                  Check Logistics
-                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                </button>
-              </div>
+              {(() => {
+                let displayInitiatives: string[] = [];
+                if (data?.sector && SECTOR_INITIATIVES[data.sector]) {
+                  const sectorData = SECTOR_INITIATIVES[data.sector];
+                  const allInit = [
+                    sectorData["2 Initiative"],
+                    sectorData["3 Initiative"],
+                    sectorData["4 Initiative"],
+                    sectorData["5 Initiative"],
+                    sectorData["6 Initiative"]
+                  ];
+                  displayInitiatives = allInit.filter(i => i && i !== "-").slice(0, 3);
+                }
+                while (displayInitiatives.length < 3) {
+                  displayInitiatives.push("General Best Practice - Optimize operations for better energy efficiency.");
+                }
+
+                const cardStyles = [
+                  {
+                    bg: "bg-green-50", border: "border-green-100", iconBg: "bg-green-100",
+                    icon: <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  },
+                  {
+                    bg: "bg-blue-50", border: "border-blue-100", iconBg: "bg-blue-100",
+                    icon: <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                  },
+                  {
+                    bg: "bg-yellow-50", border: "border-yellow-100", iconBg: "bg-yellow-100",
+                    icon: <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                  }
+                ];
+
+                return displayInitiatives.map((init, index) => {
+                  const parts = init.split(" - ");
+                  const title = parts[0] || "Initiative";
+                  const desc = parts[1] || init;
+                  const c = cardStyles[index];
+                  return (
+                    <div key={index} className={`${c.bg} rounded-xl p-4 border ${c.border} flex flex-col justify-start gap-1.5`}>
+                      <div className="flex justify-between items-start gap-2">
+                        <h4 className="font-bold text-gray-900 text-sm leading-tight mt-1">{title}</h4>
+                        <div className={`w-8 h-8 rounded-full ${c.iconBg} flex items-center justify-center shrink-0`}>
+                          {c.icon}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-700 leading-relaxed">{desc}</p>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
 
