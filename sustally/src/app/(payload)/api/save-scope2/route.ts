@@ -95,6 +95,8 @@ export const POST = async (request: Request) => {
 
     // Prepare the data for Payload
     const scope2Data = {
+      sector: data.sector || '',
+      natureOfBusiness: data.natureOfBusiness || '',
       state: data.state || '',
       utilityProvider: data.utilityProvider || '',
       siteCount: data.siteCount || '',

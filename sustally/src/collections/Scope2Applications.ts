@@ -97,6 +97,14 @@ const Scope2Applications: CollectionConfig = {
       },
     },
 
+    {
+      name: "sector",
+      type: "text",
+    },
+    {
+      name: "natureOfBusiness",
+      type: "text",
+    },
     // Page 1 - Box 1
     {
       name: "state",
@@ -501,6 +509,8 @@ const Scope2Applications: CollectionConfig = {
               email: application.email,
               id: application.id,
               certificateId: application.certificateId,
+              sector: application.sector,
+              natureOfBusiness: application.natureOfBusiness,
               // Return all other fields needed for certificate
               state: application.state,
               siteCount: application.siteCount,

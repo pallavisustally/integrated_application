@@ -193,7 +193,7 @@ export const SECTOR_INITIATIVES: Record<string, Record<string, string>> = {
         "3 Initiative": "Energy efficient lighting - Upgrade high-mast lighting systems",
         "4 Initiative": "EMS adoption - Monitor railway electricity consumption",
         "5 Initiative": "Green tariff adoption - Purchase renewable electricity from utility",
-        "6: Initiative": "-"
+        "6 Initiative": "-"
     },
     "Railways": {
         "2 Initiative": "Renewable power procurement - Source renewable electricity via agreements",
@@ -206,7 +206,7 @@ export const SECTOR_INITIATIVES: Record<string, Record<string, string>> = {
         "2 Initiative": "Renewable power procurement - Secure renewable electricity contracts",
         "3 Initiative": "Energy efficient engines - Upgrade marine engines for fuel efficiency",
         "4 Initiative": "Energy efficient furnaces - Upgrade to high-efficiency furnaces",
-        "5 Green tariff adoption - Opt for renewable electricity supply": "",
+        "5 Initiative": "Green tariff adoption - Opt for renewable electricity supply",
         "6 Initiative": "-"
     },
     "Steel": {
