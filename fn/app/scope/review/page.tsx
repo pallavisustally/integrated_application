@@ -306,6 +306,8 @@ function ScopeReviewContent() {
                 <DetailRow label="Company" value={formData.userCompany} />
                 <DetailRow label="Email" value={formData.userEmail} />
                 <DetailRow label="Mobile" value={formData.userMobile || "-"} />
+                <DetailRow label="Sector" value={formData.sector || "NA"} />
+                <DetailRow label="Nature of Business" value={formData.natureOfBusiness || "NA"} />
               </DetailGrid>
             </ReviewCard>
           )}

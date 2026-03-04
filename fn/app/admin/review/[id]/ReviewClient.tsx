@@ -184,6 +184,8 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Email" value={data.userEmail || "Unknown"} />
                                 <DetailRow label="Company" value={data.userCompany || "Unknown"} />
                                 <DetailRow label="Mobile" value={data.userMobile || "Unknown"} />
+                                <DetailRow label="Sector" value={data.sector || "NA"} />
+                                <DetailRow label="Nature of Business" value={data.natureOfBusiness || "NA"} />
                             </DetailGrid>
                         </ReviewCard>
 

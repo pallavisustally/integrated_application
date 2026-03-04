@@ -65,6 +65,8 @@ type FormDataType = {
   userEmail: string;
   userMobile: string;
   userCompany: string;
+  sector: string;
+  natureOfBusiness: string;
 
   // Page 1 - Box 1
   state: string;
@@ -135,6 +137,8 @@ function TemplateContent() {
     userEmail: searchParams.get("email") || "",
     userMobile: searchParams.get("mobile") || "",
     userCompany: searchParams.get("company") || "",
+    sector: searchParams.get("sector") || "",
+    natureOfBusiness: searchParams.get("natureOfBusiness") || "",
 
     // Page 1
     state: "",
