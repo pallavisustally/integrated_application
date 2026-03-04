@@ -112,7 +112,9 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
             <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Month</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Electricity (kWh)</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Consumption (GJ)</th>
-            {type === "Grid" && <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Spend / Source</th>}
+            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
+              {type === "Grid" ? "Spend / Source" : "Source"}
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -123,11 +125,9 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
               </td>
               <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
               <td className="px-3 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
-              {type === "Grid" && (
-                <td className="px-3 py-2 text-gray-700">
-                  {row.dataSourceType || row.spend || "-"}
-                </td>
-              )}
+              <td className="px-3 py-2 text-gray-700">
+                {type === "Grid" ? (row.dataSourceType || row.spend || "-") : (row.dataSourceType || "-")}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -317,7 +317,6 @@ function ScopeReviewContent() {
             <DetailGrid>
               <DetailRow label="State / Grid Region" value={formData.state || "Not specified"} />
               <DetailRow label="Facility Name" value={formData.facilityName || "Not specified"} />
-              <DetailRow label="Turnover of your site" value={formData.energyIntensityPerRupee ? `${formData.energyIntensityPerRupee} INR` : "Not specified"} />
               <DetailRow label="Site Count" value={formData.siteCount || "1"}
                 subLabel={formData.siteCount === "Multiple sites" ? `(${formData.siteCountNumber} sites)` : undefined} />
               <DetailRow label="Reporting Year" value={getFinancialYear(formData.reportingYear)} />
@@ -354,21 +353,18 @@ function ScopeReviewContent() {
             </DetailGrid>
           </ReviewCard>
 
-          {/* Electricity Characteristics & Renewable Energy */}
-          <ReviewCard title="Electricity Characteristics & Renewable Energy" icon={<RenewableIcon />} accentColor="#10b981">
+          {/* Operational Details */}
+          <ReviewCard title="Operational Details" icon={<EnergyIcon />} accentColor="#64748b">
             <DetailGrid>
-              {/* Electricity Characteristics Section */}
-              <div className="col-span-1 md:col-span-2 pb-2 mb-2">
-                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200 pb-1">Electricity Characteristics</h4>
-              </div>
-              <DetailRow label="Renewable Procurement" value={formData.renewableProcurement} />
+              <DetailRow label="Turnover of your site" value={formData.energyIntensityPerRupee ? `${formData.energyIntensityPerRupee} INR` : "Not specified"} />
               <DetailRow label="Net Metering" value={formData.netMeteringApplicable} />
               {formData.onsiteExportedKwh && <DetailRow label="On-site Generated Exported" value={`${formData.onsiteExportedKwh} kWh`} />}
+            </DetailGrid>
+          </ReviewCard>
 
-              {/* Renewable Energy Section */}
-              <div className="col-span-1 md:col-span-2 pb-2 mb-2 mt-4">
-                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200 pb-1">Renewable Energy</h4>
-              </div>
+          {/* Renewable Energy */}
+          <ReviewCard title="Renewable Energy" icon={<RenewableIcon />} accentColor="#10b981">
+            <DetailGrid>
               <DetailRow label="Has Renewable Electricity?" value={formData.hasRenewableElectricity} />
 
               {formData.hasRenewableElectricity === "Yes" && (
@@ -383,6 +379,7 @@ function ScopeReviewContent() {
                   ) : (
                     <>
                       <DetailRow label="Renewable Electricity" value={`${formData.renewableElectricity} kWh`} />
+                      <DetailRow label="Data Source" value={formData.renewableDataSourceType || "-"} />
                       <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
                     </>
                   )}

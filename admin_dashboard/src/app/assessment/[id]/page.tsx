@@ -78,15 +78,33 @@ const ReviewCard = ({
   </div>
 );
 
-const DetailRow = ({ label, value, subLabel }: { label: string; value: string | React.ReactNode; subLabel?: string }) => (
-  <div className="mb-4 last:mb-0">
-    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{label}</p>
-    <div className={`font-semibold text-gray-900 text-sm ${value === 'Not specified' || value === '-' || value === 'N/A' ? 'text-gray-400 italic' : ''}`}>
-      {value ?? 'N/A'}
+const DetailRow = ({ label, value, subLabel }: { label: string; value: string | React.ReactNode; subLabel?: string }) => {
+  const renderLabel = () => {
+    if (label.includes('(kWh)')) {
+      return <>{label.replace(' (kWh)', '')} <span className="normal-case">(kWh)</span></>;
+    }
+    if (label.includes('(GJ)')) {
+      return <>{label.replace(' (GJ)', '')} <span className="normal-case">(GJ)</span></>;
+    }
+    if (label.includes('tCO2e')) {
+      return <>{label.replace(' tCO2e', '')} <span className="normal-case">tCO2e</span></>;
+    }
+    if (label.includes('(kgCO2e/kWh)')) {
+      return <>{label.replace(' (kgCO2e/kWh)', '')} <span className="normal-case">(kgCO2e/kWh)</span></>;
+    }
+    return label;
+  };
+
+  return (
+    <div className="mb-4 last:mb-0">
+      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{renderLabel()}</p>
+      <div className={`font-semibold text-gray-900 text-sm ${!value || value === 'Not specified' || value === '-' || value === 'N/A' ? 'text-gray-400 italic' : ''}`}>
+        {value || '-'}
+      </div>
+      {subLabel && <p className="text-xs text-gray-500 mt-1">{subLabel}</p>}
     </div>
-    {subLabel && <p className="text-xs text-gray-500 mt-1">{subLabel}</p>}
-  </div>
-);
+  );
+};
 
 const DetailGrid = ({ children }: { children: React.ReactNode }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">{children}</div>
@@ -209,9 +227,9 @@ export default function AssessmentViewPage() {
           </div>
           <div className="flex-1 flex justify-center shrink-0">
             <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${status === 'APPROVED' ? 'bg-green-100 text-green-700 border-green-200' :
-                status === 'REJECTED' ? 'bg-red-100 text-red-700 border-red-200' :
-                  status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                    'bg-orange-100 text-orange-700 border-orange-200'
+              status === 'REJECTED' ? 'bg-red-100 text-red-700 border-red-200' :
+                status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                  'bg-orange-100 text-orange-700 border-orange-200'
               }`}>{status.replace('_', ' ')}</span>
           </div>
           <div className="flex items-center gap-3 opacity-90 flex-1 justify-end shrink-0">
@@ -251,11 +269,19 @@ export default function AssessmentViewPage() {
               <DetailRow label="Facility Name" value={data.facilityName} />
               <DetailRow label="Utility Provider" value={data.utilityProvider} />
               <DetailRow label="Site Count" value={data.siteCount} />
-              <DetailRow label="Energy Intensity (₹)" value={data.energyIntensityPerRupee} />
               <DetailRow label="Reporting Year" value={data.reportingYear ? new Date(data.reportingYear).toLocaleDateString('default', { year: 'numeric' }) : '-'} />
               <DetailRow label="Reporting Period" value={data.reportingPeriod} />
               <DetailRow label="Consolidation Approach" value={data.conditionalApproach} />
               <DetailRow label="Scope Boundary Notes" value={data.scopeBoundaryNotes} />
+            </DetailGrid>
+          </ReviewCard>
+
+          {/* Operational Details */}
+          <ReviewCard title="Operational Details" icon={<EnergyIcon />} accentColor="#64748b">
+            <DetailGrid>
+              <DetailRow label="Turnover of your site (₹)" value={data.energyIntensityPerRupee} />
+              <DetailRow label="Net Metering" value={data.netMeteringApplicable} />
+              <DetailRow label="On-site Exported (kWh)" value={data.onsiteExportedKwh} />
             </DetailGrid>
           </ReviewCard>
 
@@ -267,7 +293,7 @@ export default function AssessmentViewPage() {
               <DetailRow label="Tracking Type" value={data.trackingType} />
               <DetailRow label="Electricity Purchased (kWh)" value={data.electricityPurchased != null ? String(data.electricityPurchased) : '-'} />
               <DetailRow label="Spend Amount (₹)" value={data.spendAmount != null ? String(data.spendAmount) : '-'} />
-              <DetailRow label="Energy Consumption" value={data.energyConsumption} />
+              <DetailRow label="Energy Consumption (GJ)" value={data.energyConsumption} />
               <DetailRow label="Energy Source Description" value={data.energySourceDescription} />
             </DetailGrid>
           </ReviewCard>
@@ -275,12 +301,9 @@ export default function AssessmentViewPage() {
           {/* 4. Renewable Energy */}
           <ReviewCard title="Renewable Electricity" icon={<RenewableIcon />} accentColor="#10b981">
             <DetailGrid>
-              <DetailRow label="Renewable Procurement" value={data.renewableProcurement} />
-              <DetailRow label="Net Metering" value={data.netMeteringApplicable} />
-              <DetailRow label="On-site Exported (kWh)" value={data.onsiteExportedKwh} />
               <DetailRow label="Has Renewable Electricity" value={data.hasRenewableElectricity} />
               <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity} />
-              <DetailRow label="Renewable Consumption" value={data.renewableEnergyConsumption} />
+              <DetailRow label="Renewable Consumption (GJ)" value={data.renewableEnergyConsumption} />
               <DetailRow label="Renewable Source" value={data.renewableEnergySourceDescription} />
             </DetailGrid>
           </ReviewCard>
@@ -288,12 +311,12 @@ export default function AssessmentViewPage() {
           {/* 5. Calculated / Stored Values (Payload) */}
           <ReviewCard title="Emissions & Calculations" icon={<CalcIcon />} accentColor="#0ea5e9">
             <DetailGrid>
-              <DetailRow label="Grid Emission Factor" value={data.gridEmissionFactor != null ? String(data.gridEmissionFactor) : '-'} />
+              <DetailRow label="Grid Emission Factor (kgCO2e/kWh)" value={data.gridEmissionFactor != null ? String(data.gridEmissionFactor) : '-'} />
               <DetailRow label="Location-Based Emissions" value={data.locationBasedEmissions != null ? `${data.locationBasedEmissions} tCO2e` : '-'} />
               <DetailRow label="Market-Based Emissions" value={data.marketBasedEmissions != null ? `${data.marketBasedEmissions} tCO2e` : '-'} />
-              <DetailRow label="Energy Grid (kJ)" value={data.energyGrid_kJ != null ? String(data.energyGrid_kJ) : '-'} />
-              <DetailRow label="Energy Renewable (kJ)" value={data.energyRenew_kJ != null ? String(data.energyRenew_kJ) : '-'} />
-              <DetailRow label="Energy Total (kJ)" value={data.energyTotal_kJ != null ? String(data.energyTotal_kJ) : '-'} />
+              <DetailRow label="Energy Grid (GJ)" value={data.energyGrid_kJ != null ? (Number(data.energyGrid_kJ) / 1000000).toFixed(2) : '-'} />
+              <DetailRow label="Energy Renewable (GJ)" value={data.energyRenew_kJ != null ? (Number(data.energyRenew_kJ) / 1000000).toFixed(2) : '-'} />
+              <DetailRow label="Energy Total (GJ)" value={data.energyTotal_kJ != null ? (Number(data.energyTotal_kJ) / 1000000).toFixed(2) : '-'} />
               <DetailRow label="Certificate ID" value={data.certificateId} />
             </DetailGrid>
           </ReviewCard>
@@ -301,22 +324,28 @@ export default function AssessmentViewPage() {
           {/* 6. Evidence Files */}
           <ReviewCard title="Uploaded Evidence" icon={<EvidenceIcon />} accentColor="#8b5cf6">
             <div className="space-y-4">
-              {data.energySupportingEvidenceFileUrl ? (
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-sm font-semibold text-indigo-600">{data.energySupportingEvidenceFileName || 'Energy Evidence'}</p>
-                  <a href={data.energySupportingEvidenceFileUrl} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-gray-50 font-medium">View</a>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 italic">No energy evidence</p>
-              )}
-              {data.renewableSupportingEvidenceFileUrl ? (
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-sm font-semibold text-indigo-600">{data.renewableSupportingEvidenceFileName || 'Renewable Evidence'}</p>
-                  <a href={data.renewableSupportingEvidenceFileUrl} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-gray-50 font-medium">View</a>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 italic">No renewable evidence</p>
-              )}
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Grid Energy Evidence</p>
+                {data.energySupportingEvidenceFileUrl ? (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <p className="text-sm font-semibold text-indigo-600">{data.energySupportingEvidenceFileName || 'Energy Evidence'}</p>
+                    <a href={data.energySupportingEvidenceFileUrl} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-gray-50 font-medium">View</a>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 font-semibold italic">-</p>
+                )}
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Renewable Energy Evidence</p>
+                {data.renewableSupportingEvidenceFileUrl ? (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <p className="text-sm font-semibold text-indigo-600">{data.renewableSupportingEvidenceFileName || 'Renewable Evidence'}</p>
+                    <a href={data.renewableSupportingEvidenceFileUrl} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-gray-50 font-medium">View</a>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 font-semibold italic">-</p>
+                )}
+              </div>
             </div>
           </ReviewCard>
 

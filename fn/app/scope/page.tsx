@@ -108,6 +108,7 @@ type FormDataType = {
   // Page 2 - Box 2 (Renewable Electricity)
   hasRenewableElectricity: YesNo;
   renewableElectricity: string;
+  renewableDataSourceType: string;
   renewableEnergyConsumption: string;
   renewableSupportingEvidenceFile: File | null;
   renewableEnergySourceDescription: string;
@@ -165,7 +166,7 @@ function TemplateContent() {
     scopeBoundaryNotes: "",
 
     // Page 2
-    energyActivityInput: "Monthly",
+    energyActivityInput: "Yearly",
     energyCategory: "Grid Electricity", // Set to default disabled value
     electricityPurchased: "",
     dataSourceType: "",
@@ -178,10 +179,11 @@ function TemplateContent() {
     // Page 2 - Box 2
     hasRenewableElectricity: "",
     renewableElectricity: "",
+    renewableDataSourceType: "",
     renewableEnergyConsumption: "",
     renewableSupportingEvidenceFile: null,
     renewableEnergySourceDescription: "",
-    renewableEnergyActivityInput: "Monthly",
+    renewableEnergyActivityInput: "Yearly",
     renewableMonthlyData: [{ id: "r1", month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }],
 
     // Calculated fields
@@ -573,6 +575,10 @@ function TemplateContent() {
         }
       }
 
+      if (name === "hasRenewableElectricity" && value === "Yes" && prev.hasRenewableElectricity !== "Yes") {
+        updates.renewableEnergyActivityInput = "Yearly";
+      }
+
       let currentElec = updates.electricityPurchased !== undefined ? updates.electricityPurchased : prev.electricityPurchased;
       let currentRenew = updates.renewableElectricity !== undefined ? updates.renewableElectricity : prev.renewableElectricity;
 
@@ -637,10 +643,6 @@ function TemplateContent() {
         missingFields.push("Facility Name (No Numbers)");
       }
 
-      if (!formData.renewableProcurement) {
-        newErrors.renewableProcurement = "Please select an option";
-        missingFields.push("Renewable Procurement");
-      }
 
       if (formData.onsiteExportedKwh && !isValidNumber(formData.onsiteExportedKwh)) {
         newErrors.onsiteExportedKwh = "Please enter a valid positive number";
@@ -771,6 +773,9 @@ function TemplateContent() {
             if (!row.electricityPurchased || !isValidNumber(row.electricityPurchased)) {
               hasError = true;
             }
+            if (!row.dataSourceType?.trim()) {
+              hasError = true;
+            }
           });
 
           if (hasError) {
@@ -795,6 +800,11 @@ function TemplateContent() {
           } else if (!isValidNumber(formData.renewableElectricity)) {
             newErrors.renewableElectricity = "Invalid number";
             missingFields.push("Renewable Electricity (Invalid)");
+          }
+
+          if (!formData.renewableDataSourceType?.trim()) {
+            newErrors.renewableDataSourceType = "Required";
+            missingFields.push("Renewable Data Source Type");
           }
 
           if (!formData.renewableEnergyConsumption?.trim()) {
@@ -1322,8 +1332,26 @@ function TemplateContent() {
                     {errors.facilityName && <p className="text-red-500 text-xs mt-1">{errors.facilityName}</p>}
                   </div>
 
+
+                </div>
+              </section>
+
+              {/* Box 2: Operational Details */}
+              <section className="bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col lg:h-full lg:overflow-y-auto">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-yellow-50 rounded-lg text-yellow-600">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-sm font-bold text-gray-900">
+                    Operational Details <span className="text-red-500">*</span>
+                  </h2>
+                </div>
+
+                <div className="space-y-2">
                   {/* Energy Intensity Per Rupee */}
-                  <div className="col-span-1 md:col-span-2">
+                  <div>
                     <label className="block text-xs font-bold text-gray-700 mb-2">
                       Turnover of your site <span className="text-gray-400 font-normal ml-1">Optional</span>
                     </label>
@@ -1341,34 +1369,6 @@ function TemplateContent() {
                     <p className="text-[10px] text-gray-400 mt-1.5">
                       Optional input
                     </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* Box 2: Electricity Characteristics */}
-              <section className="bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col lg:h-full lg:overflow-y-auto">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-yellow-50 rounded-lg text-yellow-600">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-sm font-bold text-gray-900">
-                    Electricity characteristics <span className="text-red-500">*</span>
-                  </h2>
-                </div>
-                <p className="text-[9px] text-gray-400 -mt-2 mb-3 ml-9">
-                  Basic yes/no context — detailed data will be captured later
-                </p>
-
-                <div className="space-y-2">
-                  {/* Renewable procurement */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-2">
-                      Do you have renewable electricity procurement? <span className="text-red-500">*</span>
-                    </label>
-                    {renderYesNo("renewableProcurement", formData.renewableProcurement)}
-                    {errors.renewableProcurement && <p className="text-red-500 text-xs mt-1">{errors.renewableProcurement}</p>}
                   </div>
 
 
@@ -1735,14 +1735,30 @@ function TemplateContent() {
                             </button>
                           ))}
                         </div>
-                        {(formData.state && (formData.trackingType === "Spend amount" || formData.trackingType === "Both")) && (
-                          <div className="ml-auto flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-700">State:</span>
-                            <span className="text-sm font-bold text-gray-800">
-                              {formData.state}
-                            </span>
-                          </div>
-                        )}
+                        {(formData.state && (formData.trackingType === "Spend amount" || formData.trackingType === "Both")) && (() => {
+                          let price = null;
+                          if (TARIFF_DATA[formData.state]) {
+                            const data = TARIFF_DATA[formData.state];
+                            if ("p" in data) price = (data as TariffRate).p;
+                            else if (formData.utilityProvider && data[formData.utilityProvider as keyof typeof data]) price = (data[formData.utilityProvider as keyof typeof data] as TariffRate).p;
+                          }
+                          return (
+                            <table className="ml-auto text-left">
+                              <tbody>
+                                <tr>
+                                  <td className="pr-2 text-right py-0.5"><span className="text-xs font-bold text-gray-700">State:</span></td>
+                                  <td className="py-0.5"><span className="text-sm font-bold text-gray-800">{formData.state}</span></td>
+                                </tr>
+                                {price !== null && (
+                                  <tr>
+                                    <td className="pr-2 text-right py-0.5"><span className="text-xs font-bold text-gray-700">Tariff:</span></td>
+                                    <td className="py-0.5"><span className="text-sm font-bold text-gray-800">₹{price}/kWh</span></td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          );
+                        })()}
                       </div>
                       {errors.trackingType && <p className="text-red-500 text-xs mt-1">{errors.trackingType}</p>}
                     </div>
@@ -2223,6 +2239,7 @@ function TemplateContent() {
                                   <tr>
                                     <th className="px-3 py-2 font-bold w-1/4">Month</th>
                                     <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity (<span className="normal-case">kWh</span>)</th>
+                                    <th className="px-3 py-2 font-bold min-w-[130px]">Data source type</th>
                                     <th className="px-3 py-2 font-bold min-w-[120px]">Energy Consumption (GJ)</th>
                                     <th className="px-3 py-2 w-10"></th>
                                   </tr>
@@ -2262,6 +2279,21 @@ function TemplateContent() {
                                             className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
                                             placeholder="0"
                                           />
+                                        </div>
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 border-gray-200`}>
+                                          <select
+                                            value={row.dataSourceType}
+                                            onChange={(e) => handleRenewableRowChange(row.id, "dataSourceType", e.target.value)}
+                                            className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                          >
+                                            <option value="">Select...</option>
+                                            <option value="Invoice">Invoice</option>
+                                            <option value="Meter Reading">Meter Reading</option>
+                                            <option value="Estimate">Estimate</option>
+                                            <option value="Other">Other</option>
+                                          </select>
                                         </div>
                                       </td>
                                       <td className="px-3 py-2">
@@ -2309,7 +2341,7 @@ function TemplateContent() {
                             </div>
                           ) : (
                             // YEARLY VIEW
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                               <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-2">
                                   Renewable electricity
@@ -2326,6 +2358,24 @@ function TemplateContent() {
                                   <span className="absolute right-3 top-3 text-[10px] text-gray-400">kWh</span>
                                 </div>
                                 {errors.renewableElectricity && <p className="text-red-500 text-xs mt-1">{errors.renewableElectricity}</p>}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-2">
+                                  Data source type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  name="renewableDataSourceType"
+                                  value={formData.renewableDataSourceType || ""}
+                                  onChange={handleChange}
+                                  className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none appearance-none ${errors.renewableDataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                                >
+                                  <option value="">Select data source...</option>
+                                  <option value="Invoice">Invoice</option>
+                                  <option value="Meter Reading">Meter Reading</option>
+                                  <option value="Estimate">Estimate</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                                {errors.renewableDataSourceType && <p className="text-red-500 text-xs mt-1">{errors.renewableDataSourceType}</p>}
                               </div>
                               <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-2">

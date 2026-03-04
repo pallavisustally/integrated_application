@@ -266,16 +266,16 @@ export default function AdminDashboard() {
           <h2 className="text-[13px] font-bold text-gray-800">Assessment Records</h2>
         </div>
 
-        <div className="overflow-x-auto flex-1 h-full min-h-0">
-          <table className="w-full text-[11px] text-left text-gray-600">
-            <thead className="text-[11px] text-gray-500 bg-gray-50/50 uppercase border-b border-gray-100 font-bold tracking-wider sticky top-0 z-10">
+        <div className="overflow-auto flex-1 h-full min-h-0">
+          <table className="w-full text-[11px] text-left text-gray-600 relative">
+            <thead className="text-[11px] text-gray-500 bg-gray-50 uppercase border-b border-gray-100 font-bold tracking-wider sticky top-0 z-10 shadow-sm">
               <tr>
-                <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleSort('username')}>Username {renderSortIcon('username')}</th>
-                <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleSort('company')}>Company Name {renderSortIcon('company')}</th>
+                <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" onClick={() => handleSort('username')}>Username {renderSortIcon('username')}</th>
+                <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" onClick={() => handleSort('company')}>Company Name {renderSortIcon('company')}</th>
                 <th className="px-4 py-3 whitespace-nowrap">Contact Number</th>
                 <th className="px-4 py-3 whitespace-nowrap">Email ID</th>
-                <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleSort('regDate')}>Registration Date {renderSortIcon('regDate')}</th>
-                <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleSort('subDate')}>Submission Date {renderSortIcon('subDate')}</th>
+                <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" onClick={() => handleSort('regDate')}>Registration Date {renderSortIcon('regDate')}</th>
+                <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" onClick={() => handleSort('subDate')}>Submission Date {renderSortIcon('subDate')}</th>
                 <th className="px-4 py-3 whitespace-nowrap">Status</th>
                 <th className="px-4 py-3 whitespace-nowrap">Review Link</th>
                 <th className="px-4 py-3 whitespace-nowrap">Feedback</th>
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3">
                       {user.reviewLink ? (
                         <span
-                          onClick={() => router.push(`/assessment/${user.id}`)}
+                          onClick={() => window.open(`/assessment/${user.id}`, '_blank')}
                           className="text-emerald-600 hover:text-emerald-700 font-semibold flex items-center text-[11px] whitespace-nowrap cursor-pointer"
                         >
                           View

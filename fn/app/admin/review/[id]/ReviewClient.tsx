@@ -80,15 +80,24 @@ const ReviewCard = ({
     </div>
 );
 
-const DetailRow = ({ label, value, subLabel }: { label: string; value: string; subLabel?: string }) => (
-    <div className="mb-4 last:mb-0">
-        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{label}</p>
-        <p className={`font-semibold text-gray-900 text-sm ${value === "Not specified" || value === "-" ? "text-gray-400 italic" : ""}`}>
-            {value}
-        </p>
-        {subLabel && <p className="text-xs text-gray-500 mt-1">{subLabel}</p>}
-    </div>
-);
+const DetailRow = ({ label, value, subLabel }: { label: string; value: string; subLabel?: string }) => {
+    const renderLabel = () => {
+        if (label.includes('(kWh)')) return <>{label.replace(' (kWh)', '')} <span className="normal-case">(kWh)</span></>;
+        if (label.includes('(GJ)')) return <>{label.replace(' (GJ)', '')} <span className="normal-case">(GJ)</span></>;
+        if (label.includes('tCO2e')) return <>{label.replace(' tCO2e', '')} <span className="normal-case">tCO2e</span></>;
+        return label;
+    };
+
+    return (
+        <div className="mb-4 last:mb-0">
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{renderLabel()}</p>
+            <p className={`font-semibold text-gray-900 text-sm ${!value || value === "Not specified" || value === "-" ? "text-gray-400 italic" : ""}`}>
+                {value || "-"}
+            </p>
+            {subLabel && <p className="text-xs text-gray-500 mt-1">{subLabel}</p>}
+        </div>
+    );
+};
 
 const DetailGrid = ({ children }: { children: React.ReactNode }) => (
     <div className="grid grid-cols-2 gap-x-8 gap-y-6">
@@ -193,9 +202,17 @@ export default function ReviewClient({ submission }: { submission: any }) {
                             <DetailGrid>
                                 <DetailRow label="Grid Regions" value={data.state} />
                                 <DetailRow label="Facility Name" value={data.facilityName} />
-                                <DetailRow label="Site ID" value={data.siteCount} />
+                                <DetailRow label="Site Count" value={data.siteCount} />
                                 <DetailRow label="Reporting Year" value={data.reportingYear ? new Date(data.reportingYear).getFullYear().toString() : '2024'} />
                                 <DetailRow label="Period" value={data.reportingPeriod} />
+                            </DetailGrid>
+                        </ReviewCard>
+
+                        <ReviewCard title="Operational Details" icon={<EnergyIcon />} accentColor="#64748b">
+                            <DetailGrid>
+                                <DetailRow label="Turnover of your site (INR)" value={data.energyIntensityPerRupee ? String(data.energyIntensityPerRupee) : "Not specified"} />
+                                <DetailRow label="Net Metering" value={data.netMeteringApplicable || "-"} />
+                                <DetailRow label="On-site Generated Exported (kWh)" value={data.onsiteExportedKwh ? String(data.onsiteExportedKwh) : "-"} />
                             </DetailGrid>
                         </ReviewCard>
                     </div>
@@ -207,44 +224,53 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Energy Activity" value={data.energyActivityInput} />
                                 <DetailRow label="Category" value={data.energyCategory || "-"} />
                                 <DetailRow label="Value Type" value="Gross" />
-                                <DetailRow label="Unit Consumption" value={data.unitConsumption || "-"} />
+                                <DetailRow label="Electricity Purchased (kWh)" value={data.electricityPurchased || "-"} />
+                                <DetailRow label="Energy Consumption (GJ)" value={data.energyConsumption || "-"} />
                                 <DetailRow label="Spend Amount" value={data.spendAmount || "-"} />
-                                <DetailRow label="Data Source" value={data.energySourceDescription} />
+                                <DetailRow label="Data Source" value={data.dataSourceType || data.energySourceDescription || "-"} />
                             </DetailGrid>
                         </ReviewCard>
 
                         <ReviewCard title="Renewable Data" icon={<RenewableIcon />} accentColor="#10b981">
                             <DetailGrid>
                                 <DetailRow label="Has Renewable?" value={data.hasRenewableElectricity || "No"} />
-                                <DetailRow label="Renewable Electricity" value={data.renewableElectricity || "-"} />
-                                <DetailRow label="Energy Consumption" value={data.renewableEnergyConsumption || "-"} />
+                                <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity || "-"} />
+                                <DetailRow label="Energy Consumption (GJ)" value={data.renewableEnergyConsumption || "-"} />
                             </DetailGrid>
                         </ReviewCard>
 
                         <ReviewCard title="Uploaded Evidence" icon={<EvidenceIcon />} accentColor="#8b5cf6">
-                            <div className="flex flex-col gap-4">
-                                {data.energySupportingEvidenceFileUrl ? (
-                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                        <div>
-                                            <p className="text-sm font-semibold text-indigo-600">{data.energySupportingEvidenceFileName || "Energy Evidence"}</p>
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Grid Energy Evidence</p>
+                                    {data.energySupportingEvidenceFileUrl ? (
+                                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <div>
+                                                <p className="text-sm font-semibold text-indigo-600">{data.energySupportingEvidenceFileName || "Energy Evidence"}</p>
+                                            </div>
+                                            <a href={data.energySupportingEvidenceFileUrl.includes('/api/evidence/download') ? data.energySupportingEvidenceFileUrl : `/api/evidence/download?url=${encodeURIComponent(data.energySupportingEvidenceFileUrl)}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium whitespace-nowrap">
+                                                View File
+                                            </a>
                                         </div>
-                                        <a href={data.energySupportingEvidenceFileUrl.includes('/api/evidence/download') ? data.energySupportingEvidenceFileUrl : `/api/evidence/download?url=${encodeURIComponent(data.energySupportingEvidenceFileUrl)}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium whitespace-nowrap">
-                                            View File
-                                        </a>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-gray-400 italic">No energy evidence uploaded.</p>
-                                )}
-                                {data.renewableSupportingEvidenceFileUrl && (
-                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                        <div>
-                                            <p className="text-sm font-semibold text-indigo-600">{data.renewableSupportingEvidenceFileName || "Renewable Evidence"}</p>
+                                    ) : (
+                                        <p className="text-sm text-gray-400 font-semibold italic">-</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Renewable Energy Evidence</p>
+                                    {data.renewableSupportingEvidenceFileUrl ? (
+                                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <div>
+                                                <p className="text-sm font-semibold text-indigo-600">{data.renewableSupportingEvidenceFileName || "Renewable Evidence"}</p>
+                                            </div>
+                                            <a href={data.renewableSupportingEvidenceFileUrl.includes('/api/evidence/download') ? data.renewableSupportingEvidenceFileUrl : `/api/evidence/download?url=${encodeURIComponent(data.renewableSupportingEvidenceFileUrl)}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium whitespace-nowrap">
+                                                View File
+                                            </a>
                                         </div>
-                                        <a href={data.renewableSupportingEvidenceFileUrl.includes('/api/evidence/download') ? data.renewableSupportingEvidenceFileUrl : `/api/evidence/download?url=${encodeURIComponent(data.renewableSupportingEvidenceFileUrl)}`} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50 text-gray-700 font-medium whitespace-nowrap">
-                                            View File
-                                        </a>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <p className="text-sm text-gray-400 font-semibold italic">-</p>
+                                    )}
+                                </div>
                             </div>
                         </ReviewCard>
                     </div>

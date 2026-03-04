@@ -189,10 +189,10 @@ function CertificateContent() {
 
   const energyTotalMWhDisp = derivedTotalKWh.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
-  // Use the form's calculated energyConsumption (which is already in GJ)
-  const gridGjValue = parseFloat(data.energyConsumption) || (parseFloat(data.electricityPurchased) * 0.0036) || 0;
-  const renewGjValue = parseFloat(data.renewableEnergyConsumption) || (parseFloat(data.renewableElectricity) * 0.0036) || 0;
-  const totalGjValue = gridGjValue + renewGjValue;
+  // Use the canonical derived kWh values to calculate GJ consistently
+  const gridGjValue = derivedGridKWh * 0.0036;
+  const renewGjValue = derivedRenewKWh * 0.0036;
+  const totalGjValue = derivedTotalKWh * 0.0036;
 
   const formatGj = (val: number) => {
     if (!val) return "NA";
@@ -576,6 +576,9 @@ function CertificateContent() {
                 });
               })()}
             </div>
+            <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
+              The suggested sector recommendations are indicative in nature and are derived from sustainability initiatives disclosed by comparable companies in their BRSR reports. These suggestions are intended for general guidance and should be evaluated based on the organization&apos;s specific operational context, resources, and strategic priorities.
+            </p>
           </div>
 
           <div id="next-steps-section" className="w-full lg:w-[30%] bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-center gap-3 next-steps-target">
