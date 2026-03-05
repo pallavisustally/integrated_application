@@ -347,8 +347,10 @@ function ScopeReviewContent() {
                   <MonthlyTable data={formData.monthlyData} type="Grid" />
                 </div>
               )}
-              <DetailRow label="Evidence File" value={formData.energySupportingEvidenceFile || "No file uploaded"}
-                subLabel={formData.energySourceDescription} fullWidth />
+              <DetailRow label="Evidence File" value={formData.energySupportingEvidenceFile || "No file uploaded"} fullWidth />
+              {formData.energySourceDescription && (
+                <DetailRow label="Source Description" value={formData.energySourceDescription} fullWidth />
+              )}
 
             </DetailGrid>
           </ReviewCard>
@@ -383,8 +385,10 @@ function ScopeReviewContent() {
                       <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
                     </>
                   )}
-                  <DetailRow label="Evidence File" value={formData.renewableSupportingEvidenceFile || "No file uploaded"}
-                    subLabel={formData.renewableEnergySourceDescription} fullWidth />
+                  <DetailRow label="Evidence File" value={formData.renewableSupportingEvidenceFile || "No file uploaded"} fullWidth />
+                  {formData.renewableEnergySourceDescription && (
+                    <DetailRow label="Source Description" value={formData.renewableEnergySourceDescription} fullWidth />
+                  )}
                 </>
               )}
             </DetailGrid>
