@@ -132,6 +132,7 @@ function CertificateContent() {
         spendAmount: parsedData.spendAmount,
         trackingType: parsedData.trackingType,
         sector: parsedData.sector || "-",
+        monthlyData: parsedData.monthlyData || [],
       });
     } catch (e) {
       console.error("Failed to parse session data", e);
@@ -204,6 +205,18 @@ function CertificateContent() {
 
   const scope2Emissions = data.marketBasedEmissions ? parseFloat(data.marketBasedEmissions).toFixed(2) : "NA";
   const fyYear = data.reportingYear?.includes("FY") ? data.reportingYear : `FY ${data.reportingYear}`;
+
+  let disclaimerText = "The calculation is performed using the given values.";
+  if (data?.reportingPeriod === "Monthly" && data?.monthlyData && data.monthlyData.length > 0) {
+    const months = data.monthlyData.map((m: any) => {
+      if (!m.month) return "";
+      const d = new Date(m.month + "-01");
+      return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    }).filter(Boolean);
+    if (months.length > 0) {
+      disclaimerText = `The calculation is performed using the given values for ${months.join(", ")}.`;
+    }
+  }
 
   const handleDownloadCertificate = async () => {
     if (certificateRef.current === null) {
@@ -304,7 +317,7 @@ function CertificateContent() {
             <div className="flex items-center gap-3 mt-1 text-gray-500 text-sm">
               <span className="font-medium text-gray-700">{data.facilityName}</span>
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-              <span>{data.reportingYear}</span>
+              <span>{data.reportingYear}. <span className="italic text-xs text-gray-400 ml-1">{disclaimerText}</span></span>
             </div>
           </div>
           {/* ... Verified Badge ... */}
@@ -652,7 +665,10 @@ function CertificateContent() {
                 <p className="text-lg font-Cormorant Garamond style italic size-medium Line-height-relaxed text-gray-700 leading-relaxed italic">
                   in recognition of leadership in environmental transparency through the
                   proactive initiation of a Scope 2 emissions assessment for the reporting
-                  period <span className="font-semibold not-italic">{fyYear}</span>{" "}
+                  period <span className="font-semibold not-italic">{fyYear}</span>.{" "}
+                  <span className="text-sm font-Cormorant Garamond text-gray-500 italic">
+                    ({disclaimerText})
+                  </span>{" "}
                   conducted during
                 </p>
 
@@ -663,11 +679,6 @@ function CertificateContent() {
               {/* Quote */}
               <p className="text-lg font-Cormorant Garamond Italic  text-gray-600 mb-4">
                 A foundational milestone toward accountable climate action.
-              </p>
-
-              {/* Added Disclaimer */}
-              <p className="text-sm font-Cormorant Garamond text-gray-500 mb-16 italic text-center px-8">
-                * The calculation is performed using the given values by the user (including months).
               </p>
 
               {/* Seal */}

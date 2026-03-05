@@ -249,13 +249,6 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                         </div>
                     </div>
                 </div>
-
-                {/* Added Disclaimer */}
-                <div className="mt-4 text-center">
-                    <p className="text-[10px] text-gray-500 italic">
-                        * The calculation is performed using the given values by the user (including months).
-                    </p>
-                </div>
             </div>
         </div>
     );
