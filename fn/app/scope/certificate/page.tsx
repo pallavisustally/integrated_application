@@ -661,8 +661,13 @@ function CertificateContent() {
                 </p>
               </div>
               {/* Quote */}
-              <p className="text-lg font-Cormorant Garamond Italic  text-gray-600 mb-16">
+              <p className="text-lg font-Cormorant Garamond Italic  text-gray-600 mb-4">
                 A foundational milestone toward accountable climate action.
+              </p>
+
+              {/* Added Disclaimer */}
+              <p className="text-sm font-Cormorant Garamond text-gray-500 mb-16 italic text-center px-8">
+                * The calculation is performed using the given values by the user (including months).
               </p>
 
               {/* Seal */}

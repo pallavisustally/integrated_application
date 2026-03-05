@@ -7,6 +7,7 @@ export interface SolarInputs {
     backupHours: number;     // Hours
     tariff: number;          // Rs/kWh
     pr: number;              // Performance Ratio (0-1), e.g. 0.75
+    gridEmissionFactor?: number; // Optional dynamic grid emission factor
 }
 
 export interface YearFinancials {
@@ -42,7 +43,7 @@ export interface SolarResults {
 }
 
 export function calculateSolarModel(inputs: SolarInputs): SolarResults {
-    const { stateIrradiance, gridConsumption, offset, backupHours, tariff, pr } = inputs;
+    const { stateIrradiance, gridConsumption, offset, backupHours, tariff, pr, gridEmissionFactor: inputGEF } = inputs;
 
     // 1. Energy Calculations (XLSX-aligned)
     const solarEnergyTarget = gridConsumption * offset;
@@ -62,9 +63,9 @@ export function calculateSolarModel(inputs: SolarInputs): SolarResults {
     const batteryCapex = batteryCapacity * SOLAR_CONSTANTS.Cost_Batt_kWh;
     const totalCapex = pvCapex + batteryCapex;
 
-    let initialOm = pvCapex * SOLAR_CONSTANTS.OM_rate;
+    const initialOm = pvCapex * SOLAR_CONSTANTS.OM_rate;
 
-    const gridEmissionFactor = SOLAR_CONSTANTS.Grid_Emission_Factor;
+    const gridEmissionFactor = inputGEF !== undefined ? inputGEF : SOLAR_CONSTANTS.Grid_Emission_Factor;
 
     // 3. Financial Calculations
     const financials: YearFinancials[] = [];

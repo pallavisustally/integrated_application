@@ -673,16 +673,6 @@ function TemplateContent() {
       }
 
 
-      if (formData.onsiteExportedKwh && !isValidNumber(formData.onsiteExportedKwh)) {
-        newErrors.onsiteExportedKwh = "Please enter a valid positive number";
-        missingFields.push("On-site Generation");
-      }
-
-      if (!formData.netMeteringApplicable) {
-        newErrors.netMeteringApplicable = "Please select an option";
-        missingFields.push("Net Metering Applicable");
-      }
-
       if (!formData.reportingYear) {
         newErrors.reportingYear = "Reporting Year is required";
         missingFields.push("Reporting Year");
@@ -753,28 +743,31 @@ function TemplateContent() {
         } else {
           let rowError = false;
           formData.monthlyData.forEach((row, idx) => {
-            if (formData.trackingType === "Unit consumption" || formData.trackingType === "Both") {
-              if (!isValidNumber(row.electricityPurchased)) {
-                newErrors[`monthly_${row.id}_electricityPurchased`] = "Required";
-                missingFields.push(`Row ${idx + 1}: Electricity Purchased`);
-                rowError = true;
+            const hasData = row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
+            if (hasData) {
+              if (formData.trackingType === "Unit consumption" || formData.trackingType === "Both") {
+                if (!isValidNumber(row.electricityPurchased)) {
+                  newErrors[`monthly_${row.id}_electricityPurchased`] = "Required";
+                  missingFields.push(`Row ${idx + 1}: Electricity Purchased`);
+                  rowError = true;
+                }
+                if (!row.dataSourceType?.trim()) {
+                  newErrors[`monthly_${row.id}_dataSourceType`] = "Required";
+                  missingFields.push(`Row ${idx + 1}: Data Source Type`);
+                  rowError = true;
+                }
+                if (!isValidNumber(row.energyConsumption)) {
+                  newErrors[`monthly_${row.id}_energyConsumption`] = "Required";
+                  missingFields.push(`Row ${idx + 1}: Energy Consumption`);
+                  rowError = true;
+                }
               }
-              if (!row.dataSourceType?.trim()) {
-                newErrors[`monthly_${row.id}_dataSourceType`] = "Required";
-                missingFields.push(`Row ${idx + 1}: Data Source Type`);
-                rowError = true;
-              }
-              if (!isValidNumber(row.energyConsumption)) {
-                newErrors[`monthly_${row.id}_energyConsumption`] = "Required";
-                missingFields.push(`Row ${idx + 1}: Energy Consumption`);
-                rowError = true;
-              }
-            }
-            if (formData.trackingType === "Spend amount" || formData.trackingType === "Both") {
-              if (!isValidNumber(row.spend)) {
-                newErrors[`monthly_${row.id}_spend`] = "Required";
-                missingFields.push(`Row ${idx + 1}: Spend Amount`);
-                rowError = true;
+              if (formData.trackingType === "Spend amount" || formData.trackingType === "Both") {
+                if (!isValidNumber(row.spend)) {
+                  newErrors[`monthly_${row.id}_spend`] = "Required";
+                  missingFields.push(`Row ${idx + 1}: Spend Amount`);
+                  rowError = true;
+                }
               }
             }
           });
@@ -794,32 +787,22 @@ function TemplateContent() {
         if ((formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly")) {
           let hasError = false;
           formData.renewableMonthlyData.forEach((row) => {
-            if (!row.month) {
-              hasError = true;
-              // You might want to set specific row errors here if your UI supports it,
-              // but for now we'll just flag the general error.
-            }
-            if (!row.electricityPurchased || !isValidNumber(row.electricityPurchased)) {
-              hasError = true;
-            }
-            if (!row.dataSourceType?.trim()) {
-              hasError = true;
+            const hasData = row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
+            if (hasData) {
+              if (!row.month) {
+                hasError = true;
+              }
+              if (!row.electricityPurchased || !isValidNumber(row.electricityPurchased)) {
+                hasError = true;
+              }
+              if (!row.dataSourceType?.trim()) {
+                hasError = true;
+              }
             }
           });
 
           if (hasError) {
-            // You might want to assign specific error keys to highlight rows
-            // using a naming convention like `renewable_monthly_${row.id}_field`
-            // For now, let's just push a general message if we don't have row-level error display logic ready for renewable
-            // OR better: implement row-level validation keys
             missingFields.push("Renewable Monthly Data (Check all fields)");
-            // To make it robust:
-            /*
-            formData.renewableMonthlyData.forEach(row => {
-               if(!row.month) newErrors[`renewable_monthly_${row.id}_month`] = "Required";
-               if(!row.electricityPurchased) newErrors[`renewable_monthly_${row.id}_electricityPurchased`] = "Required";
-            })
-            */
           }
         } else {
           // Yearly Validation
@@ -843,6 +826,11 @@ function TemplateContent() {
             newErrors.renewableEnergyConsumption = "Invalid number";
             missingFields.push("Renewable Energy Consumption (Invalid)");
           }
+        }
+
+        if (!formData.netMeteringApplicable) {
+          newErrors.netMeteringApplicable = "Please select an option";
+          missingFields.push("Net Metering Applicable");
         }
       }
     }
@@ -1401,15 +1389,6 @@ function TemplateContent() {
                   </div>
 
 
-
-                  {/* Net metering */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-2">
-                      Net metering applicable? <span className="text-red-500">*</span>
-                    </label>
-                    {renderYesNo("netMeteringApplicable", formData.netMeteringApplicable)}
-                    {errors.netMeteringApplicable && <p className="text-red-500 text-xs mt-1">{errors.netMeteringApplicable}</p>}
-                  </div>
                 </div>
               </section>
 
@@ -2229,6 +2208,15 @@ function TemplateContent() {
                     </div>
 
                     <div className="space-y-4">
+                      {/* Net metering */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-2">
+                          Net metering applicable? <span className="text-red-500">*</span>
+                        </label>
+                        {renderYesNo("netMeteringApplicable", formData.netMeteringApplicable)}
+                        {errors.netMeteringApplicable && <p className="text-red-500 text-xs mt-1">{errors.netMeteringApplicable}</p>}
+                      </div>
+
                       {/* Do you have renewable? */}
                       <div>
                         <div className="flex justify-between items-center mb-2">
@@ -2436,24 +2424,6 @@ function TemplateContent() {
                             </div>
                           )}
 
-                          {/* On-site generation moved from Page 1 */}
-                          <div className="col-span-2 mt-2">
-                            <label className="block text-xs font-bold text-gray-700 mb-2">
-                              On-site generation exported (kWh)
-                            </label>
-                            <input
-                              type="text"
-                              name="onsiteExportedKwh"
-                              value={formData.onsiteExportedKwh || ""}
-                              onChange={handleChange}
-                              placeholder="Enter kWh value"
-                              className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.onsiteExportedKwh ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                            />
-                            <p className="text-[10px] text-gray-400 mt-1.5">
-                              Based on your earlier input
-                            </p>
-                            {errors.onsiteExportedKwh && <p className="text-red-500 text-xs mt-1">{errors.onsiteExportedKwh}</p>}
-                          </div>
                         </div>
                       )}
 

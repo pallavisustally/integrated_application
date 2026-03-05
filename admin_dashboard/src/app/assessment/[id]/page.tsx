@@ -280,8 +280,6 @@ export default function AssessmentViewPage() {
           <ReviewCard title="Operational Details" icon={<EnergyIcon />} accentColor="#64748b">
             <DetailGrid>
               <DetailRow label="Turnover of your site (₹)" value={data.energyIntensityPerRupee} />
-              <DetailRow label="Net Metering" value={data.netMeteringApplicable} />
-              <DetailRow label="On-site Exported (kWh)" value={data.onsiteExportedKwh} />
             </DetailGrid>
           </ReviewCard>
 
@@ -301,6 +299,7 @@ export default function AssessmentViewPage() {
           {/* 4. Renewable Energy */}
           <ReviewCard title="Renewable Electricity" icon={<RenewableIcon />} accentColor="#10b981">
             <DetailGrid>
+              <DetailRow label="Net Metering" value={data.netMeteringApplicable} />
               <DetailRow label="Has Renewable Electricity" value={data.hasRenewableElectricity} />
               <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity} />
               <DetailRow label="Renewable Consumption (GJ)" value={data.renewableEnergyConsumption} />

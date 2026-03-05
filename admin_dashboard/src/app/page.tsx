@@ -29,9 +29,9 @@ export default function AdminDashboard() {
         if (data && data.docs) {
           const mappedUsers = data.docs.map((doc: any) => ({
             id: doc.id,
-            username: doc.facilityName || 'N/A',
-            company: doc.facilityName || 'N/A',
-            contact: '-',
+            username: doc.userName || doc.facilityName || 'N/A',
+            company: doc.userCompany || doc.facilityName || 'N/A',
+            contact: doc.userMobile || '-',
             email: doc.email || '-',
             regDate: new Date(doc.createdAt).toISOString().split('T')[0],
             subDate: new Date(doc.createdAt).toISOString().split('T')[0],

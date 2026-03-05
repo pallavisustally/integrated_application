@@ -87,6 +87,18 @@ const Scope2Applications: CollectionConfig = {
   },
   fields: [
     {
+      name: "userName",
+      type: "text",
+    },
+    {
+      name: "userMobile",
+      type: "text",
+    },
+    {
+      name: "userCompany",
+      type: "text",
+    },
+    {
       name: "email",
       type: "email",
       admin: {

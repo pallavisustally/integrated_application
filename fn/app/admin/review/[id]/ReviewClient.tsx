@@ -211,8 +211,6 @@ export default function ReviewClient({ submission }: { submission: any }) {
                         <ReviewCard title="Operational Details" icon={<EnergyIcon />} accentColor="#64748b">
                             <DetailGrid>
                                 <DetailRow label="Turnover of your site (INR)" value={data.energyIntensityPerRupee ? String(data.energyIntensityPerRupee) : "Not specified"} />
-                                <DetailRow label="Net Metering" value={data.netMeteringApplicable || "-"} />
-                                <DetailRow label="On-site Generated Exported (kWh)" value={data.onsiteExportedKwh ? String(data.onsiteExportedKwh) : "-"} />
                             </DetailGrid>
                         </ReviewCard>
                     </div>
@@ -233,6 +231,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
 
                         <ReviewCard title="Renewable Data" icon={<RenewableIcon />} accentColor="#10b981">
                             <DetailGrid>
+                                <DetailRow label="Net Metering" value={data.netMeteringApplicable || "-"} />
                                 <DetailRow label="Has Renewable?" value={data.hasRenewableElectricity || "No"} />
                                 <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity || "-"} />
                                 <DetailRow label="Energy Consumption (GJ)" value={data.renewableEnergyConsumption || "-"} />

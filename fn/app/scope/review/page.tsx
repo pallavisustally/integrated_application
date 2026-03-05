@@ -359,14 +359,13 @@ function ScopeReviewContent() {
           <ReviewCard title="Operational Details" icon={<EnergyIcon />} accentColor="#64748b">
             <DetailGrid>
               <DetailRow label="Turnover of your site" value={formData.energyIntensityPerRupee ? `${formData.energyIntensityPerRupee} INR` : "Not specified"} />
-              <DetailRow label="Net Metering" value={formData.netMeteringApplicable} />
-              {formData.onsiteExportedKwh && <DetailRow label="On-site Generated Exported" value={`${formData.onsiteExportedKwh} kWh`} />}
             </DetailGrid>
           </ReviewCard>
 
           {/* Renewable Energy */}
           <ReviewCard title="Renewable Energy" icon={<RenewableIcon />} accentColor="#10b981">
             <DetailGrid>
+              <DetailRow label="Net Metering" value={formData.netMeteringApplicable} />
               <DetailRow label="Has Renewable Electricity?" value={formData.hasRenewableElectricity} />
 
               {formData.hasRenewableElectricity === "Yes" && (

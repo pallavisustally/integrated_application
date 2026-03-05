@@ -38,6 +38,34 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
 
         if (isNaN(annualConsumption) || annualConsumption === 0) annualConsumption = 10000; // Last-resort fallback for preview
 
+        // Determine Grid Emission Factor from reporting year (matching scope page table)
+        let gridEmissionFactor = 0.710; // Latest fallback year value
+        if (userData.gridEmissionFactor !== undefined && userData.gridEmissionFactor !== null && userData.gridEmissionFactor > 0) {
+            gridEmissionFactor = Number(userData.gridEmissionFactor);
+        } else if (userData.reportingYear) {
+            const GRID_EMISSION_FACTORS: Record<string, number> = {
+                "2013-14": 0.774,
+                "2014-15": 0.779,
+                "2015-16": 0.774,
+                "2016-17": 0.770,
+                "2017-18": 0.754,
+                "2018-19": 0.744,
+                "2019-20": 0.713,
+                "2020-21": 0.703,
+                "2021-22": 0.715,
+                "2022-23": 0.716,
+                "2023-24": 0.722,
+                "2024-25": 0.710,
+            };
+            const date = typeof userData.reportingYear === 'string' ? new Date(userData.reportingYear) : userData.reportingYear;
+            if (date && !isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const shortNextYear = (year + 1) % 100;
+                const yearStr = `${year}-${shortNextYear}`;
+                gridEmissionFactor = GRID_EMISSION_FACTORS[yearStr] || 0.710;
+            }
+        }
+
         const inputs = {
             stateIrradiance: irradiance,
             gridConsumption: annualConsumption,
@@ -45,6 +73,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
             backupHours: batteryBackup,
             tariff: tariff,
             pr: 0.8,
+            gridEmissionFactor: gridEmissionFactor,
         };
 
         return calculateSolarModel(inputs);
@@ -219,6 +248,13 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                             <p className="font-bold text-gray-800 text-sm">{results.solarEnergyTarget.toFixed(2)} kWh</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Added Disclaimer */}
+                <div className="mt-4 text-center">
+                    <p className="text-[10px] text-gray-500 italic">
+                        * The calculation is performed using the given values by the user (including months).
+                    </p>
                 </div>
             </div>
         </div>
