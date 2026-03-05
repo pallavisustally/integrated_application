@@ -21,26 +21,23 @@ const Scope2Applications: CollectionConfig = {
         if (data.certificateId) return data;
 
         try {
-          const reportingYearRaw = data.reportingYear || "";
-          const date = new Date(reportingYearRaw);
-          const year = isNaN(date.getTime()) ? new Date().getFullYear() : date.getFullYear();
-          const yearKey = `${year}-${String(year + 1).slice(-2)}`; // e.g. "2024-25"
+          const today = new Date();
+          const dd = String(today.getDate()).padStart(2, '0');
+          const mm = String(today.getMonth() + 1).padStart(2, '0');
+          const dateKey = `${dd}${mm}`; // e.g. "0503"
 
           const result = await req.payload.find({
             collection: "scope2-applications",
-            // Count only certificates for this reporting year
             limit: 0,
-            where: {
-              certificateId: {
-                like: `GHGCAL${yearKey}`,
-              },
-            },
           });
           const nextNumber = (result.totalDocs || 0) + 1;
-          data.certificateId = `GHGCAL${yearKey}${String(nextNumber).padStart(5, "0")}`;
+          data.certificateId = `GHGCAL${dateKey}${String(nextNumber).padStart(5, "0")}`;
         } catch (err) {
           console.error("[Scope2] Failed to generate certificateId:", err);
-          data.certificateId = `GHGCAL${new Date().getFullYear()}-${String(new Date().getFullYear() + 1).slice(-2)}00001`;
+          const fallbackToday = new Date();
+          const fallbackDd = String(fallbackToday.getDate()).padStart(2, '0');
+          const fallbackMm = String(fallbackToday.getMonth() + 1).padStart(2, '0');
+          data.certificateId = `GHGCAL${fallbackDd}${fallbackMm}00001`;
         }
         return data;
       },
@@ -154,7 +151,7 @@ const Scope2Applications: CollectionConfig = {
       name: "certificateId",
       type: "text",
       admin: {
-        description: "Format: GHGCAL + reporting year + certificate count (e.g. GHGCAL2024-2500001)",
+        description: "Format: GHGCAL + DDMM + certificate count (e.g. GHGCAL050300001)",
         readOnly: true,
       },
     },

@@ -20,13 +20,12 @@ function CertificateContent() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDownloadingReport, setIsDownloadingReport] = useState(false);
   const [isDownloadingBrsr, setIsDownloadingBrsr] = useState(false);
-  const formatCertificateId = (reportingYear: string) => {
-    const year = reportingYear ? (() => {
-      const m = reportingYear.match(/\d{4}/);
-      return m ? parseInt(m[0], 10) : new Date().getFullYear();
-    })() : new Date().getFullYear();
-    const yearKey = `${year}-${String(year + 1).slice(-2)}`;
-    return `GHGCAL${yearKey}00001`;
+  const formatCertificateId = () => {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dateKey = `${dd}${mm}`;
+    return `GHGCAL${dateKey}00001`;
   };
 
   const formatReportingPeriod = (dateStr: string, period: string) => {
@@ -76,7 +75,7 @@ function CertificateContent() {
         renewableElectricity: "Yes",
         renewableEnergyConsumption: "1000",
         onsiteExportedKwh: "0",
-        certificateId: formatCertificateId("2024 - 2025"),
+        certificateId: formatCertificateId(),
         gridEmissionFactor: "0.82",
         locationBasedEmissions: "17.77",
         marketBasedEmissions: "11.27",
@@ -118,7 +117,7 @@ function CertificateContent() {
         renewableElectricity: parsedData.renewableElectricity || "0",
         renewableEnergyConsumption: parsedData.renewableEnergyConsumption || "0",
         onsiteExportedKwh: parsedData.onsiteExportedKwh || "0",
-        certificateId: parsedData.certificateId || formatCertificateId(parsedData.reportingYear || ""),
+        certificateId: parsedData.certificateId || formatCertificateId(),
         // Metrics
         gridEmissionFactor: String(parsedData.gridEmissionFactor || "0"),
         locationBasedEmissions: String(parsedData.locationBasedEmissions || "0"),

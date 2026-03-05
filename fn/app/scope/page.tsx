@@ -159,7 +159,7 @@ function TemplateContent() {
     onsiteExportedKwh: "",
     netMeteringApplicable: "Yes",
 
-    reportingYear: new Date(),
+    reportingYear: null,
     reportingPeriod: "Annually", // Updated to match type
     conditionalApproach: "Operational Control",
 
@@ -599,6 +599,35 @@ function TemplateContent() {
     });
   };
 
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: "energySupportingEvidenceFile" | "renewableSupportingEvidenceFile"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setFormData((prev) => ({ ...prev, [fieldName]: null }));
+      setErrors((prev) => ({ ...prev, [fieldName]: "" }));
+      return;
+    }
+
+    const validTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, [fieldName]: "Invalid file type. Please upload a PDF, JPG, or PNG." }));
+      setFormData((prev) => ({ ...prev, [fieldName]: null }));
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, [fieldName]: "File size exceeds 10MB limit." }));
+      setFormData((prev) => ({ ...prev, [fieldName]: null }));
+      e.target.value = "";
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [fieldName]: file }));
+    setErrors((prev) => ({ ...prev, [fieldName]: "" }));
+  };
 
 
   const validate = () => {
@@ -2110,14 +2139,17 @@ function TemplateContent() {
                       <label className="block text-xs font-bold text-gray-700 mb-2">
                         Supporting evidence
                       </label>
-                      <div className="border border-dashed border-gray-200 rounded-xl bg-gray-50/50 p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group relative">
+                      <div className={`border border-dashed rounded-xl ${errors.energySupportingEvidenceFile ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50/50"} p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group relative`}>
                         {formData.energySupportingEvidenceFile ? (
                           <div className="flex flex-col items-center w-full z-10">
                             <div className="flex items-center justify-between w-full bg-white p-2 rounded border border-gray-100 shadow-sm mb-2">
                               <span className="text-xs text-gray-700 truncate max-w-[80%]">{formData.energySupportingEvidenceFile.name}</span>
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, energySupportingEvidenceFile: null }))}
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, energySupportingEvidenceFile: null }));
+                                  setErrors(prev => ({ ...prev, energySupportingEvidenceFile: "" }));
+                                }}
                                 className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50 focus:outline-none"
                               >
                                 Cancel
@@ -2128,7 +2160,8 @@ function TemplateContent() {
                               <input
                                 type="file"
                                 className="hidden"
-                                onChange={(e) => setFormData(prev => ({ ...prev, energySupportingEvidenceFile: e.target.files?.[0] || null }))}
+                                accept=".pdf,.png,.jpeg,.jpg"
+                                onChange={(e) => handleFileUpload(e, "energySupportingEvidenceFile")}
                               />
                             </label>
                           </div>
@@ -2138,7 +2171,8 @@ function TemplateContent() {
                               <input
                                 type="file"
                                 className="hidden"
-                                onChange={(e) => setFormData(prev => ({ ...prev, energySupportingEvidenceFile: e.target.files?.[0] || null }))}
+                                accept=".pdf,.png,.jpeg,.jpg"
+                                onChange={(e) => handleFileUpload(e, "energySupportingEvidenceFile")}
                               />
                               <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -2153,6 +2187,11 @@ function TemplateContent() {
                           </>
                         )}
                       </div>
+                      {errors.energySupportingEvidenceFile && (
+                        <p className="text-red-500 text-xs mt-1 text-center">
+                          {errors.energySupportingEvidenceFile}
+                        </p>
+                      )}
                       <p className="text-[10px] text-gray-400 mt-2">
                         Uploading bills improves data confidence.
                       </p>
@@ -2423,14 +2462,17 @@ function TemplateContent() {
                         <label className="block text-xs font-bold text-gray-700 mb-2">
                           Supporting evidence
                         </label>
-                        <div className="border border-dashed border-gray-200 rounded-xl bg-gray-50/50 p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group relative h-28">
+                        <div className={`border border-dashed rounded-xl ${errors.renewableSupportingEvidenceFile ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50/50"} p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group relative h-28`}>
                           {formData.renewableSupportingEvidenceFile ? (
                             <div className="flex flex-col items-center w-full z-10">
                               <div className="flex items-center justify-between w-full bg-white p-2 rounded border border-gray-100 shadow-sm mb-2">
                                 <span className="text-xs text-gray-700 truncate max-w-[80%]">{formData.renewableSupportingEvidenceFile.name}</span>
                                 <button
                                   type="button"
-                                  onClick={() => setFormData(prev => ({ ...prev, renewableSupportingEvidenceFile: null }))}
+                                  onClick={() => {
+                                    setFormData(prev => ({ ...prev, renewableSupportingEvidenceFile: null }));
+                                    setErrors(prev => ({ ...prev, renewableSupportingEvidenceFile: "" }));
+                                  }}
                                   className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50 focus:outline-none"
                                 >
                                   Cancel
@@ -2441,7 +2483,8 @@ function TemplateContent() {
                                 <input
                                   type="file"
                                   className="hidden"
-                                  onChange={(e) => setFormData(prev => ({ ...prev, renewableSupportingEvidenceFile: e.target.files?.[0] || null }))}
+                                  accept=".pdf,.png,.jpeg,.jpg"
+                                  onChange={(e) => handleFileUpload(e, "renewableSupportingEvidenceFile")}
                                 />
                               </label>
                             </div>
@@ -2451,7 +2494,8 @@ function TemplateContent() {
                                 <input
                                   type="file"
                                   className="hidden"
-                                  onChange={(e) => setFormData(prev => ({ ...prev, renewableSupportingEvidenceFile: e.target.files?.[0] || null }))}
+                                  accept=".pdf,.png,.jpeg,.jpg"
+                                  onChange={(e) => handleFileUpload(e, "renewableSupportingEvidenceFile")}
                                 />
                                 <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -2466,6 +2510,11 @@ function TemplateContent() {
                             </>
                           )}
                         </div>
+                        {errors.renewableSupportingEvidenceFile && (
+                          <p className="text-red-500 text-xs mt-1 text-center">
+                            {errors.renewableSupportingEvidenceFile}
+                          </p>
+                        )}
                       </div>
 
                       {/* Description */}
