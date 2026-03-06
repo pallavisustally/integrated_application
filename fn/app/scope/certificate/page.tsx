@@ -212,17 +212,6 @@ function CertificateContent() {
   const scope2Emissions = data.marketBasedEmissions ? parseFloat(data.marketBasedEmissions).toFixed(2) : "NA";
   const fyYear = data.reportingYear?.includes("FY") ? data.reportingYear : `FY ${data.reportingYear}`;
 
-  let disclaimerText = "The calculation is performed using the given values.";
-  if (data?.reportingPeriod === "Monthly" && data?.monthlyData && data.monthlyData.length > 0) {
-    const months = data.monthlyData.map((m: any) => {
-      if (!m.month) return "";
-      const d = new Date(m.month + "-01");
-      return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-    }).filter(Boolean);
-    if (months.length > 0) {
-      disclaimerText = `The calculation is performed using the given values for ${months.join(", ")}.`;
-    }
-  }
 
   const handleDownloadCertificate = async () => {
     if (certificateRef.current === null) {
@@ -613,13 +602,10 @@ function CertificateContent() {
               <span className="font-semibold">Disclaimer: </span>
               The suggested sector recommendations are indicative in nature and are derived from sustainability initiatives disclosed by comparable companies in their BRSR reports. These suggestions are intended for general guidance and should be evaluated based on the organization&apos;s specific operational context, resources, and strategic priorities.
               {(data.energyActivityInput === "Monthly" ||
-                data.energyActivityInput === "Yearly" ||
                 (data.hasRenewableElectricity === "Yes" &&
-                  (data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Yearly"))) && (
+                  data.renewableEnergyActivityInput === "Monthly")) && (
                   " Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period."
                 )}
-              <br /><br />
-              <span className="italic">{disclaimerText}</span>
             </p>
           </div>
 
@@ -697,11 +683,7 @@ function CertificateContent() {
                 <p className="text-lg font-Cormorant Garamond style italic size-medium Line-height-relaxed text-gray-700 leading-relaxed italic">
                   in recognition of leadership in environmental transparency through the
                   proactive initiation of a Scope 2 emissions assessment for the reporting
-                  period <span className="font-semibold not-italic">{fyYear}</span>.{" "}
-                  <span className="text-sm font-Cormorant Garamond text-gray-500 italic">
-                    ({disclaimerText})
-                  </span>{" "}
-                  conducted during
+                  period <span className="font-semibold not-italic">{fyYear}</span> conducted during
                 </p>
 
                 <p className="text-lg font-Cormorant Garamond font-bold text-[#1e3a3a]">
