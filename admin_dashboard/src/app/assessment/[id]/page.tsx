@@ -289,6 +289,7 @@ export default function AssessmentViewPage() {
               <DetailRow label="Energy Activity Input" value={data.energyActivityInput} />
               <DetailRow label="Energy Category" value={data.energyCategory} />
               <DetailRow label="Tracking Type" value={data.trackingType} />
+              <DetailRow label="Data Source Type" value={data.dataSourceType} />
               <DetailRow label="Electricity Purchased (kWh)" value={data.electricityPurchased != null ? String(data.electricityPurchased) : '-'} />
               <DetailRow label="Spend Amount (₹)" value={data.spendAmount != null ? String(data.spendAmount) : '-'} />
               <DetailRow label="Energy Consumption (GJ)" value={data.energyConsumption} />
@@ -303,7 +304,7 @@ export default function AssessmentViewPage() {
               <DetailRow label="Has Renewable Electricity" value={data.hasRenewableElectricity} />
               <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity} />
               <DetailRow label="Renewable Consumption (GJ)" value={data.renewableEnergyConsumption} />
-              <DetailRow label="Renewable Source" value={data.renewableEnergySourceDescription} />
+              <DetailRow label="Renewable Source Description" value={data.renewableEnergySourceDescription} />
             </DetailGrid>
           </ReviewCard>
 

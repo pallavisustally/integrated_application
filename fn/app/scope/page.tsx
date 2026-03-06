@@ -1362,7 +1362,7 @@ function TemplateContent() {
                     </svg>
                   </div>
                   <h2 className="text-sm font-bold text-gray-900">
-                    Operational Details <span className="text-red-500">*</span>
+                    Operational Details
                   </h2>
                 </div>
 

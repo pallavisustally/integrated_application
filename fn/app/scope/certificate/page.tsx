@@ -254,6 +254,9 @@ function CertificateContent() {
     try {
       setIsDownloadingReport(true);
 
+      // Allow React to re-render layout to hide the download sections
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       // Capture the dashboard with good quality
       const dataUrl = await toPng(element, { cacheBust: true, pixelRatio: 2 });
 
@@ -446,92 +449,94 @@ function CertificateContent() {
           </div>
 
           {/* Cost Projection (Solar Model) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2 flex flex-col h-full overflow-hidden">
+          <div className={`bg-white rounded-xl shadow-sm border border-gray-100 col-span-1 flex flex-col h-full overflow-hidden ${isDownloadingReport ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
             <CostSavingCard userData={data} />
           </div>
 
           {/* Downloads */}
-          <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl shadow-sm border border-indigo-100 col-span-1 lg:col-span-1 flex flex-col h-[300px] lg:h-full">
-            <h3 className="text-indigo-900 text-xs font-semibold mb-3">Available Reports</h3>
-            <div className="flex-1 flex flex-col gap-3">
-              <div
-                className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloadingReport ? 'opacity-70 pointer-events-none' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                  </div>
-                  <div className="leading-tight">
-                    <p className="text-sm font-semibold text-gray-800">Assessment report</p>
-                    <p className="text-xs text-gray-500">Detailed analysis</p>
-                  </div>
-                </div>
-                <button
-                  className="text-xs font-bold text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors uppercase"
-                  onClick={handleDownloadReport}
+          {!isDownloadingReport && (
+            <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl shadow-sm border border-indigo-100 col-span-1 lg:col-span-1 flex flex-col h-[300px] lg:h-full">
+              <h3 className="text-indigo-900 text-xs font-semibold mb-3">Available Reports</h3>
+              <div className="flex-1 flex flex-col gap-3">
+                <div
+                  className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloadingReport ? 'opacity-70 pointer-events-none' : ''}`}
                 >
-                  {isDownloadingReport ? (
-                    <span className="animate-pulse">Loading...</span>
-                  ) : (
-                    "Download"
-                  )}
-                </button>
-              </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <div className="leading-tight">
+                      <p className="text-sm font-semibold text-gray-800">Assessment report</p>
+                      <p className="text-xs text-gray-500">Detailed analysis</p>
+                    </div>
+                  </div>
+                  <button
+                    className="text-xs font-bold text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors uppercase"
+                    onClick={handleDownloadReport}
+                  >
+                    {isDownloadingReport ? (
+                      <span className="animate-pulse">Loading...</span>
+                    ) : (
+                      "Download"
+                    )}
+                  </button>
+                </div>
 
-              <div
-                className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloading ? 'opacity-70 pointer-events-none' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  </div>
-                  <div className="leading-tight">
-                    <p className="text-sm font-semibold text-gray-800">Recognition certificate</p>
-                  </div>
-                </div>
-                <button
-                  className="text-xs font-bold text-green-600 cursor-pointer hover:text-green-800 transition-colors uppercase"
-                  onClick={handleDownloadCertificate}
+                <div
+                  className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloading ? 'opacity-70 pointer-events-none' : ''}`}
                 >
-                  {isDownloading ? (
-                    <span className="animate-pulse">Loading...</span>
-                  ) : (
-                    "Download"
-                  )}
-                </button>
-              </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div className="leading-tight">
+                      <p className="text-sm font-semibold text-gray-800">Recognition certificate</p>
+                    </div>
+                  </div>
+                  <button
+                    className="text-xs font-bold text-green-600 cursor-pointer hover:text-green-800 transition-colors uppercase"
+                    onClick={handleDownloadCertificate}
+                  >
+                    {isDownloading ? (
+                      <span className="animate-pulse">Loading...</span>
+                    ) : (
+                      "Download"
+                    )}
+                  </button>
+                </div>
 
-              <div
-                className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloadingBrsr ? 'opacity-70 pointer-events-none' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                  </div>
-                  <div className="leading-tight">
-                    <p className="text-sm font-semibold text-gray-800">BRSR P6 Report</p>
-                    <p className="text-xs text-gray-500">SEBI compliant</p>
-                  </div>
-                </div>
-                <button
-                  className="text-xs font-bold text-blue-600 cursor-pointer hover:text-blue-800 transition-colors uppercase"
-                  onClick={handleDownloadBrsr}
+                <div
+                  className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloadingBrsr ? 'opacity-70 pointer-events-none' : ''}`}
                 >
-                  {isDownloadingBrsr ? (
-                    <span className="animate-pulse">Loading...</span>
-                  ) : (
-                    "Download"
-                  )}
-                </button>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </div>
+                    <div className="leading-tight">
+                      <p className="text-sm font-semibold text-gray-800">BRSR P6 Report</p>
+                      <p className="text-xs text-gray-500">SEBI compliant</p>
+                    </div>
+                  </div>
+                  <button
+                    className="text-xs font-bold text-blue-600 cursor-pointer hover:text-blue-800 transition-colors uppercase"
+                    onClick={handleDownloadBrsr}
+                  >
+                    {isDownloadingBrsr ? (
+                      <span className="animate-pulse">Loading...</span>
+                    ) : (
+                      "Download"
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Level 3: AI Insights & Footers */}
         <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-[25%] shrink-0 min-h-[160px]">
           {/* AI Insights - 70% Width */}
-          <div id="ai-insights-section" className="w-full lg:w-[70%] flex flex-col ai-insights-target">
+          <div id="ai-insights-section" className={`w-full flex flex-col ai-insights-target ${isDownloadingReport ? 'lg:w-full' : 'lg:w-[70%]'}`}>
             <div className="flex items-center gap-2 mb-2 shrink-0">
               <svg className="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
               <h3 className="text-sm font-semibold text-gray-800">Sector Recommendations</h3>
@@ -595,18 +600,20 @@ function CertificateContent() {
             </p>
           </div>
 
-          <div id="next-steps-section" className="w-full lg:w-[30%] bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-center gap-3 next-steps-target">
-            <div className="text-center mb-1">
-              <h4 className="font-semibold text-gray-900 text-sm">Assessment Complete</h4>
-              <p className="text-[10px] text-gray-500">Thank you for your submission</p>
+          {!isDownloadingReport && (
+            <div id="next-steps-section" className="w-full lg:w-[30%] bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-center gap-3 next-steps-target">
+              <div className="text-center mb-1">
+                <h4 className="font-semibold text-gray-900 text-sm">Assessment Complete</h4>
+                <p className="text-[10px] text-gray-500">Thank you for your submission</p>
+              </div>
+              <button onClick={() => {
+                router.push("/scope/feedback");
+              }} className="w-full py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-black transition-opacity text-xs border border-gray-800 flex items-center justify-center gap-2">
+                Finish & Exit
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+              </button>
             </div>
-            <button onClick={() => {
-              router.push("/scope/feedback");
-            }} className="w-full py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-black transition-opacity text-xs border border-gray-800 flex items-center justify-center gap-2">
-              Finish & Exit
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            </button>
-          </div>
+          )}
         </div>
 
       </div>

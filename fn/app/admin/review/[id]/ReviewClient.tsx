@@ -225,7 +225,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Electricity Purchased (kWh)" value={data.electricityPurchased || "-"} />
                                 <DetailRow label="Energy Consumption (GJ)" value={data.energyConsumption || "-"} />
                                 <DetailRow label="Spend Amount" value={data.spendAmount || "-"} />
-                                <DetailRow label="Data Source" value={data.dataSourceType || data.energySourceDescription || "-"} />
+                                <DetailRow label="Data Source Type" value={data.dataSourceType || data.energySourceDescription || "-"} />
                             </DetailGrid>
                         </ReviewCard>
 
@@ -235,6 +235,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Has Renewable?" value={data.hasRenewableElectricity || "No"} />
                                 <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity || "-"} />
                                 <DetailRow label="Energy Consumption (GJ)" value={data.renewableEnergyConsumption || "-"} />
+                                <DetailRow label="Renewable Source Description" value={data.renewableEnergySourceDescription || "-"} />
                             </DetailGrid>
                         </ReviewCard>
 

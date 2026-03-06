@@ -338,7 +338,7 @@ function ScopeReviewContent() {
                 <>
                   <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
                   <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
-                  <DetailRow label="Data Source" value={formData.dataSourceType} />
+                  <DetailRow label="Data Source Type" value={formData.dataSourceType} />
                   {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount ? `${formData.spendAmount} INR` : "-"} />}
                 </>
               ) : (
