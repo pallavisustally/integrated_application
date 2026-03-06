@@ -542,36 +542,16 @@ function TemplateContent() {
       let updates: Partial<FormDataType> = { [name]: value };
 
       if (name === "trackingType" && prev.trackingType !== value) {
-        updates = {
-          ...updates,
-          electricityPurchased: "",
-          dataSourceType: "",
-          energyConsumption: "",
-          spendAmount: "",
-          monthlyData: prev.monthlyData.map((row) => ({
-            ...row,
-            electricityPurchased: "",
-            dataSourceType: "",
-            energyConsumption: "",
-            spend: "",
-          })),
-        };
+        // preserve values based on user feedback
       }
 
       if (name === "energyActivityInput" && prev.energyActivityInput !== value) {
-        updates = {
-          ...updates,
-          electricityPurchased: "",
-          dataSourceType: "",
-          energyConsumption: "",
-          spendAmount: "",
-        };
         if (value === "Monthly" && prev.reportingPeriod !== "Monthly") {
-          updates.monthlyData = generateMonthlyDataForYear(prev.reportingYear);
+          if (prev.monthlyData.length <= 1) updates.monthlyData = generateMonthlyDataForYear(prev.reportingYear);
         } else if (value === "Quarterly") {
-          updates.monthlyData = generateQuarterlyDataForYear(prev.reportingYear);
+          if (prev.monthlyData.length <= 1) updates.monthlyData = generateQuarterlyDataForYear(prev.reportingYear);
         } else {
-          updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+          if (prev.monthlyData.length <= 1) updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
         }
       }
 
@@ -1362,7 +1342,7 @@ function TemplateContent() {
                     </svg>
                   </div>
                   <h2 className="text-sm font-bold text-gray-900">
-                    Operational Details
+                    Operational Details <span className="text-red-500">*</span>
                   </h2>
                 </div>
 
@@ -2113,6 +2093,32 @@ function TemplateContent() {
                       )}
                     </div>
 
+                    {/* Clear Button for Energy Input */}
+                    <div className="flex justify-end mb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            electricityPurchased: "",
+                            spendAmount: "",
+                            energyConsumption: "",
+                            dataSourceType: "",
+                            monthlyData: prev.monthlyData.map(row => ({
+                              ...row,
+                              electricityPurchased: "",
+                              spend: "",
+                              energyConsumption: "",
+                              dataSourceType: ""
+                            }))
+                          }));
+                        }}
+                        className="text-xs px-4 py-1.5 font-bold text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200"
+                      >
+                        Clear Data
+                      </button>
+                    </div>
+
                     {/* Supporting Evidence Upload */}
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-2">
@@ -2242,9 +2248,9 @@ function TemplateContent() {
                                   onClick={() => setFormData(prev => {
                                     const updates: any = { ...prev, renewableEnergyActivityInput: type as "Monthly" | "Yearly" };
                                     if (type === "Monthly" && prev.reportingPeriod !== "Monthly") {
-                                      updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
+                                      if (prev.renewableMonthlyData.length <= 1) updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
                                     } else if (type === "Monthly") {
-                                      updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+                                      if (prev.renewableMonthlyData.length <= 1) updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
                                     }
                                     return updates;
                                   })}
@@ -2426,6 +2432,30 @@ function TemplateContent() {
 
                         </div>
                       )}
+
+                      {/* Clear Button for Renewable Electricity */}
+                      <div className="flex justify-end mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              renewableElectricity: "",
+                              renewableEnergyConsumption: "",
+                              renewableDataSourceType: "",
+                              renewableMonthlyData: prev.renewableMonthlyData.map(row => ({
+                                ...row,
+                                electricityPurchased: "",
+                                energyConsumption: "",
+                                dataSourceType: ""
+                              }))
+                            }));
+                          }}
+                          className="text-xs px-4 py-1.5 font-bold text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200"
+                        >
+                          Clear Data
+                        </button>
+                      </div>
 
                       {/* Supporting Evidence Upload */}
                       <div>
