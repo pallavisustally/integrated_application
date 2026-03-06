@@ -87,6 +87,8 @@ function CertificateContent() {
         spendAmount: "25500000", // 2.55 Cr
         trackingType: "Spend amount",
         sector: "Automobile and Auto Components", // Mock sector for preview
+        energyActivityInput: "Yearly",
+        renewableEnergyActivityInput: "Yearly",
       });
       setLoading(false);
       return;
@@ -134,6 +136,8 @@ function CertificateContent() {
         trackingType: parsedData.trackingType,
         sector: parsedData.sector || "-",
         hasRenewableElectricity: parsedData.hasRenewableElectricity || "No",
+        energyActivityInput: parsedData.energyActivityInput || "Yearly",
+        renewableEnergyActivityInput: parsedData.renewableEnergyActivityInput || "Yearly",
         monthlyData: parsedData.monthlyData || [],
       });
     } catch (e) {
@@ -606,9 +610,16 @@ function CertificateContent() {
               })()}
             </div>
             <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
+              <span className="font-semibold">Disclaimer: </span>
               The suggested sector recommendations are indicative in nature and are derived from sustainability initiatives disclosed by comparable companies in their BRSR reports. These suggestions are intended for general guidance and should be evaluated based on the organization&apos;s specific operational context, resources, and strategic priorities.
+              {(data.energyActivityInput === "Monthly" ||
+                data.energyActivityInput === "Yearly" ||
+                (data.hasRenewableElectricity === "Yes" &&
+                  (data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Yearly"))) && (
+                  " Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period."
+                )}
               <br /><br />
-              <span className="font-semibold">Disclaimer: </span><span className="italic">{disclaimerText}</span>
+              <span className="italic">{disclaimerText}</span>
             </p>
           </div>
 
@@ -745,158 +756,222 @@ function CertificateContent() {
         HIDDEN BRSR REPORT PAGES
       */}
       <div style={{ position: "fixed", top: -9999, left: -9999 }}>
+        {/* Page 1 */}
         <div
           ref={brsrPage1Ref}
           className="relative bg-white font-sans text-black"
-          style={{ width: "794px", height: "1123px", overflow: "hidden", padding: "60px" }}
+          style={{ width: "794px", height: "1123px", overflow: "hidden", padding: "40px" }}
         >
-          <h2 className="text-xl font-bold mb-4">PRINCIPLE 6: Businesses should respect and make efforts to protect and restore the environment</h2>
-          <h3 className="text-lg font-bold text-center mb-6">Essential Indicators</h3>
-          <p className="mb-4">1. Details of total energy consumption (in Joules or multiples) and energy intensity, in the following format:</p>
+          {/* Outer Border */}
+          <div className="w-full h-full border border-gray-400 p-10 flex flex-col">
+            <h2 className="text-lg font-bold mb-1 uppercase text-[#1e1e1e]">PRINCIPLE 6: Businesses should respect and make efforts to protect and restore the environment</h2>
 
-          <table className="w-full border-collapse border border-black mb-8 text-sm">
-            <thead>
-              <tr>
-                <th className="border border-black p-2 text-left w-2/3 font-bold">Parameter</th>
-                <th className="border border-black p-2 text-left w-1/3 font-bold">{fyYear}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="border border-black p-2 font-bold" colSpan={2}>From renewable sources</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2">Total electricity consumption (A) (GJ)</td>
-                <td className="border border-black p-2">{energyRenewGj}</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2">Total fuel consumption (B) (GJ)</td>
-                <td className="border border-black p-2">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2">Energy consumption through other sources (C) (GJ)</td>
-                <td className="border border-black p-2">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total energy consumed from renewable sources (A+B+C) (GJ)</td>
-                <td className="border border-black p-2">{energyRenewGj}</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold" colSpan={2}>From non-renewable sources</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2">Total electricity consumption (D) (GJ)</td>
-                <td className="border border-black p-2">{energyGridGj}</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2">Total fuel consumption (E) (GJ)</td>
-                <td className="border border-black p-2">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2">Energy consumption through other sources (F) (GJ)</td>
-                <td className="border border-black p-2">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total energy consumed from non-renewable sources (D+E+F) (GJ)</td>
-                <td className="border border-black p-2">{energyGridGj}</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total energy consumed (A+B+C+D+E+F) (GJ)</td>
-                <td className="border border-black p-2">{energyTotalGj}</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2">Energy intensity per rupee of turnover<br />(Total energy consumed / Revenue from operations)</td>
-                <td className="border border-black p-2">
-                  {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
-                    ? (totalGjValue / parseFloat(data.energyIntensityPerRupee)).toLocaleString("en-IN", { maximumFractionDigits: 4 })
-                    : "NA"}
-                </td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Energy intensity per rupee of turnover adjusted for Purchasing Power Parity (PPP)<br /><span className="font-normal">(Total energy consumed / Revenue from operations adjusted for PPP)</span></td>
-                <td className="border border-black p-2">
-                  {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
-                    ? (() => {
-                      const turnover = parseFloat(data.energyIntensityPerRupee);
-                      const pppRates: Record<string, number> = {
-                        "2019-20": 20.24,
-                        "2020-21": 20.319,
-                        "2021-22": 20.728,
-                        "2022-23": 20.493,
-                        "2023-24": 20.274,
-                        "2024-25": 20.392,
-                      };
-                      const yearMatch = fyYear.match(/20\d{2}-\d{2}/);
-                      const extractedYear = yearMatch ? yearMatch[0] : null;
-                      const pppRate = extractedYear && pppRates[extractedYear] ? pppRates[extractedYear] : 20.392;
-                      const pppAdjustedTurnover = turnover / pppRate;
-                      return (totalGjValue / pppAdjustedTurnover).toLocaleString("en-IN", { maximumFractionDigits: 4 });
-                    })()
-                    : "NA"}
-                </td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Energy intensity in terms of physical output</td>
-                <td className="border border-black p-2">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2">Energy intensity (optional) – the relevant metric may be selected by the entity</td>
-                <td className="border border-black p-2">NA</td>
-              </tr>
-            </tbody>
-          </table>
-          <p className="text-sm">Note: Indicate if any independent assessment/ evaluation/assurance has been carried out by an external agency? (Y/N) If yes, name of the external agency.</p>
+            <h3 className="text-lg font-bold text-center mb-8 text-[#1e1e1e]">Essential Indicators</h3>
+
+            <p className="mb-6 text-[13px] leading-relaxed">
+              1. Details of total energy consumption (in Joules or multiples) and energy intensity, in the following format:
+            </p>
+
+            <table className="w-full border-collapse border border-black mb-8 text-[12px]">
+              <thead>
+                <tr className="bg-white">
+                  <th className="border border-black p-3 text-left w-[65%] font-bold">Parameter</th>
+                  <th className="border border-black p-3 text-left w-[35%] font-bold">{fyYear}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="bg-white">
+                  <td className="border border-black p-2 font-bold" colSpan={2}>From renewable sources</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 pl-4">Total electricity consumption (A) (GJ)</td>
+                  <td className="border border-black p-2 text-right">{energyRenewGj}</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 pl-4">Total fuel consumption (B) (GJ)</td>
+                  <td className="border border-black p-2 text-right">NA</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 pl-4">Energy consumption through other sources (C) (GJ)</td>
+                  <td className="border border-black p-2 text-right">NA</td>
+                </tr>
+                <tr className="bg-white font-bold">
+                  <td className="border border-black p-2">Total energy consumed from renewable sources (A+B+C) (GJ)</td>
+                  <td className="border border-black p-2 text-right">{energyRenewGj}</td>
+                </tr>
+
+                <tr className="bg-white">
+                  <td className="border border-black p-2 font-bold" colSpan={2}>From non-renewable sources</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 pl-4">Total electricity consumption (D) (GJ)</td>
+                  <td className="border border-black p-2 text-right">{energyGridGj}</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 pl-4">Total fuel consumption (E) (GJ)</td>
+                  <td className="border border-black p-2 text-right">NA</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 pl-4">Energy consumption through other sources (F) (GJ)</td>
+                  <td className="border border-black p-2 text-right">NA</td>
+                </tr>
+                <tr className="bg-white font-bold">
+                  <td className="border border-black p-2">Total energy consumed from non-renewable sources (D+E+F) (GJ)</td>
+                  <td className="border border-black p-2 text-right">{energyGridGj}</td>
+                </tr>
+
+                <tr className="bg-white font-bold">
+                  <td className="border border-black p-2 uppercase">Total energy consumed (A+B+C+D+E+F) (GJ)</td>
+                  <td className="border border-black p-2 text-right">{energyTotalGj}</td>
+                </tr>
+
+                <tr>
+                  <td className="border border-black p-2 font-bold">
+                    Energy intensity per rupee of turnover<br />
+                    <span className="font-normal">(Total energy consumed / Revenue from operations)</span>
+                  </td>
+                  <td className="border border-black p-2 text-right italic text-gray-400">
+                    {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
+                      ? (totalGjValue / parseFloat(data.energyIntensityPerRupee)).toLocaleString("en-IN", { maximumFractionDigits: 6 })
+                      : "NA"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 font-bold">
+                    Energy intensity per rupee of turnover adjusted for Purchasing Power Parity (PPP)<br />
+                    <span className="font-normal">(Total energy consumed / Revenue from operations adjusted for PPP)</span>
+                  </td>
+                  <td className="border border-black p-2 text-right italic text-gray-400">
+                    {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
+                      ? (() => {
+                        const turnover = parseFloat(data.energyIntensityPerRupee);
+                        const pppRates: Record<string, number> = {
+                          "2019-20": 20.24, "2020-21": 20.319, "2021-22": 20.728, "2022-23": 20.493, "2023-24": 20.274, "2024-25": 20.392,
+                        };
+                        const yearMatch = fyYear.match(/20\d{2}-\d{2}/);
+                        const extractedYear = yearMatch ? yearMatch[0] : null;
+                        const pppRate = extractedYear && pppRates[extractedYear] ? pppRates[extractedYear] : 20.392;
+                        const pppAdjustedTurnover = turnover / pppRate;
+                        return (totalGjValue / pppAdjustedTurnover).toLocaleString("en-IN", { maximumFractionDigits: 6 });
+                      })()
+                      : "NA"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 font-bold">Energy intensity in terms of physical output</td>
+                  <td className="border border-black p-2 text-right italic text-gray-400">NA</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 font-bold">Energy intensity (optional) – the relevant metric may be selected by the entity</td>
+                  <td className="border border-black p-2 text-right italic text-gray-400">NA</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div className="mt-auto">
+              <p className="text-[10px] italic leading-tight text-gray-600 border-t border-gray-100 pt-4">
+                The assessment is carried out by <span className="font-bold">Sustally Technologies Private Limited</span>, which analyzes electricity consumption data provided by the <span className="font-bold underline">{data.facilityName}</span> to estimate Scope-2 emissions using standardized emission factors and automated statistical analysis aligned with carbon accounting principles.
+              </p>
+
+              <div className="flex justify-end items-center mt-6 gap-2">
+                <span className="text-[11px] text-gray-500">Powered By</span>
+                <img src="/sustally-logo.png" alt="Sustally Logo" className="h-6 object-contain" />
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* Page 2 */}
         <div
           ref={brsrPage2Ref}
           className="relative bg-white font-sans text-black"
-          style={{ width: "794px", height: "1123px", overflow: "hidden", padding: "60px" }}
+          style={{ width: "794px", height: "1123px", overflow: "hidden", padding: "40px" }}
         >
-          <p className="mb-6">7. Provide details of greenhouse gas emissions (Scope 1 and Scope 2 emissions) & its intensity, in the following format:</p>
+          {/* Outer Border */}
+          <div className="w-full h-full border border-gray-400 p-10 flex flex-col">
+            <p className="mb-6 text-[13px] leading-relaxed">
+              7. Provide details of greenhouse gas emissions (Scope 1 and Scope 2 emissions) & its intensity, in the following format:
+            </p>
 
-          <table className="w-full border-collapse border border-black mb-8 text-sm">
-            <thead>
-              <tr>
-                <th className="border border-black p-2 text-center italic w-1/2">Parameter</th>
-                <th className="border border-black p-2 text-center italic w-1/4">Unit</th>
-                <th className="border border-black p-2 text-center italic w-1/4">{fyYear}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total Scope 1 emissions<br /><span className="font-normal">(Break-up of the GHG into CO2, CH4, N2O, HFCs, PFCs, SF6, NF3, if available)</span></td>
-                <td className="border border-black p-2 italic">Metric tonnes of CO2 equivalent</td>
-                <td className="border border-black p-2 text-right">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total Scope 2 emissions<br /><span className="font-normal">(Break-up of the GHG into CO2, CH4, N2O, HFCs, PFCs, SF6, NF3, if available)</span></td>
-                <td className="border border-black p-2 italic">Metric tonnes of CO2 equivalent</td>
-                <td className="border border-black p-2 text-right">{scope2Emissions}</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total Scope 1 and Scope 2 emission intensity per rupee of turnover<br /><span className="font-normal">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations)</span></td>
-                <td className="border border-black p-2 italic">Metric tonnes of CO2 Equivalent/(Crore INR)</td>
-                <td className="border border-black p-2 text-right">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total Scope 1 and Scope 2 emission intensity per rupee of turnover adjusted for Purchasing Power Parity (PPP)<br /><span className="font-normal">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations adjusted for PPP)</span></td>
-                <td className="border border-black p-2"></td>
-                <td className="border border-black p-2 text-right">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total Scope 1 and Scope 2 emission intensity in terms of physical output</td>
-                <td className="border border-black p-2"></td>
-                <td className="border border-black p-2 text-right">NA</td>
-              </tr>
-              <tr>
-                <td className="border border-black p-2 font-bold">Total Scope 1 and Scope 2 emission intensity (optional)<br /><span className="font-normal">– the relevant metric may be selected by the entity</span></td>
-                <td className="border border-black p-2"></td>
-                <td className="border border-black p-2 text-right">NA</td>
-              </tr>
-            </tbody>
-          </table>
-          <p className="text-sm">Note: Indicate if any independent assessment/ evaluation/assurance has been carried out by an external agency? (Y/N) If yes, name of the external agency.</p>
+            <table className="w-full border-collapse border border-black mb-8 text-[12px]">
+              <thead>
+                <tr className="bg-white">
+                  <th className="border border-black p-3 text-center italic w-[40%] font-bold">Parameter</th>
+                  <th className="border border-black p-3 text-center italic w-[30%] font-bold">Unit</th>
+                  <th className="border border-black p-3 text-center w-[30%] font-bold">{fyYear}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border border-black p-3 font-bold">
+                    Total Scope 1 emissions<br />
+                    <span className="font-normal text-[10px] text-gray-600">(Break-up of the GHG into CO2, CH4, N2O, HFCs, PFCs, SF6, NF3, if available)</span>
+                  </td>
+                  <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 equivalent</td>
+                  <td className="border border-black p-3 text-right font-medium">NA</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-3 font-bold">
+                    Total Scope 2 emissions<br />
+                    <span className="font-normal text-[10px] text-gray-600">(Break-up of the GHG into CO2, CH4, N2O, HFCs, PFCs, SF6, NF3, if available)</span>
+                  </td>
+                  <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 equivalent</td>
+                  <td className="border border-black p-3 text-right font-medium">{scope2Emissions}</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-3 font-bold">
+                    Total Scope 1 and Scope 2 emission intensity per rupee of turnover<br />
+                    <span className="font-normal text-[10px] text-gray-600">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations)</span>
+                  </td>
+                  <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 Equivalent/(Crore INR)</td>
+                  <td className="border border-black p-3 text-right font-medium italic text-gray-400">NA</td>
+                </tr>
+
+                {/* PPP Intensity Row */}
+                <tr>
+                  <td className="border border-black p-3 font-bold">
+                    Total Scope 1 and Scope 2 emission intensity per rupee of turnover adjusted<br />
+                    for Purchasing Power Parity (PPP)<br />
+                    <span className="font-normal text-[10px] text-gray-600">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations adjusted for PPP)</span>
+                  </td>
+                  <td className="border border-black p-3 border-b-0"></td>
+                  <td className="border border-black p-3 text-right font-medium italic text-gray-400">NA</td>
+                </tr>
+
+                {/* Additional Header if needed to match image, but image implies continuation */}
+                <tr className="bg-white">
+                  <th className="border border-black p-2 text-center italic font-bold">Parameter</th>
+                  <th className="border border-black p-2 text-center italic font-bold">Unit</th>
+                  <th className="border border-black p-2 text-center font-bold">{fyYear}</th>
+                </tr>
+
+                <tr>
+                  <td className="border border-black p-3 font-bold">Total Scope 1 and Scope 2 emission intensity in terms of physical output</td>
+                  <td className="border border-black p-3"></td>
+                  <td className="border border-black p-3 text-right font-medium italic text-gray-400">NA</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-3 font-bold">
+                    Total Scope 1 and Scope 2 emission intensity (optional)<br />
+                    <span className="font-normal text-[10px] text-gray-600">– the relevant metric may be selected by the entity</span>
+                  </td>
+                  <td className="border border-black p-3"></td>
+                  <td className="border border-black p-3 text-right font-medium italic text-gray-400">NA</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div className="mt-auto">
+              <p className="text-[10px] italic leading-tight text-gray-600 border-t border-gray-100 pt-4">
+                The assessment is carried out by <span className="font-bold">Sustally Technologies Private Limited</span>, which analyzes electricity consumption data provided by the <span className="font-bold underline">{data.facilityName}</span> to estimate Scope-2 emissions using standardized emission factors and automated statistical analysis aligned with carbon accounting principles.
+              </p>
+
+              <div className="flex justify-end items-center mt-6 gap-2">
+                <span className="text-[11px] text-gray-500">Powered By</span>
+                <img src="/sustally-logo.png" alt="Sustally Logo" className="h-6 object-contain" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
