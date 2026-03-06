@@ -4,7 +4,7 @@ import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList } from "recharts";
 import { TARIFF_DATA, TariffRate } from "../lib/electricityTariffData";
 import Combobox from "./Combobox";
 import { upload } from '@vercel/blob/client';
@@ -2508,9 +2508,9 @@ function TemplateContent() {
                 <section className="col-span-2 bg-white rounded-xl p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col">
                   <h3 className="text-gray-500 text-xs font-medium mb-2">Total Energy Consumption Breakdown</h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                  <div className={`grid grid-cols-1 gap-4 flex-1 ${(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
                     {/* Pie Chart Column */}
-                    <div className="flex flex-col h-[250px]">
+                    <div className={`flex flex-col h-[250px] md:col-span-1`}>
                       <div className="flex-1 w-full relative">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
@@ -2567,24 +2567,26 @@ function TemplateContent() {
                     </div>
 
                     {/* Bar Chart Column */}
-                    <div className="flex flex-col h-[250px]">
+                    <div className={`flex flex-col h-[250px] ${(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? "md:col-span-2" : "md:col-span-1"}`}>
                       <ResponsiveContainer width="100%" height="100%">
                         {(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? (
                           <BarChart
                             data={monthlyChartData}
                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                            barGap={8}
                           >
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <XAxis
                               dataKey="name"
                               tick={{ fontSize: 10 }}
-                              axisLine={false}
-                              tickLine={false}
+                              axisLine={true}
+                              tickLine={true}
                             />
                             <YAxis
                               tick={{ fontSize: 10 }}
-                              axisLine={false}
-                              tickLine={false}
+                              axisLine={true}
+                              tickLine={true}
+                              tickFormatter={(value) => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)}
                             />
                             <Tooltip
                               cursor={{ fill: 'transparent' }}
@@ -2592,38 +2594,66 @@ function TemplateContent() {
                             />
                             <Bar
                               dataKey="Grid"
-                              fill="#6366F1"
-                              radius={[4, 4, 0, 0]}
-                              barSize={Math.max(15, 200 / monthlyChartData.length)}
-                            />
+                              stackId="a"
+                              fill="#9ca3af"
+                              radius={[0, 0, 0, 0]}
+                            >
+                              <LabelList
+                                dataKey="Grid"
+                                position="center"
+                                fill="#fff"
+                                fontSize={10}
+                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
+                              />
+                            </Bar>
                             <Bar
                               dataKey="Renewable"
+                              stackId="a"
                               fill="#22c55e"
                               radius={[4, 4, 0, 0]}
-                              barSize={Math.max(15, 200 / monthlyChartData.length)}
-                            />
+                            >
+                              <LabelList
+                                dataKey="Renewable"
+                                position="center"
+                                fill="#fff"
+                                fontSize={10}
+                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
+                              />
+                            </Bar>
                           </BarChart>
                         ) : (
                           <BarChart
                             data={[
-                              { name: "Grid", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
-                              { name: "Renewable", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
+                              { name: "Energy Breakdown", Grid: parseFloat(derivedGridGW.toFixed(2)), Renewable: parseFloat(derivedRenewGW.toFixed(2)) }
                             ]}
                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                           >
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={true} tickLine={true} />
+                            <YAxis
+                              tick={{ fontSize: 10 }}
+                              axisLine={true}
+                              tickLine={true}
+                              tickFormatter={(value) => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)}
+                            />
                             <Tooltip cursor={{ fill: 'transparent' }} />
-                            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                              {
-                                [
-                                  { name: "Grid", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
-                                  { name: "Renewable", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
-                                ].map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))
-                              }
+                            <Bar dataKey="Grid" stackId="a" fill="#9ca3af" radius={[0, 0, 0, 0]}>
+                              <LabelList
+                                dataKey="Grid"
+                                position="center"
+                                fill="#fff"
+                                fontSize={10}
+                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
+                              />
+                            </Bar>
+                            <Bar dataKey="Renewable" stackId="a" fill="#22c55e" radius={[4, 4, 0, 0]}>
+                              <LabelList
+                                dataKey="Renewable"
+                                position="center"
+                                fill="#fff"
+                                fontSize={10}
+                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
+                              />
                             </Bar>
                           </BarChart>
                         )}

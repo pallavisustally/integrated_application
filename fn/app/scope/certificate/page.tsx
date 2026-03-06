@@ -317,7 +317,7 @@ function CertificateContent() {
             <div className="flex items-center gap-3 mt-1 text-gray-500 text-sm">
               <span className="font-medium text-gray-700">{data.facilityName}</span>
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-              <span>{data.reportingYear}. <span className="italic text-xs text-gray-400 ml-1">{disclaimerText}</span></span>
+              <span>{data.reportingYear}</span>
             </div>
           </div>
           {/* ... Verified Badge ... */}
@@ -590,6 +590,8 @@ function CertificateContent() {
             </div>
             <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
               The suggested sector recommendations are indicative in nature and are derived from sustainability initiatives disclosed by comparable companies in their BRSR reports. These suggestions are intended for general guidance and should be evaluated based on the organization&apos;s specific operational context, resources, and strategic priorities.
+              <br /><br />
+              <span className="font-semibold">Disclaimer: </span><span className="italic">{disclaimerText}</span>
             </p>
           </div>
 
@@ -793,7 +795,26 @@ function CertificateContent() {
               </tr>
               <tr>
                 <td className="border border-black p-2 font-bold">Energy intensity per rupee of turnover adjusted for Purchasing Power Parity (PPP)<br /><span className="font-normal">(Total energy consumed / Revenue from operations adjusted for PPP)</span></td>
-                <td className="border border-black p-2">NA</td>
+                <td className="border border-black p-2">
+                  {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
+                    ? (() => {
+                      const turnover = parseFloat(data.energyIntensityPerRupee);
+                      const pppRates: Record<string, number> = {
+                        "2019-20": 20.24,
+                        "2020-21": 20.319,
+                        "2021-22": 20.728,
+                        "2022-23": 20.493,
+                        "2023-24": 20.274,
+                        "2024-25": 20.392,
+                      };
+                      const yearMatch = fyYear.match(/20\d{2}-\d{2}/);
+                      const extractedYear = yearMatch ? yearMatch[0] : null;
+                      const pppRate = extractedYear && pppRates[extractedYear] ? pppRates[extractedYear] : 20.392;
+                      const pppAdjustedTurnover = turnover / pppRate;
+                      return (totalGjValue / pppAdjustedTurnover).toLocaleString("en-IN", { maximumFractionDigits: 4 });
+                    })()
+                    : "NA"}
+                </td>
               </tr>
               <tr>
                 <td className="border border-black p-2 font-bold">Energy intensity in terms of physical output</td>
