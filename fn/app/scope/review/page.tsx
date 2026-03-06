@@ -348,9 +348,7 @@ function ScopeReviewContent() {
                 </div>
               )}
               <DetailRow label="Evidence File" value={formData.energySupportingEvidenceFile || "No file uploaded"} fullWidth />
-              {formData.energySourceDescription && (
-                <DetailRow label="Source Description" value={formData.energySourceDescription} fullWidth />
-              )}
+              <DetailRow label="Energy Source Description" value={formData.energySourceDescription || "-"} fullWidth />
 
             </DetailGrid>
           </ReviewCard>
@@ -385,9 +383,7 @@ function ScopeReviewContent() {
                     </>
                   )}
                   <DetailRow label="Evidence File" value={formData.renewableSupportingEvidenceFile || "No file uploaded"} fullWidth />
-                  {formData.renewableEnergySourceDescription && (
-                    <DetailRow label="Source Description" value={formData.renewableEnergySourceDescription} fullWidth />
-                  )}
+                  <DetailRow label="Energy Source Description" value={formData.renewableEnergySourceDescription || "-"} fullWidth />
                 </>
               )}
             </DetailGrid>
