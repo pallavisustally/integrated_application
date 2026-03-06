@@ -72,6 +72,7 @@ function CertificateContent() {
         rawReportingYear: "2024",
         reportingPeriod: "Annually",
         scopeBoundaryNotes: "Operational Control",
+        hasRenewableElectricity: "Yes",
         renewableElectricity: "Yes",
         renewableEnergyConsumption: "1000",
         onsiteExportedKwh: "0",
@@ -132,6 +133,7 @@ function CertificateContent() {
         spendAmount: parsedData.spendAmount,
         trackingType: parsedData.trackingType,
         sector: parsedData.sector || "-",
+        hasRenewableElectricity: parsedData.hasRenewableElectricity || "No",
         monthlyData: parsedData.monthlyData || [],
       });
     } catch (e) {
@@ -544,16 +546,26 @@ function CertificateContent() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1">
               {(() => {
                 let displayInitiatives: string[] = [];
-                if (data?.sector && SECTOR_INITIATIVES[data.sector]) {
-                  const sectorData = SECTOR_INITIATIVES[data.sector];
-                  const allInit = [
-                    sectorData["2 Initiative"],
-                    sectorData["3 Initiative"],
-                    sectorData["4 Initiative"],
-                    sectorData["5 Initiative"],
-                    sectorData["6 Initiative"]
-                  ];
-                  displayInitiatives = allInit.filter(i => i && i !== "-").slice(0, 3);
+                if (data?.sector) {
+                  const matchedSector = Object.keys(SECTOR_INITIATIVES).find(
+                    (k) => k.toLowerCase().trim() === data.sector.toLowerCase().trim()
+                  );
+                  if (matchedSector && SECTOR_INITIATIVES[matchedSector]) {
+                    const sectorData = SECTOR_INITIATIVES[matchedSector];
+                    let allInit = [
+                      sectorData["2 Initiative"],
+                      sectorData["3 Initiative"],
+                      sectorData["4 Initiative"],
+                      sectorData["5 Initiative"],
+                      sectorData["6 Initiative"]
+                    ];
+
+                    if (data.hasRenewableElectricity === "Yes") {
+                      allInit = allInit.filter(i => !i?.trim().toLowerCase().startsWith("renewable"));
+                    }
+
+                    displayInitiatives = allInit.filter(i => i && i !== "-").slice(0, 3);
+                  }
                 }
                 while (displayInitiatives.length < 3) {
                   displayInitiatives.push("General Best Practice - Optimize operations for better energy efficiency.");
