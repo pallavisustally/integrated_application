@@ -1342,7 +1342,7 @@ function TemplateContent() {
                     </svg>
                   </div>
                   <h2 className="text-sm font-bold text-gray-900">
-                    Operational Details <span className="text-red-500">*</span>
+                    Operational Details
                   </h2>
                 </div>
 
@@ -1636,6 +1636,163 @@ function TemplateContent() {
           {page === 2 && (
             <div className="flex-1 overflow-y-auto p-1 pb-4">
               <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 content-start">
+                {/* Calculated Results Display - Output Only - Chart */}
+                <section className="col-span-2 bg-white rounded-xl p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col">
+                  <h3 className="text-gray-500 text-xs font-medium mb-2">Total Energy Consumption Breakdown</h3>
+
+                  <div className={`grid grid-cols-1 gap-4 flex-1 ${(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+                    {/* Pie Chart Column */}
+                    <div className={`flex flex-col h-[250px] md:col-span-1`}>
+                      <div className="flex-1 w-full relative">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={(derivedTotalGW === 0)
+                                ? [{ name: "No Data", value: 1, color: "#e5e7eb" }]
+                                : [
+                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
+                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
+                                ]
+                              }
+                              cx="50%"
+                              cy="50%"
+                              innerRadius="55%"
+                              outerRadius="75%"
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {(derivedTotalGW === 0) ? (
+                                <Cell key="placeholder" fill="#e5e7eb" />
+                              ) : (
+                                [
+                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
+                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
+                                ].map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))
+                              )}
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="text-center">
+                            <span className="text-lg font-bold text-gray-900 block">{derivedTotalGW.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="text-[10px] text-gray-500">kWh TOTAL</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs space-y-1">
+                        {[
+                          { name: "Grid Electricity", value: derivedGridGW.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " kWh", color: "#9ca3af" },
+                          { name: "Renewable / Contracted", value: derivedRenewGW.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " kWh", color: "#22c55e" },
+                        ].map((item, i) => (
+                          <div key={i} className="flex justify-between items-center">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
+                              <span className="text-gray-600">{item.name}</span>
+                            </div>
+                            <span className="font-semibold text-gray-900">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Bar Chart Column */}
+                    <div className={`flex flex-col h-[250px] ${(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? "md:col-span-2" : "md:col-span-1"}`}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        {(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? (
+                          <BarChart
+                            data={monthlyChartData}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                            barGap={8}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis
+                              dataKey="name"
+                              tick={{ fontSize: 10 }}
+                              axisLine={true}
+                              tickLine={true}
+                            />
+                            <YAxis
+                              tick={{ fontSize: 10 }}
+                              axisLine={true}
+                              tickLine={true}
+                              tickFormatter={(value) => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)}
+                            />
+                            <Tooltip
+                              cursor={{ fill: 'transparent' }}
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                            />
+                            <Bar
+                              dataKey="Grid"
+                              stackId="a"
+                              fill="#9ca3af"
+                              radius={[0, 0, 0, 0]}
+                            >
+                              <LabelList
+                                dataKey="Grid"
+                                position="center"
+                                fill="#fff"
+                                fontSize={10}
+                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
+                              />
+                            </Bar>
+                            <Bar
+                              dataKey="Renewable"
+                              stackId="a"
+                              fill="#22c55e"
+                              radius={[4, 4, 0, 0]}
+                            >
+                              <LabelList
+                                dataKey="Renewable"
+                                position="center"
+                                fill="#fff"
+                                fontSize={10}
+                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
+                              />
+                            </Bar>
+                          </BarChart>
+                        ) : (
+                          <BarChart
+                            data={[
+                              { name: "Energy Breakdown", Grid: parseFloat(derivedGridGW.toFixed(2)), Renewable: parseFloat(derivedRenewGW.toFixed(2)) }
+                            ]}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={true} tickLine={true} />
+                            <YAxis
+                              tick={{ fontSize: 10 }}
+                              axisLine={true}
+                              tickLine={true}
+                              tickFormatter={(value) => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)}
+                            />
+                            <Tooltip cursor={{ fill: 'transparent' }} />
+                            <Bar dataKey="Grid" stackId="a" fill="#9ca3af" radius={[0, 0, 0, 0]}>
+                              <LabelList
+                                dataKey="Grid"
+                                position="center"
+                                fill="#fff"
+                                fontSize={10}
+                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
+                              />
+                            </Bar>
+                            <Bar dataKey="Renewable" stackId="a" fill="#22c55e" radius={[4, 4, 0, 0]}>
+                              <LabelList
+                                dataKey="Renewable"
+                                position="center"
+                                fill="#fff"
+                                fontSize={10}
+                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
+                              />
+                            </Bar>
+                          </BarChart>
+                        )}
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </section>
                 {/* Box 1: Energy Activity */}
                 <section className={`bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col ${formData.renewableProcurement === 'Yes' ? '' : 'lg:col-span-2'}`}>
                   <div className="flex items-center gap-2 mb-2">
@@ -2534,163 +2691,6 @@ function TemplateContent() {
                     </div>
                   </section>
                 )}
-                {/* Calculated Results Display - Output Only - Chart */}
-                <section className="col-span-2 bg-white rounded-xl p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col">
-                  <h3 className="text-gray-500 text-xs font-medium mb-2">Total Energy Consumption Breakdown</h3>
-
-                  <div className={`grid grid-cols-1 gap-4 flex-1 ${(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
-                    {/* Pie Chart Column */}
-                    <div className={`flex flex-col h-[250px] md:col-span-1`}>
-                      <div className="flex-1 w-full relative">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={(derivedTotalGW === 0)
-                                ? [{ name: "No Data", value: 1, color: "#e5e7eb" }]
-                                : [
-                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
-                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
-                                ]
-                              }
-                              cx="50%"
-                              cy="50%"
-                              innerRadius="55%"
-                              outerRadius="75%"
-                              paddingAngle={5}
-                              dataKey="value"
-                            >
-                              {(derivedTotalGW === 0) ? (
-                                <Cell key="placeholder" fill="#e5e7eb" />
-                              ) : (
-                                [
-                                  { name: "Grid Electricity", value: parseFloat(derivedGridGW.toFixed(2)), color: "#9ca3af" },
-                                  { name: "Renewable / Contracted", value: parseFloat(derivedRenewGW.toFixed(2)), color: "#22c55e" },
-                                ].map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))
-                              )}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className="text-center">
-                            <span className="text-lg font-bold text-gray-900 block">{derivedTotalGW.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            <span className="text-[10px] text-gray-500">kWh TOTAL</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-2 text-xs space-y-1">
-                        {[
-                          { name: "Grid Electricity", value: derivedGridGW.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " kWh", color: "#9ca3af" },
-                          { name: "Renewable / Contracted", value: derivedRenewGW.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " kWh", color: "#22c55e" },
-                        ].map((item, i) => (
-                          <div key={i} className="flex justify-between items-center">
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
-                              <span className="text-gray-600">{item.name}</span>
-                            </div>
-                            <span className="font-semibold text-gray-900">{item.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Bar Chart Column */}
-                    <div className={`flex flex-col h-[250px] ${(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? "md:col-span-2" : "md:col-span-1"}`}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        {(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && monthlyChartData.length > 0 ? (
-                          <BarChart
-                            data={monthlyChartData}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                            barGap={8}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis
-                              dataKey="name"
-                              tick={{ fontSize: 10 }}
-                              axisLine={true}
-                              tickLine={true}
-                            />
-                            <YAxis
-                              tick={{ fontSize: 10 }}
-                              axisLine={true}
-                              tickLine={true}
-                              tickFormatter={(value) => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)}
-                            />
-                            <Tooltip
-                              cursor={{ fill: 'transparent' }}
-                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                            />
-                            <Bar
-                              dataKey="Grid"
-                              stackId="a"
-                              fill="#9ca3af"
-                              radius={[0, 0, 0, 0]}
-                            >
-                              <LabelList
-                                dataKey="Grid"
-                                position="center"
-                                fill="#fff"
-                                fontSize={10}
-                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
-                              />
-                            </Bar>
-                            <Bar
-                              dataKey="Renewable"
-                              stackId="a"
-                              fill="#22c55e"
-                              radius={[4, 4, 0, 0]}
-                            >
-                              <LabelList
-                                dataKey="Renewable"
-                                position="center"
-                                fill="#fff"
-                                fontSize={10}
-                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
-                              />
-                            </Bar>
-                          </BarChart>
-                        ) : (
-                          <BarChart
-                            data={[
-                              { name: "Energy Breakdown", Grid: parseFloat(derivedGridGW.toFixed(2)), Renewable: parseFloat(derivedRenewGW.toFixed(2)) }
-                            ]}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={true} tickLine={true} />
-                            <YAxis
-                              tick={{ fontSize: 10 }}
-                              axisLine={true}
-                              tickLine={true}
-                              tickFormatter={(value) => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)}
-                            />
-                            <Tooltip cursor={{ fill: 'transparent' }} />
-                            <Bar dataKey="Grid" stackId="a" fill="#9ca3af" radius={[0, 0, 0, 0]}>
-                              <LabelList
-                                dataKey="Grid"
-                                position="center"
-                                fill="#fff"
-                                fontSize={10}
-                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
-                              />
-                            </Bar>
-                            <Bar dataKey="Renewable" stackId="a" fill="#22c55e" radius={[4, 4, 0, 0]}>
-                              <LabelList
-                                dataKey="Renewable"
-                                position="center"
-                                fill="#fff"
-                                fontSize={10}
-                                formatter={(value: number) => value > 0 ? Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value) : ""}
-                              />
-                            </Bar>
-                          </BarChart>
-                        )}
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </section>
 
               </div>
 
