@@ -767,15 +767,15 @@ function CertificateContent() {
                 </tr>
                 <tr>
                   <td className="border border-black p-2 pl-4">Total electricity consumption (A) (GJ)</td>
-                  <td className="border border-black p-2 text-right">{energyRenewGj}</td>
+                  <td className="border border-black p-2 text-right font-bold">{energyRenewGj}</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-2 pl-4">Total fuel consumption (B) (GJ)</td>
-                  <td className="border border-black p-2 text-right">NA</td>
+                  <td className="border border-black p-2 text-right font-bold">NA</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-2 pl-4">Energy consumption through other sources (C) (GJ)</td>
-                  <td className="border border-black p-2 text-right">NA</td>
+                  <td className="border border-black p-2 text-right font-bold">NA</td>
                 </tr>
                 <tr className="bg-white font-bold">
                   <td className="border border-black p-2">Total energy consumed from renewable sources (A+B+C) (GJ)</td>
@@ -787,15 +787,15 @@ function CertificateContent() {
                 </tr>
                 <tr>
                   <td className="border border-black p-2 pl-4">Total electricity consumption (D) (GJ)</td>
-                  <td className="border border-black p-2 text-right">{energyGridGj}</td>
+                  <td className="border border-black p-2 text-right font-bold">{energyGridGj}</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-2 pl-4">Total fuel consumption (E) (GJ)</td>
-                  <td className="border border-black p-2 text-right">NA</td>
+                  <td className="border border-black p-2 text-right font-bold">NA</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-2 pl-4">Energy consumption through other sources (F) (GJ)</td>
-                  <td className="border border-black p-2 text-right">NA</td>
+                  <td className="border border-black p-2 text-right font-bold">NA</td>
                 </tr>
                 <tr className="bg-white font-bold">
                   <td className="border border-black p-2">Total energy consumed from non-renewable sources (D+E+F) (GJ)</td>
@@ -812,7 +812,7 @@ function CertificateContent() {
                     Energy intensity per rupee of turnover<br />
                     <span className="font-normal">(Total energy consumed / Revenue from operations)</span>
                   </td>
-                  <td className="border border-black p-2 text-right italic text-gray-400">
+                  <td className="border border-black p-2 text-right font-bold text-black">
                     {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
                       ? (totalGjValue / parseFloat(data.energyIntensityPerRupee)).toLocaleString("en-IN", { maximumFractionDigits: 6 })
                       : "NA"}
@@ -823,7 +823,7 @@ function CertificateContent() {
                     Energy intensity per rupee of turnover adjusted for Purchasing Power Parity (PPP)<br />
                     <span className="font-normal">(Total energy consumed / Revenue from operations adjusted for PPP)</span>
                   </td>
-                  <td className="border border-black p-2 text-right italic text-gray-400">
+                  <td className="border border-black p-2 text-right font-bold text-black">
                     {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
                       ? (() => {
                         const turnover = parseFloat(data.energyIntensityPerRupee);
@@ -841,11 +841,11 @@ function CertificateContent() {
                 </tr>
                 <tr>
                   <td className="border border-black p-2 font-bold">Energy intensity in terms of physical output</td>
-                  <td className="border border-black p-2 text-right italic text-gray-400">NA</td>
+                  <td className="border border-black p-2 text-right font-bold text-black">NA</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-2 font-bold">Energy intensity (optional) – the relevant metric may be selected by the entity</td>
-                  <td className="border border-black p-2 text-right italic text-gray-400">NA</td>
+                  <td className="border border-black p-2 text-right font-bold text-black">NA</td>
                 </tr>
               </tbody>
             </table>
@@ -890,7 +890,7 @@ function CertificateContent() {
                     <span className="font-normal text-[10px] text-gray-600">(Break-up of the GHG into CO2, CH4, N2O, HFCs, PFCs, SF6, NF3, if available)</span>
                   </td>
                   <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 equivalent</td>
-                  <td className="border border-black p-3 text-right font-medium">NA</td>
+                  <td className="border border-black p-3 text-right font-bold">NA</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-3 font-bold">
@@ -898,7 +898,7 @@ function CertificateContent() {
                     <span className="font-normal text-[10px] text-gray-600">(Break-up of the GHG into CO2, CH4, N2O, HFCs, PFCs, SF6, NF3, if available)</span>
                   </td>
                   <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 equivalent</td>
-                  <td className="border border-black p-3 text-right font-medium">{scope2Emissions}</td>
+                  <td className="border border-black p-3 text-right font-bold">{scope2Emissions}</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-3 font-bold">
@@ -906,7 +906,7 @@ function CertificateContent() {
                     <span className="font-normal text-[10px] text-gray-600">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations)</span>
                   </td>
                   <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 Equivalent/(Crore INR)</td>
-                  <td className="border border-black p-3 text-right font-medium italic text-gray-400">NA</td>
+                  <td className="border border-black p-3 text-right font-bold text-black">NA</td>
                 </tr>
 
                 {/* PPP Intensity Row */}
@@ -917,20 +917,15 @@ function CertificateContent() {
                     <span className="font-normal text-[10px] text-gray-600">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations adjusted for PPP)</span>
                   </td>
                   <td className="border border-black p-3 border-b-0"></td>
-                  <td className="border border-black p-3 text-right font-medium italic text-gray-400">NA</td>
+                  <td className="border border-black p-3 text-right font-bold text-black">NA</td>
                 </tr>
 
-                {/* Additional Header if needed to match image, but image implies continuation */}
-                <tr className="bg-white">
-                  <th className="border border-black p-2 text-center italic font-bold">Parameter</th>
-                  <th className="border border-black p-2 text-center italic font-bold">Unit</th>
-                  <th className="border border-black p-2 text-center font-bold">{fyYear}</th>
-                </tr>
+
 
                 <tr>
                   <td className="border border-black p-3 font-bold">Total Scope 1 and Scope 2 emission intensity in terms of physical output</td>
                   <td className="border border-black p-3"></td>
-                  <td className="border border-black p-3 text-right font-medium italic text-gray-400">NA</td>
+                  <td className="border border-black p-3 text-right font-bold text-black">NA</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-3 font-bold">
@@ -938,7 +933,7 @@ function CertificateContent() {
                     <span className="font-normal text-[10px] text-gray-600">– the relevant metric may be selected by the entity</span>
                   </td>
                   <td className="border border-black p-3"></td>
-                  <td className="border border-black p-3 text-right font-medium italic text-gray-400">NA</td>
+                  <td className="border border-black p-3 text-right font-bold text-black">NA</td>
                 </tr>
               </tbody>
             </table>
