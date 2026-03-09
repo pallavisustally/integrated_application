@@ -148,7 +148,13 @@ function ScopeReviewContent() {
   useEffect(() => {
     // Check if user has already submitted based on email in URL params
     const emailFromUrl = searchParams.get("email");
-    if (emailFromUrl && localStorage.getItem(`scope2_completed_${emailFromUrl}`)) {
+    const isRetry = searchParams.get("retry") === "true";
+
+    if (emailFromUrl && isRetry) {
+      localStorage.removeItem(`scope2_completed_${emailFromUrl}`);
+    }
+
+    if (emailFromUrl && localStorage.getItem(`scope2_completed_${emailFromUrl}`) && !isRetry) {
       setIsSubmitted(true);
       return;
     }

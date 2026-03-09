@@ -208,7 +208,13 @@ function TemplateContent() {
   useEffect(() => {
     // Check if assessment already completed for this user
     const email = searchParams.get("email");
-    if (email && localStorage.getItem(`scope2_completed_${email}`)) {
+    const isRetry = searchParams.get("retry") === "true";
+
+    if (email && isRetry) {
+      localStorage.removeItem(`scope2_completed_${email}`);
+    }
+
+    if (email && localStorage.getItem(`scope2_completed_${email}`) && !isRetry) {
       router.replace(`/scope/review?email=${encodeURIComponent(email)}`);
       return;
     }

@@ -44,7 +44,7 @@ const Scope2Applications: CollectionConfig = {
     ],
     afterChange: [
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ doc, previousDoc, operation }: any) => {
+      async ({ doc, previousDoc, operation, req }: any) => {
         // Only load and run the hook on the server
         if (typeof window === 'undefined' && operation === 'update') {
           try {
@@ -71,8 +71,68 @@ const Scope2Applications: CollectionConfig = {
             if (doc.status === "REJECTED" && previousDoc.status !== "REJECTED") {
               const reason = doc.rejectionReason;
               console.log(`[Scope2] Rejecting submission ${doc.id}. Email: ${userEmail}, Reason: ${reason}`);
+
+              let newAssessmentLink = undefined;
+
               if (userEmail) {
-                await sendRejectionEmail(userEmail, submission, reason);
+                try {
+                  // Find the latest slot booking for this user to get their details
+                  const slotBookingResult = await req.payload.find({
+                    collection: 'slot-bookings',
+                    where: {
+                      email: { equals: userEmail }
+                    },
+                    sort: '-createdAt',
+                    limit: 1,
+                  });
+
+                  if (slotBookingResult.totalDocs > 0) {
+                    const oldBooking = slotBookingResult.docs[0];
+                    const newAssessmentId = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+                    // Construct new assessment link with same details
+                    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sustally.vercel.app';
+                    const params = new URLSearchParams();
+                    params.append('name', oldBooking.name || '');
+                    params.append('email', oldBooking.email || '');
+                    params.append('mobile', oldBooking.mobile || '');
+                    params.append('company', oldBooking.company || '');
+                    params.append('sector', oldBooking.sector || '');
+                    params.append('natureOfBusiness', oldBooking.natureOfBusiness || '');
+                    params.append('country', oldBooking.country || '');
+                    params.append('assignmentDate', oldBooking.assignmentDate || '');
+                    params.append('assignmentTime', oldBooking.assignmentTime || '');
+                    params.append('assessmentId', newAssessmentId);
+                    params.append('retry', 'true');
+
+                    newAssessmentLink = `${baseUrl}/scope?${params.toString()}`;
+
+                    // Create a NEW slot booking record for tracking the retry
+                    await req.payload.create({
+                      collection: 'slot-bookings',
+                      data: {
+                        name: oldBooking.name || '',
+                        email: oldBooking.email || '',
+                        mobile: oldBooking.mobile || '',
+                        company: oldBooking.company || '',
+                        sector: oldBooking.sector || '',
+                        natureOfBusiness: oldBooking.natureOfBusiness || '',
+                        country: oldBooking.country || '',
+                        assignmentDate: oldBooking.assignmentDate || '',
+                        assignmentSlot: oldBooking.assignmentSlot || '',
+                        assignmentTime: oldBooking.assignmentTime || '',
+                        assessmentId: newAssessmentId,
+                        assessmentLink: newAssessmentLink,
+                      }
+                    });
+
+                    console.log(`[Scope2] Generated new retry link for ${userEmail}: ${newAssessmentLink}`);
+                  }
+                } catch (err) {
+                  console.error(`[Scope2] Failed to generate retry link:`, err);
+                }
+
+                await sendRejectionEmail(userEmail, submission, reason, newAssessmentLink);
               } else {
                 console.error(`[Scope2] Cannot send rejection email. No email found for submission ${doc.id}`);
               }

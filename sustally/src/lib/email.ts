@@ -118,7 +118,7 @@ export async function sendApprovalEmail(userEmail: string, submission: Scope2Sub
     }
 }
 
-export async function sendRejectionEmail(userEmail: string, submission: Scope2Submission, reason?: string) {
+export async function sendRejectionEmail(userEmail: string, submission: Scope2Submission, reason?: string, assessmentLink?: string) {
     console.log(`[Email] Preparing rejection email for ${userEmail}`);
     const transporter = await getTransporter();
     const facilityName = (submission.data.facilityName as string) || 'Unknown Facility';
@@ -131,7 +131,11 @@ export async function sendRejectionEmail(userEmail: string, submission: Scope2Su
       <p>Thank you for submitting your Scope 2 assessment for <strong>${facilityName}</strong>.</p>
       <p>After review, we have identified areas that need further clarification or correction.</p>
       ${reason ? `<p><strong>Reason (also attached):</strong> ${reason}</p>` : ''}
-      <p>Please log in to your dashboard to retry your assessment.</p>
+      ${assessmentLink ? `
+        <p>Please use the link below to retry your assessment with your previous slot details:</p>
+        <p><a href="${assessmentLink}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; margin-top: 10px;">Retry Assessment</a></p>
+        <p>Or copy this link: ${assessmentLink}</p>
+      ` : '<p>Please log in to your dashboard to retry your assessment.</p>'}
       <br />
       <p>Best regards,<br/>Sustally Team</p>
     `,
