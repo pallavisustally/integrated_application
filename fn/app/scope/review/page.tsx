@@ -146,15 +146,26 @@ function ScopeReviewContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Check if user has already submitted based on email in URL params
+    // Check if user has already submitted based on email or assessmentId
     const emailFromUrl = searchParams.get("email");
+    const assessmentId = searchParams.get("assessmentId");
     const isRetry = searchParams.get("retry") === "true";
 
+    // Clear flags if retry
     if (emailFromUrl && isRetry) {
       localStorage.removeItem(`scope2_completed_${emailFromUrl}`);
+      if (assessmentId) localStorage.removeItem(`scope2_completed_${assessmentId}`);
     }
 
-    if (emailFromUrl && localStorage.getItem(`scope2_completed_${emailFromUrl}`) && !isRetry) {
+    // Check completion specifically for this assessment ID if available
+    let isAlreadyDone = false;
+    if (assessmentId) {
+      isAlreadyDone = localStorage.getItem(`scope2_completed_${assessmentId}`) === "true";
+    } else if (emailFromUrl) {
+      isAlreadyDone = localStorage.getItem(`scope2_completed_${emailFromUrl}`) === "true";
+    }
+
+    if (isAlreadyDone && !isRetry) {
       setIsSubmitted(true);
       return;
     }
@@ -165,8 +176,11 @@ function ScopeReviewContent() {
       try {
         const parsed = JSON.parse(stored);
 
-        // Also check if this stored email was already completed
-        if (parsed.userEmail && localStorage.getItem(`scope2_completed_${parsed.userEmail}`)) {
+        // Also check if this stored data was already completed
+        const storedIsDone = (parsed.assessmentId && localStorage.getItem(`scope2_completed_${parsed.assessmentId}`)) ||
+          (!assessmentId && parsed.userEmail && localStorage.getItem(`scope2_completed_${parsed.userEmail}`));
+
+        if (storedIsDone && !isRetry) {
           setIsSubmitted(true);
           return;
         }
@@ -221,6 +235,9 @@ function ScopeReviewContent() {
       setIsSubmitted(true);
       if (formData.userEmail) {
         localStorage.setItem(`scope2_completed_${formData.userEmail}`, "true");
+        if (formData.assessmentId) {
+          localStorage.setItem(`scope2_completed_${formData.assessmentId}`, "true");
+        }
       }
       localStorage.removeItem("scope2ReviewData"); // Clean up
       sessionStorage.removeItem("scopeFormData");

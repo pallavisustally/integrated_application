@@ -61,6 +61,7 @@ type MonthlyEntry = {
 
 type FormDataType = {
   // User Identity (Passed from previous steps)
+  assessmentId: string;
   userName: string;
   userEmail: string;
   userMobile: string;
@@ -131,12 +132,17 @@ type FormDataType = {
 function TemplateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const email = searchParams.get("email");
+  const assessmentId = searchParams.get("assessmentId");
+  const isRetry = searchParams.get("retry") === "true";
+
   const [page, setPage] = useState<1 | 2>(1);
 
   const [formData, setFormData] = useState<FormDataType>({
     // Identity - Initialize from Search Params
+    assessmentId: assessmentId || "",
     userName: searchParams.get("name") || "",
-    userEmail: searchParams.get("email") || "",
+    userEmail: email || "",
     userMobile: searchParams.get("mobile") || "",
     userCompany: searchParams.get("company") || "",
     sector: searchParams.get("sector") || "",
@@ -206,16 +212,31 @@ function TemplateContent() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Check if assessment already completed for this user
+    // Check if assessment already completed for this user/slot
     const email = searchParams.get("email");
+    const assessmentId = searchParams.get("assessmentId");
     const isRetry = searchParams.get("retry") === "true";
 
+    // 1. If we have a retry flag, we clear existing completion markers for this session
     if (email && isRetry) {
       localStorage.removeItem(`scope2_completed_${email}`);
+      if (assessmentId) localStorage.removeItem(`scope2_completed_${assessmentId}`);
     }
 
-    if (email && localStorage.getItem(`scope2_completed_${email}`) && !isRetry) {
-      router.replace(`/scope/review?email=${encodeURIComponent(email)}`);
+    // 2. Check completion: Prioritize assessmentId check if available.
+    // If we have an assessmentId, we ONLY block if THAT ID is completed.
+    // This allows a new slot booking (which gets a new ID) to bypass the email block.
+    let isAlreadyDone = false;
+    if (assessmentId) {
+      isAlreadyDone = localStorage.getItem(`scope2_completed_${assessmentId}`) === "true";
+    } else if (email) {
+      isAlreadyDone = localStorage.getItem(`scope2_completed_${email}`) === "true";
+    }
+
+    // 3. If everything is done and no retry is specified, redirect to review
+    if (isAlreadyDone && !isRetry) {
+      const redirectUrl = `/scope/review?email=${encodeURIComponent(email || "")}${assessmentId ? `&assessmentId=${assessmentId}` : ""}`;
+      router.replace(redirectUrl);
       return;
     }
 
@@ -224,9 +245,13 @@ function TemplateContent() {
       try {
         const parsed = JSON.parse(savedFormData);
 
-        // Also check email from saved data if not in URL
-        if (parsed.userEmail && localStorage.getItem(`scope2_completed_${parsed.userEmail}`)) {
-          router.replace(`/scope/review?email=${encodeURIComponent(parsed.userEmail)}`);
+        // Only block by email from saved data if we don't have a new assessmentId in the URL 
+        // OR if the saved assessmentId itself is marked as completed.
+        const savedIsCompleted = (parsed.assessmentId && localStorage.getItem(`scope2_completed_${parsed.assessmentId}`)) ||
+          (!assessmentId && parsed.userEmail && localStorage.getItem(`scope2_completed_${parsed.userEmail}`));
+
+        if (savedIsCompleted && !isRetry) {
+          router.replace(`/scope/review?email=${encodeURIComponent(parsed.userEmail || email || "")}${parsed.assessmentId ? `&assessmentId=${parsed.assessmentId}` : ""}`);
           return;
         }
 
@@ -1222,6 +1247,8 @@ function TemplateContent() {
       // Save to LocalStorage for Review Page (to avoid URL limits)
       const reviewData = {
         ...formData,
+        assessmentId: assessmentId,
+        isRetry: isRetry,
         reportingYear: formData.reportingYear ? formData.reportingYear.toISOString() : null,
         energySupportingEvidenceFile: formData.energySupportingEvidenceFile ? formData.energySupportingEvidenceFile.name : null,
         energySupportingEvidenceFileUrl: energyEvidanceUrl || null,
@@ -1230,7 +1257,12 @@ function TemplateContent() {
       };
       localStorage.setItem("scope2ReviewData", JSON.stringify(reviewData));
 
-      router.push(`/scope/review`);
+      const queryParams = new URLSearchParams();
+      if (email) queryParams.append("email", email);
+      if (assessmentId) queryParams.append("assessmentId", assessmentId);
+      if (isRetry) queryParams.append("retry", "true");
+
+      router.push(`/scope/review?${queryParams.toString()}`);
     } catch (error) {
       console.error("Error submitting form:", error);
       alert(error instanceof Error ? error.message : "Failed to submit form. Please try again.");
