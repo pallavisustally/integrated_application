@@ -341,7 +341,7 @@ function CertificateContent() {
           {/* Metric 2: Location Based */}
           <div className="bg-white p-4 rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-xs font-medium text-gray-500">Location-based Emissions</p>
+              <p className="text-xs font-medium text-gray-500">Location Based Emissions</p>
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                 <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -390,7 +390,7 @@ function CertificateContent() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 flex-1 h-auto min-h-[90px]">
           {/* Pie Chart */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2 flex flex-col h-[300px] lg:h-full">
-            <h3 className="text-gray-500 text-xs font-medium mb-2">Electricity Consumption Breakdown</h3>
+            <h3 className="text-gray-800 text-sm font-semibold mb-2">Electricity Consumption Breakdown</h3>
             <div className="flex-1 w-full relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -413,7 +413,7 @@ function CertificateContent() {
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
                   <span className="text-lg font-bold text-gray-900 block">{energyTotalKWh}</span>
-                  <span className="text-[10px] text-gray-500">{energyTotalUnit} <span className="uppercase">Total</span></span>
+                  <span className="text-[10px] text-gray-500">{energyTotalUnit} <span className="">Total</span></span>
                 </div>
               </div>
             </div>
@@ -451,7 +451,7 @@ function CertificateContent() {
           {/* Downloads */}
           {!isDownloadingReport && (
             <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-xl shadow-sm border border-indigo-100 col-span-1 lg:col-span-1 flex flex-col h-[300px] lg:h-full">
-              <h3 className="text-indigo-900 text-xs font-semibold mb-3">Available Reports</h3>
+              <h3 className="text-gray-800 text-sm font-semibold mb-3">Available Reports</h3>
               <div className="flex-1 flex flex-col gap-3">
                 <div
                   className={`flex-1 flex items-center justify-between p-4 bg-white rounded-xl border border-indigo-50 hover:border-indigo-200 transition-colors ${isDownloadingReport ? 'opacity-70 pointer-events-none' : ''}`}
@@ -461,12 +461,12 @@ function CertificateContent() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     </div>
                     <div className="leading-tight">
-                      <p className="text-sm font-semibold text-gray-800">Assessment report</p>
-                      <p className="text-xs text-gray-500">Detailed analysis</p>
+                      <p className="text-sm font-semibold text-gray-800">Assessment Report</p>
+                      <p className="text-xs text-gray-500">Detailed Analysis</p>
                     </div>
                   </div>
                   <button
-                    className="text-xs font-bold text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors uppercase"
+                    className="text-xs font-bold text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors"
                     onClick={handleDownloadReport}
                   >
                     {isDownloadingReport ? (
@@ -485,11 +485,11 @@ function CertificateContent() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <div className="leading-tight">
-                      <p className="text-sm font-semibold text-gray-800">Recognition certificate</p>
+                      <p className="text-sm font-semibold text-gray-800">Recognition Certificate</p>
                     </div>
                   </div>
                   <button
-                    className="text-xs font-bold text-green-600 cursor-pointer hover:text-green-800 transition-colors uppercase"
+                    className="text-xs font-bold text-green-600 cursor-pointer hover:text-green-800 transition-colors"
                     onClick={handleDownloadCertificate}
                   >
                     {isDownloading ? (
@@ -509,11 +509,11 @@ function CertificateContent() {
                     </div>
                     <div className="leading-tight">
                       <p className="text-sm font-semibold text-gray-800">BRSR P6 Report</p>
-                      <p className="text-xs text-gray-500">SEBI compliant</p>
+                      <p className="text-xs text-gray-500">SEBI Compliant</p>
                     </div>
                   </div>
                   <button
-                    className="text-xs font-bold text-blue-600 cursor-pointer hover:text-blue-800 transition-colors uppercase"
+                    className="text-xs font-bold text-blue-600 cursor-pointer hover:text-blue-800 transition-colors"
                     onClick={handleDownloadBrsr}
                   >
                     {isDownloadingBrsr ? (
@@ -581,13 +581,14 @@ function CertificateContent() {
 
                 return displayInitiatives.map((init, index) => {
                   const parts = init.split(" - ");
-                  const title = parts[0] || "Initiative";
+                  const titleRaw = parts[0] || "Initiative";
+                  const title = titleRaw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
                   const desc = parts[1] || init;
                   const c = cardStyles[index];
                   return (
                     <div key={index} className={`${c.bg} rounded-xl p-4 border ${c.border} flex flex-col justify-start gap-1.5`}>
                       <div className="flex justify-between items-start gap-2">
-                        <h4 className="font-bold text-gray-900 text-sm leading-tight mt-1">{title}</h4>
+                        <h4 className="font-semibold text-gray-800 text-sm leading-tight mt-1">{title}</h4>
                         <div className={`w-8 h-8 rounded-full ${c.iconBg} flex items-center justify-center shrink-0`}>
                           {c.icon}
                         </div>
@@ -612,8 +613,8 @@ function CertificateContent() {
           {!isDownloadingReport && (
             <div id="next-steps-section" className="w-full lg:w-[30%] bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-center gap-3 next-steps-target">
               <div className="text-center mb-1">
-                <h4 className="font-semibold text-gray-900 text-sm">Assessment Complete</h4>
-                <p className="text-[10px] text-gray-500">Thank you for your submission</p>
+                <h4 className="font-semibold text-gray-800 text-sm">Assessment Complete</h4>
+                <p className="text-[10px] text-gray-500">Thank You For Your Submission</p>
               </div>
               <button onClick={() => {
                 router.push("/scope/feedback");
@@ -655,11 +656,11 @@ function CertificateContent() {
             {/* Title Section */}
             <div className="text-center mb-14">
               <h1 className="text-3xl font-cinzel weight-500 line-height-1.6 letter-spacing-large text-[#1e3a3a] tracking-widest font-medium">
-                PLANET POSITIVE
+                Planet Positive
               </h1>
 
               <h2 className="text-3xl  font-cinzel weight-500 line-height-1.6 letter-spacing-large text-[#1e3a3a] tracking-widest font-medium mt-2">
-                STEWARDSHIP RECOGNITION
+                Stewardship Recognition
               </h2>
 
               {/* Decoration */}
@@ -746,7 +747,7 @@ function CertificateContent() {
         >
           {/* Outer Border */}
           <div className="w-full h-full border border-gray-400 p-10 flex flex-col">
-            <h2 className="text-lg font-bold mb-1 uppercase text-[#1e1e1e]">PRINCIPLE 6: Businesses should respect and make efforts to protect and restore the environment</h2>
+            <h2 className="text-lg font-bold mb-1 text-[#1e1e1e]">Principle 6: Businesses Should Respect And Make Efforts To Protect And Restore The Environment</h2>
 
             <h3 className="text-lg font-bold text-center mb-8 text-[#1e1e1e]">Essential Indicators</h3>
 
@@ -803,7 +804,7 @@ function CertificateContent() {
                 </tr>
 
                 <tr className="bg-white font-bold">
-                  <td className="border border-black p-2 uppercase">Total energy consumed (A+B+C+D+E+F) (GJ)</td>
+                  <td className="border border-black p-2">Total Energy Consumed (A+B+C+D+E+F) (GJ)</td>
                   <td className="border border-black p-2 text-right">{energyTotalGj}</td>
                 </tr>
 
@@ -889,7 +890,7 @@ function CertificateContent() {
                     Total Scope 1 emissions<br />
                     <span className="font-normal text-[10px] text-gray-600">(Break-up of the GHG into CO2, CH4, N2O, HFCs, PFCs, SF6, NF3, if available)</span>
                   </td>
-                  <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 equivalent</td>
+                  <td className="border border-black p-3 text-center italic">Metric Tonnes Of Co2 Equivalent</td>
                   <td className="border border-black p-3 text-right font-bold">NA</td>
                 </tr>
                 <tr>
@@ -897,7 +898,7 @@ function CertificateContent() {
                     Total Scope 2 emissions<br />
                     <span className="font-normal text-[10px] text-gray-600">(Break-up of the GHG into CO2, CH4, N2O, HFCs, PFCs, SF6, NF3, if available)</span>
                   </td>
-                  <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 equivalent</td>
+                  <td className="border border-black p-3 text-center italic">Metric Tonnes Of Co2 Equivalent</td>
                   <td className="border border-black p-3 text-right font-bold">{scope2Emissions}</td>
                 </tr>
                 <tr>
@@ -905,7 +906,7 @@ function CertificateContent() {
                     Total Scope 1 and Scope 2 emission intensity per rupee of turnover<br />
                     <span className="font-normal text-[10px] text-gray-600">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations)</span>
                   </td>
-                  <td className="border border-black p-3 text-center italic">Metric tonnes of CO2 Equivalent/(Crore INR)</td>
+                  <td className="border border-black p-3 text-center italic">Metric Tonnes Of Co2 Equivalent/(Crore INR)</td>
                   <td className="border border-black p-3 text-right font-bold text-black">NA</td>
                 </tr>
 

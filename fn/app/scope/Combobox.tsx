@@ -104,7 +104,7 @@ export default function Combobox({
                             </button>
                         ))
                     ) : (
-                        <div className="px-3 py-2 text-xs text-gray-500">No results found</div>
+                        <div className="px-3 py-2 text-xs text-gray-500">No Results Found</div>
                     )}
                 </div>
             )}

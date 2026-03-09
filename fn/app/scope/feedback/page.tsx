@@ -111,8 +111,8 @@ export default function FeedbackPage() {
             <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 max-w-3xl w-full mx-auto overflow-hidden">
                 {/* Header content */}
                 <div className="p-8 pb-6 border-b border-gray-100 mt-2">
-                    <h1 className="text-[28px] font-bold text-gray-900 mb-2">Help us improve your experience</h1>
-                    <p className="text-base text-gray-500">Your feedback helps us make Sustally better for you.</p>
+                    <h1 className="text-[28px] font-bold text-gray-900 mb-2">Help Us Improve Your Experience</h1>
+                    <p className="text-base text-gray-500">Your Feedback Helps Us Make Sustally Better For You.</p>
                 </div>
 
                 <div className="p-8">
@@ -120,7 +120,7 @@ export default function FeedbackPage() {
                     <div className="mb-2">
                         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                             <span className="w-1 h-1 bg-indigo-600 rounded-full inline-block"></span>
-                            How was your experience with the Scope-2 assessment?
+                            How Was Your Experience With The Scope 2 Assessment?
                         </h3>
                         <StarRating
                             value={ratings.experience}
@@ -134,7 +134,7 @@ export default function FeedbackPage() {
                     <div className="mb-2">
                         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                             <span className="w-1 h-1 bg-indigo-600 rounded-full inline-block"></span>
-                            How easy was the process to understand and complete?
+                            How Easy Was The Process To Understand And Complete?
                         </h3>
                         <StarRating
                             value={ratings.ease}
@@ -148,7 +148,7 @@ export default function FeedbackPage() {
                     <div className="mb-2">
                         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                             <span className="w-1 h-1 bg-indigo-600 rounded-full inline-block"></span>
-                            How useful were the results and insights for your organization?
+                            How Useful Were The Results And Insights For Your Organization?
                         </h3>
                         <StarRating
                             value={ratings.usefulness}
@@ -162,7 +162,7 @@ export default function FeedbackPage() {
                     <div className="mb-2">
                         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                             <span className="w-1 h-1 bg-indigo-600 rounded-full inline-block"></span>
-                            How likely are you to recommend Sustally to others?
+                            How Likely Are You To Recommend Sustally To Others?
                         </h3>
                         <StarRating
                             value={ratings.recommend}
@@ -175,11 +175,11 @@ export default function FeedbackPage() {
                     {/* Comment */}
                     <div className="mt-8 mb-4">
                         <h3 className="text-sm font-semibold text-gray-800 mb-4">
-                            Kindly share a brief comment about your experience
+                            Kindly Share A Brief Comment About Your Experience
                         </h3>
                         <textarea
                             className="w-full border border-gray-200 rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[140px] resize-y"
-                            placeholder="Your feedback helps us improve..."
+                            placeholder="Your Feedback Helps Us Improve..."
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                         ></textarea>

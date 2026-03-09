@@ -94,7 +94,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
 
     const formatCO2 = (kg: number) => {
         const tonnes = kg / 1000;
-        return `${tonnes.toFixed(2)} tCO2e/year`;
+        return `${tonnes.toFixed(2)} tCO2e/Year`;
     };
 
     return (
@@ -106,7 +106,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
                     </svg>
                 </div>
-                <h2 className="text-base font-bold text-gray-900">Cost Saving through Solar Rooftop</h2>
+                <h2 className="text-sm font-semibold text-gray-800">Cost Saving Through Solar Rooftop</h2>
             </div>
 
             <div className="flex flex-col flex-1 justify-between gap-6 py-2">
@@ -166,7 +166,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                             </svg>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider">Area</span>
+                            <span className="text-[10px] font-semibold tracking-wider">Area</span>
                         </div>
                         <span className="font-bold text-gray-800 text-sm whitespace-nowrap">{results.roofArea.toFixed(1)} m²</span>
                     </div>
@@ -175,7 +175,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 8.25H9m6 3H9m3 6-3-3h1.5a3 3 0 1 0 0-6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider">Capex</span>
+                            <span className="text-[10px] font-semibold tracking-wider">Capex</span>
                         </div>
                         <span className="font-bold text-gray-800 text-sm whitespace-nowrap">{formatCurrency(results.totalCapex)}</span>
                     </div>
@@ -184,7 +184,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider">Payback</span>
+                            <span className="text-[10px] font-semibold tracking-wider">Payback</span>
                         </div>
                         <span className="font-bold text-gray-800 text-sm whitespace-nowrap">{results.paybackPeriod != null ? Number(results.paybackPeriod).toFixed(1) : 'N/A'} Yrs</span>
                     </div>
@@ -193,7 +193,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider">Disc. Payback</span>
+                            <span className="text-[10px] font-semibold tracking-wider">Disc. Payback</span>
                         </div>
                         <span className="font-bold text-gray-800 text-sm whitespace-nowrap">{results.discountedPaybackPeriod != null ? Number(results.discountedPaybackPeriod).toFixed(1) : 'N/A'} Yrs</span>
                     </div>
@@ -209,7 +209,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
                                 </svg>
                             </div>
-                            <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-wide leading-tight">Annual<br />Savings</p>
+                            <p className="text-[11px] font-semibold text-gray-600 tracking-wide leading-tight">Annual<br />Savings</p>
                         </div>
                         <div>
                             <p className="text-xl font-extrabold text-green-700">
@@ -227,7 +227,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                 </svg>
                             </div>
-                            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide leading-tight">Carbon<br />Avoided</p>
+                            <p className="text-[11px] font-semibold text-gray-500 tracking-wide leading-tight">Carbon<br />Avoided</p>
                         </div>
                         <div>
                             <p className="font-bold text-gray-800 text-sm">{formatCO2(results.co2Avoided)}</p>
@@ -242,7 +242,7 @@ const CostSavingCard: React.FC<CostSavingCardProps> = ({ userData }) => {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                                 </svg>
                             </div>
-                            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide leading-tight">Renewable<br />Energy</p>
+                            <p className="text-[11px] font-semibold text-gray-500 tracking-wide leading-tight">Renewable<br />Energy</p>
                         </div>
                         <div>
                             <p className="font-bold text-gray-800 text-sm">{results.solarEnergyTarget.toFixed(2)} kWh</p>

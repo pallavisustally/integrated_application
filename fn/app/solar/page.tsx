@@ -194,15 +194,15 @@ export default function SolarPage() {
                             <h3 className="text-lg font-bold mb-4 opacity-90">Estimated System Size</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs opacity-75 uppercase tracking-wide">PV Capacity</p>
+                                    <p className="text-xs opacity-75 tracking-wide">Pv Capacity</p>
                                     <p className="text-2xl font-bold">{results.pvSize.toFixed(2)} <span className="text-sm font-normal opacity-80">kW</span></p>
                                 </div>
                                 <div>
-                                    <p className="text-xs opacity-75 uppercase tracking-wide">Battery</p>
+                                    <p className="text-xs opacity-75 tracking-wide">Battery</p>
                                     <p className="text-2xl font-bold">{results.batteryCapacity.toFixed(2)} <span className="text-sm font-normal opacity-80">kWh</span></p>
                                 </div>
                                 <div className="col-span-2 pt-4 border-t border-indigo-500/50">
-                                    <p className="text-xs opacity-75 uppercase tracking-wide">Est. Roof Area</p>
+                                    <p className="text-xs opacity-75 tracking-wide">Est. Roof Area</p>
                                     <p className="text-xl font-semibold">{results.roofArea.toFixed(1)} <span className="text-sm font-normal opacity-80">m²</span></p>
                                 </div>
                             </div>
@@ -216,17 +216,17 @@ export default function SolarPage() {
                         {/* Financial Overview Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total CAPEX</p>
+                                <p className="text-xs font-bold text-gray-400 tracking-widest mb-1">Total Capex</p>
                                 <p className="text-2xl font-bold text-gray-900">₹{(results.totalCapex / 100000).toFixed(2)} <span className="text-sm text-gray-500">Lakh</span></p>
                                 <p className="text-xs text-gray-500 mt-2">PV: ₹{(results.pvCapex / 100000).toFixed(2)}L | Batt: ₹{(results.batteryCapex / 100000).toFixed(2)}L</p>
                             </div>
                             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Annual Savings</p>
+                                <p className="text-xs font-bold text-gray-400 tracking-widest mb-1">Annual Savings</p>
                                 <p className="text-2xl font-bold text-green-600">₹{(results.financials[0].savings / 1000).toFixed(1)} <span className="text-sm text-gray-500">k/yr</span></p>
                                 <p className="text-xs text-gray-500 mt-2">First Year Utility Savings</p>
                             </div>
                             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Payback Period</p>
+                                <p className="text-xs font-bold text-gray-400 tracking-widest mb-1">Payback Period</p>
                                 <p className="text-2xl font-bold text-indigo-600">{results.paybackPeriod ?? "> 25"} <span className="text-sm text-gray-500">Years</span></p>
                                 <p className="text-xs text-gray-500 mt-2">Discounted: {results.discountedPaybackPeriod ?? ">25"} Years</p>
                             </div>

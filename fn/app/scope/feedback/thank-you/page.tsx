@@ -27,7 +27,7 @@ export default function ThankYouPage() {
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-4">Feedback Submitted!</h1>
                 <p className="text-gray-600 mb-8">
-                    Thank you for submitting your feedback and taking your valuable time. We appreciate your insights to help us improve Sustally.
+                    Thank You For Submitting Your Feedback And Taking Your Valuable Time. We Appreciate Your Insights To Help Us Improve Sustally.
                 </p>
                 <button
                     onClick={() => router.push("/")}

@@ -18,60 +18,62 @@ export default function AdminDashboard() {
   const [feedbackModal, setFeedbackModal] = useState<{ text: string; facility: string } | null>(null);
   const itemsPerPage = 8;
 
-  React.useEffect(() => {
+  const fetchData = React.useCallback(async () => {
     const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
 
-    const fetchApplications = async () => {
-      try {
-        setApiError(null);
-        const res = await fetch(`${API_URL}/api/scope2-applications?limit=1000`);
-        const data = await res.json();
-        if (data && data.docs) {
-          const mappedUsers = data.docs.map((doc: any) => ({
-            id: doc.id,
-            username: doc.userName || doc.facilityName || 'N/A',
-            company: doc.userCompany || doc.facilityName || 'N/A',
-            contact: doc.userMobile || '-',
-            email: doc.email || '-',
-            regDate: new Date(doc.createdAt).toISOString().split('T')[0],
-            subDate: new Date(doc.createdAt).toISOString().split('T')[0],
-            appDate: new Date(doc.updatedAt).toISOString().split('T')[0],
-            status: doc.status === 'PENDING' ? 'Pending Review' : doc.status === 'IN_PROGRESS' ? 'In Progress' : doc.status === 'APPROVED' ? 'Approved' : doc.status === 'REJECTED' ? 'Rejected' : 'In Progress',
-            statusColor: doc.status === 'PENDING' ? 'bg-orange-50 text-orange-500 border border-orange-200' :
-              doc.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-500 border border-blue-200' :
-                doc.status === 'APPROVED' ? 'bg-green-50 text-emerald-500 border border-emerald-200' :
-                  doc.status === 'REJECTED' ? 'bg-red-50 text-red-500 border border-red-200' :
-                    'bg-blue-50 text-blue-500 border border-blue-200',
-            reviewLink: true,
-            action: doc.status === 'PENDING' || doc.status === 'IN_PROGRESS' || !doc.status,
-            feedback: doc.rejectionReason || '---',
-            originalDoc: doc
-          }));
-          setUsersData(mappedUsers);
-        }
-      } catch (err) {
-        console.error('Failed to fetch applications:', err);
-        if (API_URL.includes('localhost')) {
-          setApiError('Backend unreachable. Ensure Sustally is running locally on port 3001.');
-        } else {
-          setApiError(`Backend unreachable at ${API_URL}. Please verify the backend is deployed and running.`);
-        }
+    // Fetch Applications
+    try {
+      setApiError(null);
+      const res = await fetch(`${API_URL}/api/scope2-applications?limit=1000`);
+      const data = await res.json();
+      if (data && data.docs) {
+        const mappedUsers = data.docs.map((doc: any) => ({
+          id: doc.id,
+          username: doc.userName || doc.facilityName || 'N/A',
+          company: doc.userCompany || doc.facilityName || 'N/A',
+          contact: doc.userMobile || '-',
+          email: doc.email || '-',
+          regDate: new Date(doc.createdAt).toISOString().split('T')[0],
+          subDate: new Date(doc.createdAt).toISOString().split('T')[0],
+          appDate: new Date(doc.updatedAt).toISOString().split('T')[0],
+          status: doc.status === 'PENDING' ? 'Pending Review' : doc.status === 'IN_PROGRESS' ? 'In Progress' : doc.status === 'APPROVED' ? 'Approved' : doc.status === 'REJECTED' ? 'Rejected' : 'In Progress',
+          statusColor: doc.status === 'PENDING' ? 'bg-orange-50 text-orange-500 border border-orange-200' :
+            doc.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-500 border border-blue-200' :
+              doc.status === 'APPROVED' ? 'bg-green-50 text-emerald-500 border border-emerald-200' :
+                doc.status === 'REJECTED' ? 'bg-red-50 text-red-500 border border-red-200' :
+                  'bg-blue-50 text-blue-500 border border-blue-200',
+          reviewLink: true,
+          action: doc.status === 'PENDING' || doc.status === 'IN_PROGRESS' || !doc.status,
+          feedback: doc.rejectionReason || '---',
+          originalDoc: doc
+        }));
+        setUsersData(mappedUsers);
       }
-    };
-
-    const fetchSlotsBooked = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/slot-bookings?limit=0`);
-        const data = await res.json();
-        setSlotsBookedCount(data.totalDocs ?? 0);
-      } catch (err) {
-        console.error('Failed to fetch slot bookings:', err);
+    } catch (err) {
+      console.error('Failed to fetch applications:', err);
+      if (API_URL.includes('localhost')) {
+        setApiError('Backend unreachable. Ensure Sustally is running locally on port 3001.');
+      } else {
+        setApiError(`Backend unreachable at ${API_URL}. Please verify the backend is deployed and running.`);
       }
-    };
+    }
 
-    fetchApplications();
-    fetchSlotsBooked();
+    // Fetch Slots
+    try {
+      const res = await fetch(`${API_URL}/api/slot-bookings?limit=0`);
+      const data = await res.json();
+      setSlotsBookedCount(data.totalDocs ?? 0);
+    } catch (err) {
+      console.error('Failed to fetch slot bookings:', err);
+    }
   }, []);
+
+  React.useEffect(() => {
+    fetchData();
+    // Auto-refresh every 10 seconds to keep data in sync
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   const filteredUsers = usersData.filter((user) => {
     const matchesSearch =
@@ -130,6 +132,8 @@ export default function AdminDashboard() {
       setUsersData(usersData.map(u =>
         u.id === id ? { ...u, status: 'Approved', statusColor: 'bg-green-50 text-emerald-500 border border-emerald-200', action: false } : u
       ));
+      // Re-fetch to ensure sync with server state
+      fetchData();
     } catch (e) {
       console.error(e);
     }
@@ -148,6 +152,8 @@ export default function AdminDashboard() {
       setUsersData(usersData.map(u =>
         u.id === id ? { ...u, status: 'Rejected', statusColor: 'bg-red-50 text-red-500 border border-red-200', action: false, feedback: reason } : u
       ));
+      // Re-fetch to ensure sync with server state
+      fetchData();
     } catch (e) {
       console.error(e);
     }
@@ -165,8 +171,8 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center space-x-2 self-end md:self-auto">
           <Image src="/sustally-logo.png" alt="Sustally Logo" width={120} height={32} className="object-contain" style={{ width: 'auto', height: 'auto' }} />
-          <div className="border-l border-gray-300 pl-2 ml-2 text-[10px] text-gray-500 max-w-[120px] leading-tight font-medium hidden sm:block">
-            Choose Sustally as your<br /> sustainability ally
+          <div className="border-l border-gray-300 pl-2 ml-2 text-[10px] text-gray-500 max-w-[200px] leading-tight font-medium hidden sm:block">
+            choose sustally as your sustainability ally
           </div>
         </div>
       </header>

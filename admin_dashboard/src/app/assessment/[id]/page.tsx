@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -109,6 +109,55 @@ const DetailRow = ({ label, value, subLabel }: { label: string; value: string | 
 const DetailGrid = ({ children }: { children: React.ReactNode }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">{children}</div>
 );
+
+// Helper for Monthly Table
+const MonthlyTable = ({ data, type }: { data: any; type: 'Grid' | 'Renewable' }) => {
+  const parsedData = useMemo(() => {
+    if (typeof data === 'string') {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        return [];
+      }
+    }
+    return Array.isArray(data) ? data : [];
+  }, [data]);
+
+  if (!parsedData || parsedData.length === 0) {
+    return <p className="text-xs text-gray-400 italic">No monthly data entered.</p>;
+  }
+
+  return (
+    <div className="overflow-x-auto mt-2 border rounded-lg">
+      <table className="min-w-full divide-y divide-gray-200 table-auto text-xs">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Month</th>
+            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Electricity (kWh)</th>
+            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Consumption (GJ)</th>
+            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
+              {type === 'Grid' ? 'Spend / Source' : 'Source'}
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {parsedData.map((row: any, idx: number) => (
+            <tr key={idx} className="hover:bg-gray-50">
+              <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">
+                {row.month ? new Date(row.month + '-01').toLocaleDateString('default', { month: 'short', year: '2-digit' }) : '-'}
+              </td>
+              <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || '-'}</td>
+              <td className="px-3 py-2 text-gray-700">{row.energyConsumption || '-'}</td>
+              <td className="px-3 py-2 text-gray-700">
+                {type === 'Grid' ? (row.dataSourceType || row.spend || '-') : (row.dataSourceType || '-')}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 export default function AssessmentViewPage() {
   const router = useRouter();
@@ -289,10 +338,20 @@ export default function AssessmentViewPage() {
               <DetailRow label="Energy Activity Input" value={data.energyActivityInput} />
               <DetailRow label="Energy Category" value={data.energyCategory} />
               <DetailRow label="Tracking Type" value={data.trackingType} />
-              <DetailRow label="Data Source Type" value={data.dataSourceType} />
-              <DetailRow label="Electricity Purchased (kWh)" value={data.electricityPurchased != null ? String(data.electricityPurchased) : '-'} />
-              <DetailRow label="Spend Amount (₹)" value={data.spendAmount != null ? String(data.spendAmount) : '-'} />
-              <DetailRow label="Energy Consumption (GJ)" value={data.energyConsumption} />
+
+              {data.energyActivityInput === 'Yearly' ? (
+                <>
+                  <DetailRow label="Data Source Type" value={data.dataSourceType} />
+                  <DetailRow label="Electricity Purchased (kWh)" value={data.electricityPurchased != null ? String(data.electricityPurchased) : '-'} />
+                  <DetailRow label="Spend Amount (₹)" value={data.spendAmount != null ? String(data.spendAmount) : '-'} />
+                  <DetailRow label="Energy Consumption (GJ)" value={data.energyConsumption} />
+                </>
+              ) : (
+                <div className="col-span-1 md:col-span-2">
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Grid)</p>
+                  <MonthlyTable data={data.monthlyData} type="Grid" />
+                </div>
+              )}
               <DetailRow label="Energy Source Description" value={data.energySourceDescription} />
             </DetailGrid>
           </ReviewCard>
@@ -302,22 +361,25 @@ export default function AssessmentViewPage() {
             <DetailGrid>
               <DetailRow label="Net Metering" value={data.netMeteringApplicable} />
               <DetailRow label="Has Renewable Electricity" value={data.hasRenewableElectricity} />
-              <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity} />
-              <DetailRow label="Renewable Consumption (GJ)" value={data.renewableEnergyConsumption} />
-              <DetailRow label="Renewable Source Description" value={data.renewableEnergySourceDescription} />
-            </DetailGrid>
-          </ReviewCard>
 
-          {/* 5. Calculated / Stored Values (Payload) */}
-          <ReviewCard title="Emissions & Calculations" icon={<CalcIcon />} accentColor="#0ea5e9">
-            <DetailGrid>
-              <DetailRow label="Grid Emission Factor (kgCO2e/kWh)" value={data.gridEmissionFactor != null ? String(data.gridEmissionFactor) : '-'} />
-              <DetailRow label="Location-Based Emissions" value={data.locationBasedEmissions != null ? `${data.locationBasedEmissions} tCO2e` : '-'} />
-              <DetailRow label="Market-Based Emissions" value={data.marketBasedEmissions != null ? `${data.marketBasedEmissions} tCO2e` : '-'} />
-              <DetailRow label="Energy Grid (GJ)" value={data.energyGrid_kJ != null ? (Number(data.energyGrid_kJ) / 1000000).toFixed(2) : '-'} />
-              <DetailRow label="Energy Renewable (GJ)" value={data.energyRenew_kJ != null ? (Number(data.energyRenew_kJ) / 1000000).toFixed(2) : '-'} />
-              <DetailRow label="Energy Total (GJ)" value={data.energyTotal_kJ != null ? (Number(data.energyTotal_kJ) / 1000000).toFixed(2) : '-'} />
-              <DetailRow label="Certificate ID" value={data.certificateId} />
+              {data.hasRenewableElectricity === 'Yes' && (
+                <>
+                  <DetailRow label="Input Type" value={data.renewableEnergyActivityInput || 'Yearly'} />
+
+                  {data.renewableEnergyActivityInput === 'Monthly' || data.renewableEnergyActivityInput === 'Quarterly' ? (
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Renewable)</p>
+                      <MonthlyTable data={data.renewableMonthlyData} type="Renewable" />
+                    </div>
+                  ) : (
+                    <>
+                      <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity} />
+                      <DetailRow label="Renewable Consumption (GJ)" value={data.renewableEnergyConsumption} />
+                    </>
+                  )}
+                  <DetailRow label="Renewable Source Description" value={data.renewableEnergySourceDescription} />
+                </>
+              )}
             </DetailGrid>
           </ReviewCard>
 

@@ -240,22 +240,22 @@ export default function HomePage() {
         <div className="flex flex-col md:flex-row justify-between items-center mb-2 flex-shrink-0 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+              <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full tracking-wide">
                 Scope 2 Assessment
               </span>
             </div>
             <h1 className="text-xl font-bold text-gray-900">
-              Book your Scope 2 self-assessment
+              Book Your Scope 2 Self Assessment
             </h1>
             <p className="text-gray-500 mt-1 text-xs">
-              Share a few basic details. Takes about 2 minutes.
+              Share A Few Basic Details. Takes About 2 Minutes.
             </p>
           </div>
 
           {/* Centered Preliminary Step */}
           <div className="flex flex-col items-center justify-center">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">
-              Preliminary Step of 6 - Context Setup
+            <p className="text-xs font-semibold text-gray-400 tracking-widest mb-1">
+              Preliminary Step Of 6 - Context Setup
             </p>
             <div className="flex items-center gap-3">
               <div className="h-1 w-32 bg-gray-200 rounded-full overflow-hidden">
@@ -278,7 +278,7 @@ export default function HomePage() {
 
               </div>
               <span className="font-medium text-gray-400 text-sm max-w-[200px] leading-tight text-left">
-                choose sustally as your sustainability ally
+                Choose Sustally As Your Sustainability Ally
               </span>
             </div>
           </div>
@@ -294,13 +294,13 @@ export default function HomePage() {
                 <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
                   <div className="w-4 h-4 rounded-full bg-indigo-500"></div>
                 </div>
-                <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pt-1">About you</h2>
+                <h2 className="text-[10px] font-bold text-gray-400 tracking-wider pt-1">About You</h2>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                    Your name <span className="text-red-500">*</span>
+                    Your Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -315,14 +315,14 @@ export default function HomePage() {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                    Mobile number
+                    Mobile Number
                   </label>
                   <input
                     type="tel"
                     name="mobile"
                     value={formData.mobile}
                     onChange={handleChange}
-                    placeholder="10-digit mobile number"
+                    placeholder="10 Digit Mobile Number"
                     className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.mobile ? "border-red-300 bg-red-50" : "border-gray-200"
                       }`}
                   />
@@ -331,14 +331,14 @@ export default function HomePage() {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                    Email ID <span className="text-red-500">*</span>
+                    Email Id <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Used to share your assessment summary"
+                    placeholder="Used To Share Your Assessment Summary"
                     className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.email ? "border-red-300 bg-red-50" : "border-gray-200"
                       }`}
                   />
@@ -355,13 +355,13 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </div>
-                <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pt-1">About your business</h2>
+                <h2 className="text-[10px] font-bold text-gray-400 tracking-wider pt-1">About Your Business</h2>
               </div>
 
               <div className="space-y-5">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                    Company name <span className="text-red-500">*</span>
+                    Company Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -385,7 +385,7 @@ export default function HomePage() {
                       options={SECTOR_OPTIONS}
                       value={formData.sector}
                       onChange={handleSectorChange}
-                      placeholder="Select sector..."
+                      placeholder="Select Sector..."
                       error={!!errors.sector}
                     />
                   </div>
@@ -394,14 +394,14 @@ export default function HomePage() {
                 </div>
 
                 <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                  Nature of business activity <span className="text-red-500">*</span>
+                  Nature Of Business Activity <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="natureOfBusiness"
                   value={formData.natureOfBusiness}
                   onChange={handleChange}
-                  placeholder="e.g., packaged snacks, CNC machining"
+                  placeholder="E.G., Packaged Snacks, CNC Machining"
                   className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.natureOfBusiness ? "border-red-300 bg-red-50" : "border-gray-200"
                     }`}
                 />
@@ -413,7 +413,7 @@ export default function HomePage() {
             {/* Column 3: What you'll get (Span 3) */}
             <div className="lg:col-span-3 flex flex-col justify-center">
               <h3 className="text-base font-bold text-gray-400 mb-2 bg-gradient-to-r from-indigo-500 to-blue-500 bg-clip-text text-transparent opacity-80">
-                What you'll get
+                What You'll Get
               </h3>
 
               <div className="space-y-4">
@@ -424,9 +424,9 @@ export default function HomePage() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-700 text-sm">Scope 2 estimate</h4>
+                    <h4 className="font-semibold text-gray-700 text-sm">Scope 2 Estimate</h4>
                     <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Initial <span className="text-blue-500 underline decoration-dotted cursor-help">carbon footprint</span> calculation for your operations
+                      Initial <span className="text-blue-500 underline decoration-dotted cursor-help">Carbon Footprint</span> calculation for your operations
                     </p>
                   </div>
                 </div>
@@ -438,9 +438,9 @@ export default function HomePage() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">Key insights</h4>
+                    <h4 className="font-semibold text-gray-900 text-sm">Key Insights</h4>
                     <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Actionable <span className="text-indigo-500 underline decoration-dotted cursor-help">recommendations</span> for your business
+                      Actionable <span className="text-indigo-500 underline decoration-dotted cursor-help">Recommendations</span> for your business
                     </p>
                   </div>
                 </div>
@@ -452,9 +452,9 @@ export default function HomePage() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">Next steps</h4>
+                    <h4 className="font-semibold text-gray-900 text-sm">Next Steps</h4>
                     <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Clear roadmap for emission reduction
+                      Clear Roadmap For Emission Reduction
                     </p>
                   </div>
                 </div>
@@ -468,14 +468,14 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
                 <LocationIcon />
               </div>
-              <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pt-1">Operating Footprint</h2>
+              <h2 className="text-[10px] font-bold text-gray-400 tracking-wider pt-1">Operating Footprint</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
               {/* Sites Toggle */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-2">
-                  How many sites do you have?
+                  How Many Sites Do You Have?
                 </label>
                 <div className="flex flex-col sm:flex-row h-auto sm:h-10 bg-gray-100 p-1 rounded-lg w-full">
                   <button
@@ -486,7 +486,7 @@ export default function HomePage() {
                       : "text-gray-500 hover:text-gray-900"
                       }`}
                   >
-                    <span className="mr-2">•</span> Single site
+                    <span className="mr-2">•</span> Single Site
                   </button>
                   <button
                     type="button"
@@ -496,13 +496,13 @@ export default function HomePage() {
                       : "text-gray-500 hover:text-gray-900"
                       }`}
                   >
-                    <span className="mr-2 text-gray-400">•••</span> Multiple sites
+                    <span className="mr-2 text-gray-400">•••</span> Multiple Sites
                   </button>
                 </div>
                 {formData.siteCount === "Multiple sites" && (
                   <div className="mt-2 animate-in fade-in slide-in-from-top-1">
                     <label className="block text-[10px] font-bold text-gray-500 mb-0.5">
-                      Number of sites <span className="text-red-500">*</span>
+                      Number Of Sites <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -511,7 +511,7 @@ export default function HomePage() {
                       onChange={(e) => {
                         if (e.target.value.length <= 3) handleChange(e);
                       }}
-                      placeholder="Enter number of sites"
+                      placeholder="Enter Number Of Sites"
                       min="2"
                       className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none transition-all ${errors.siteCountNumber ? "border-red-300 bg-red-50" : "border-gray-200"
                         }`}
@@ -559,7 +559,7 @@ export default function HomePage() {
                         name="otherCountryName"
                         value={formData.otherCountryName}
                         onChange={handleChange}
-                        placeholder="Enter country name"
+                        placeholder="Enter Country Name"
                         className={`w-full px-3 py-1.5 text-xs bg-gray-50 border rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none transition-all ${errors.otherCountryName ? "border-red-300 bg-red-50" : "border-gray-200"
                           }`}
                       />
@@ -570,7 +570,7 @@ export default function HomePage() {
 
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 mb-0.5">
-                    Legal Entity ID (DIN etc.) <span className="text-gray-500 font-normal">(optional)</span>
+                    Legal Entity Id (Din Etc.) <span className="text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <input
                     type="text"
@@ -580,7 +580,7 @@ export default function HomePage() {
                     className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-gray-400 outline-none transition-all text-xs"
                   />
                   <p className="text-[10px] text-gray-400 mt-0.5">
-                    If available — can be added later
+                    If Available — Can Be Added Later
                   </p>
                 </div>
               </div>
@@ -589,13 +589,13 @@ export default function HomePage() {
             {/* Action Bar inside the card bottom right */}
             <div className="flex justify-end items-center gap-4 mt-2 pt-2 border-t border-gray-100">
               <p className="text-[10px] text-gray-400">
-                You can review and edit these details later.
+                You Can Review And Edit These Details Later.
               </p>
               <button
                 type="submit"
                 className="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold transition-all transform hover:scale-105 text-sm"
               >
-                Next: Choose time
+                Next: Choose Time
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>

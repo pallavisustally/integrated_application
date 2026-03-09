@@ -186,10 +186,10 @@ function DashboardContent() {
                     </div>
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h1>
                     <p className="text-gray-500 text-sm mb-6">
-                        This dashboard is only accessible via the secure link sent to your registered email address upon approval.
+                        This Dashboard Is Only Accessible Via The Secure Link Sent To Your Registered Email Address Upon Approval.
                     </p>
                     <p className="text-xs text-gray-400">
-                        If you believe this is an error, please contact support.
+                        If You Believe This Is An Error, Please Contact Support.
                     </p>
                     {error && <p className="text-red-500 text-xs mt-4">{error}</p>}
                 </div>
@@ -202,14 +202,14 @@ function DashboardContent() {
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
                 <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
                     <div className="text-center mb-8">
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify OTP</h1>
-                        <p className="text-gray-500 text-sm">Enter the code sent to {email}</p>
-                        <p className="text-gray-400 text-xs mt-2">Wait for a few mins for the OTP to arrive in your inbox, if not resend again.</p>
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Otp</h1>
+                        <p className="text-gray-500 text-sm">Enter The Code Sent To {email}</p>
+                        <p className="text-gray-400 text-xs mt-2">Wait For A Few Mins For The Otp To Arrive In Your Inbox, If Not Resend Again.</p>
                     </div>
 
                     <form onSubmit={handleVerifyOtp} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">One-Time Password</label>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">One Time Password</label>
                             <input
                                 type="text"
                                 value={otp}
@@ -237,7 +237,7 @@ function DashboardContent() {
                                 disabled={!canResend || loading}
                                 className="text-xs text-gray-500 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {canResend ? "Resend" : `Resend in ${resendTimer}s`}
+                                {canResend ? "Resend" : `Resend In ${resendTimer}s`}
                             </button>
 
                             <button

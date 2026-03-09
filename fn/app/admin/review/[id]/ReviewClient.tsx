@@ -72,7 +72,7 @@ const ReviewCard = ({
             <div className={`p-2 rounded-lg bg-opacity-10`} style={{ backgroundColor: `${accentColor}20` }}>
                 {icon}
             </div>
-            <h3 className="font-semibold text-gray-900 text-sm tracking-wide uppercase">{title}</h3>
+            <h3 className="font-semibold text-gray-900 text-sm tracking-wide">{title}</h3>
         </div>
         <div className="flex-1">
             {children}
@@ -90,7 +90,7 @@ const DetailRow = ({ label, value, subLabel }: { label: string; value: string; s
 
     return (
         <div className="mb-4 last:mb-0">
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{renderLabel()}</p>
+            <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-1">{renderLabel()}</p>
             <p className={`font-semibold text-gray-900 text-sm ${!value || value === "Not specified" || value === "-" ? "text-gray-400 italic" : ""}`}>
                 {value || "-"}
             </p>
@@ -242,7 +242,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                         <ReviewCard title="Uploaded Evidence" icon={<EvidenceIcon />} accentColor="#8b5cf6">
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Grid Energy Evidence</p>
+                                    <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2">Grid Energy Evidence</p>
                                     {data.energySupportingEvidenceFileUrl ? (
                                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                                             <div>
@@ -257,7 +257,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                     )}
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Renewable Energy Evidence</p>
+                                    <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2">Renewable Energy Evidence</p>
                                     {data.renewableSupportingEvidenceFileUrl ? (
                                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                                             <div>

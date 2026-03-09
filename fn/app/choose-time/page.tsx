@@ -288,7 +288,7 @@ function ChooseTimeContent() {
                             <div className="w-px bg-gray-200 h-full" />
                         </div>
                         <span className="font-medium text-gray-500 sm:text-gray-700 text-xs sm:text-sm max-w-[180px] sm:max-w-[220px] leading-tight text-left">
-                            choose sustally as your sustainability ally
+                            Choose Sustally As Your Sustainability Ally
                         </span>
                     </div>
                 </div>
@@ -304,10 +304,10 @@ function ChooseTimeContent() {
 
                     <div className="space-y-3">
                         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
-                            Thank you! Your assessment slot is booked.
+                            Thank You! Your Assessment Slot Is Booked.
                         </h2>
                         <p className="text-sm sm:text-base text-gray-500 max-w-md mx-auto">
-                            Please check your email for the assessment link.
+                            Please Check Your Email For The Assessment Link.
                         </p>
                     </div>
 
@@ -332,7 +332,7 @@ function ChooseTimeContent() {
                     </div>
 
                     <div className="text-base sm:text-lg font-normal text-gray-900 tracking-wide">
-                        Assessment ID: <span className="font-normal">{assessmentId}</span>
+                        Assessment Id: <span className="font-normal">{assessmentId}</span>
                     </div>
 
                     {/* Email Confirmation Banner */}
@@ -345,10 +345,10 @@ function ChooseTimeContent() {
                         </div>
                         <div className="min-w-0">
                             <p className="text-sm font-semibold text-green-800">
-                                A confirmation and assessment link has been sent to your registered contact email.
+                                A Confirmation And Assessment Link Has Been Sent To Your Registered Contact Email.
                             </p>
                             <p className="text-xs sm:text-sm text-green-700 mt-1">
-                                Check your inbox (and spam folder) for the access link.
+                                Check Your Inbox (And Spam Folder) For The Access Link.
                             </p>
                         </div>
                     </div>
@@ -357,7 +357,7 @@ function ChooseTimeContent() {
                 {/* Resend Email Option */}
                 <div className="mt-8 flex justify-center items-center gap-1.5 w-full text-sm">
                     <span className="text-gray-600">
-                        Didn't receive email at <span className="font-semibold text-gray-900">{searchParams.get("email")}</span>?
+                        Didn't Receive Email At <span className="font-semibold text-gray-900">{searchParams.get("email")}</span>?
                     </span>
                     <button
                         onClick={handleResendEmail}
@@ -414,22 +414,22 @@ function ChooseTimeContent() {
                 <div className="flex flex-col md:flex-row justify-between items-center mb-2 flex-shrink-0 gap-4">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                            <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full tracking-wide">
                                 Scope 2 Assessment
                             </span>
                         </div>
                         <h1 className="text-xl font-bold text-gray-900">
-                            Book your Scope 2 self-assessment
+                            Book Your Scope 2 Self Assessment
                         </h1>
                         <p className="text-gray-500 mt-1 text-xs">
-                            Select a convenient time for your assessment.
+                            Select A Convenient Time For Your Assessment.
                         </p>
                     </div>
 
                     {/* Centered Progress Step */}
                     <div className="flex flex-col items-center justify-center">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">
-                            Step 2 of 6 - Choose Time
+                        <p className="text-xs font-semibold text-gray-400 tracking-widest mb-1">
+                            Step 2 Of 6 - Choose Time
                         </p>
                         <div className="flex items-center gap-3">
                             <div className="h-1 w-32 bg-gray-200 rounded-full overflow-hidden">
@@ -451,7 +451,7 @@ function ChooseTimeContent() {
 
                             </div>
                             <span className="font-medium text-gray-500 text-sm max-w-[200px] leading-tight text-left">
-                                choose sustally as your sustainability ally
+                                Choose Sustally As Your Sustainability Ally
                             </span>
                         </div>
                     </div>
@@ -468,15 +468,15 @@ function ChooseTimeContent() {
                             </div>
                         </div>
 
-                        <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-6 ml-14 pt-6">Select Date & Time</h2>
+                        <h2 className="text-[10px] font-bold text-gray-400 tracking-wider mb-6 ml-14 pt-6">Select Date & Time</h2>
 
                         <div className="space-y-6">
                             {/* Date Selection */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
-                                    Select a date <span className="text-red-500">*</span>
+                                    Select A Date <span className="text-red-500">*</span>
                                 </label>
-                                <p className="text-[10px] text-gray-500 mb-3">Choose your preferred assessment date</p>
+                                <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Assessment Date</p>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     {dates.map((d, index) => (
                                         <button
@@ -513,9 +513,9 @@ function ChooseTimeContent() {
                             {selectedDateIndex !== null && (
                                 <div className="animate-fade-in">
                                     <label className="block text-xs font-medium text-gray-700 mb-2">
-                                        Select time of day <span className="text-red-500">*</span>
+                                        Select Time Of Day <span className="text-red-500">*</span>
                                     </label>
-                                    <p className="text-[10px] text-gray-500 mb-3">Choose your preferred time period</p>
+                                    <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Time Period</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         {shifts.map((shift) => {
                                             // Optional: Filter shifts if all its slots are past (for Today)
@@ -563,9 +563,9 @@ function ChooseTimeContent() {
                             {selectedShift !== null && (
                                 <div className="min-h-[150px] animate-fade-in">
                                     <label className="block text-xs font-medium text-gray-700 mb-2">
-                                        Select specific time <span className="text-red-500">*</span>
+                                        Select Specific Time <span className="text-red-500">*</span>
                                     </label>
-                                    <p className="text-[10px] text-gray-500 mb-3">Pick your exact appointment time</p>
+                                    <p className="text-[10px] text-gray-500 mb-3">Pick Your Exact Appointment Time</p>
 
                                     <div className="flex flex-wrap gap-3">
                                         {timeSlotsByShift[selectedShift]
@@ -599,14 +599,14 @@ function ChooseTimeContent() {
                                             return true;
                                         }).length === 0 && (
                                                 <p className="text-xs text-gray-500 italic w-full text-center py-4">
-                                                    No available slots for this shift today.
+                                                    No Available Slots For This Shift Today.
                                                 </p>
                                             )}
                                     </div>
 
                                     {!selectedTime && (
                                         <p className="text-[10px] text-gray-400 mt-2 italic animate-pulse">
-                                            * Select a time slot to proceed.
+                                            * Select A Time Slot To Proceed.
                                         </p>
                                     )}
                                 </div>
@@ -634,14 +634,14 @@ function ChooseTimeContent() {
                                     </svg>
                                 </div>
                                 <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors select-none">
-                                    I agree to the <span
+                                    I Agree To The <span
                                         className="underline decoration-dotted font-medium text-gray-800 hover:text-indigo-600 cursor-pointer"
                                         onClick={(e) => {
                                             e.preventDefault();
                                             setShowTerms(true);
                                         }}
                                     >
-                                        Terms and Conditions
+                                        Terms And Conditions
                                     </span>
                                 </span>
                             </label>

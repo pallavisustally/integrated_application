@@ -76,7 +76,7 @@ const ReviewCard = ({
       <div className={`p-2 rounded-lg bg-opacity-10`} style={{ backgroundColor: `${accentColor}20` }}>
         {icon}
       </div>
-      <h3 className="font-semibold text-gray-900 text-sm tracking-wide uppercase">{title}</h3>
+      <h3 className="font-semibold text-gray-900 text-sm tracking-wide">{title}</h3>
     </div>
     <div className="flex-1 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 hover:[&::-webkit-scrollbar-thumb]:bg-gray-400">
       {children}
@@ -86,7 +86,7 @@ const ReviewCard = ({
 
 const DetailRow = ({ label, value, subLabel, fullWidth = false }: { label: string; value: string | React.ReactNode; subLabel?: string; fullWidth?: boolean }) => (
   <div className={`mb-4 last:mb-0 ${fullWidth ? 'col-span-1 md:col-span-2' : ''}`}>
-    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{label}</p>
+    <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-1">{label}</p>
     <div className={`font-semibold text-gray-900 text-sm ${value === "Not specified" || value === "-" ? "text-gray-400 italic" : ""}`}>
       {value}
     </div>
@@ -109,9 +109,9 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
       <table className="min-w-full divide-y divide-gray-200 table-auto text-xs">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Month</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Electricity (kWh)</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Consumption (GJ)</th>
+            <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
+            <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Electricity (kWh)</th>
+            <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Consumption (GJ)</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
               {type === "Grid" ? "Spend / Source" : "Source"}
             </th>
@@ -146,11 +146,25 @@ function ScopeReviewContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    // Check if user has already submitted based on email in URL params
+    const emailFromUrl = searchParams.get("email");
+    if (emailFromUrl && localStorage.getItem(`scope2_completed_${emailFromUrl}`)) {
+      setIsSubmitted(true);
+      return;
+    }
+
     // Try to load from LocalStorage first (richer data)
     const stored = localStorage.getItem("scope2ReviewData");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
+
+        // Also check if this stored email was already completed
+        if (parsed.userEmail && localStorage.getItem(`scope2_completed_${parsed.userEmail}`)) {
+          setIsSubmitted(true);
+          return;
+        }
+
         setFormData(parsed);
       } catch (e) {
         console.error("Failed to parse stored data", e);
@@ -199,7 +213,12 @@ function ScopeReviewContent() {
       }
 
       setIsSubmitted(true);
+      if (formData.userEmail) {
+        localStorage.setItem(`scope2_completed_${formData.userEmail}`, "true");
+      }
       localStorage.removeItem("scope2ReviewData"); // Clean up
+      sessionStorage.removeItem("scopeFormData");
+      sessionStorage.removeItem("scopeFormPage");
     } catch (e: any) {
       setNotification({ message: e.message || "Something went wrong.", type: "error" });
     } finally {
@@ -230,7 +249,7 @@ function ScopeReviewContent() {
                 <div className="w-px bg-gray-200 h-full" />
               </div>
               <span className="font-medium text-gray-500 sm:text-gray-600 text-xs sm:text-sm max-w-[180px] sm:max-w-[240px] leading-tight text-left">
-                choose sustally as your sustainability ally
+                Choose Sustally As Your Sustainability Ally
               </span>
             </div>
           </div>
@@ -244,11 +263,11 @@ function ScopeReviewContent() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight">
-              Thank you! Your assessment has been successfully completed.
+              Thank You! Your Assessment Has Been Successfully Completed.
             </h1>
 
             <p className="text-gray-500 text-sm sm:text-lg max-w-xl">
-              You will get the certificate directly to your email once admin approves your assignment.
+              You Will Get The Certificate Directly To Your Email Once Admin Approves Your Assignment.
             </p>
           </div>
         </div>
@@ -267,7 +286,7 @@ function ScopeReviewContent() {
           <div>
             <div className="mb-1 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-              <span className="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Scope 2 Assessment</span>
+              <span className="text-[10px] font-bold text-indigo-500 tracking-widest">Scope 2 Assessment</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Review & Submit</h1>
             <p className="text-gray-500 text-xs mt-0.5">Please review all details before final submission.</p>
@@ -276,7 +295,7 @@ function ScopeReviewContent() {
           {/* Progress Bar */}
           <div className="flex-1 max-w-md mx-4 hidden md:block">
             <div className="flex justify-between items-end mb-2">
-              <span className="text-xs font-bold text-indigo-900 tracking-widest uppercase">4 of 6 - Review & Submit</span>
+              <span className="text-xs font-bold text-indigo-900 tracking-widest">4 Of 6 - Review & Submit</span>
               <span className="text-sm font-bold text-gray-400">68%</span>
             </div>
             <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -290,7 +309,7 @@ function ScopeReviewContent() {
               <div className="w-[1px] bg-gray-300 h-full"></div>
             </div>
             <span className="font-medium text-gray-400 text-sm max-w-[200px] leading-tight text-left">
-              choose sustally as your sustainability ally
+              Choose Sustally As Your Sustainability Ally
             </span>
           </div>
         </div>
@@ -307,7 +326,7 @@ function ScopeReviewContent() {
                 <DetailRow label="Email" value={formData.userEmail} />
                 <DetailRow label="Mobile" value={formData.userMobile || "-"} />
                 <DetailRow label="Sector" value={formData.sector || "NA"} />
-                <DetailRow label="Nature of Business" value={formData.natureOfBusiness || "NA"} />
+                <DetailRow label="Nature Of Business" value={formData.natureOfBusiness || "NA"} />
               </DetailGrid>
             </ReviewCard>
           )}
@@ -343,7 +362,7 @@ function ScopeReviewContent() {
                 </>
               ) : (
                 <div className="col-span-1 md:col-span-2">
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Grid)</p>
+                  <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2">Monthly Breakdown (Grid)</p>
                   <MonthlyTable data={formData.monthlyData} type="Grid" />
                 </div>
               )}
@@ -356,7 +375,7 @@ function ScopeReviewContent() {
           {/* Operational Details */}
           <ReviewCard title="Operational Details" icon={<EnergyIcon />} accentColor="#64748b">
             <DetailGrid>
-              <DetailRow label="Turnover of your site" value={formData.energyIntensityPerRupee ? `${formData.energyIntensityPerRupee} INR` : "Not specified"} />
+              <DetailRow label="Turnover Of Your Site" value={formData.energyIntensityPerRupee ? `${formData.energyIntensityPerRupee} INR` : "Not specified"} />
             </DetailGrid>
           </ReviewCard>
 
@@ -372,7 +391,7 @@ function ScopeReviewContent() {
 
                   {formData.renewableEnergyActivityInput === "Monthly" ? (
                     <div className="col-span-1 md:col-span-2">
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Renewable)</p>
+                      <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2">Monthly Breakdown (Renewable)</p>
                       <MonthlyTable data={formData.renewableMonthlyData} type="Renewable" />
                     </div>
                   ) : (
