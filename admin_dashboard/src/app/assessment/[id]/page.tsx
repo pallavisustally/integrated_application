@@ -70,9 +70,11 @@ const ReviewCard = ({
 }) => (
   <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
     <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: accentColor }} />
-    <div className="flex items-center gap-3 mb-6">
-      <div className="p-2 rounded-lg" style={{ backgroundColor: `${accentColor}20` }}>{icon}</div>
-      <h3 className="font-semibold text-gray-900 text-sm tracking-wide uppercase">{title}</h3>
+    <div className="px-5 py-3 border-b border-gray-50 flex items-center justify-between" style={{ borderLeft: `4px solid ${accentColor}` }}>
+      <h3 className="font-bold text-gray-800 text-xs flex items-center gap-2">
+        {icon}
+        {title}
+      </h3>
     </div>
     <div className="flex-1 overflow-y-auto">{children}</div>
   </div>
@@ -97,7 +99,7 @@ const DetailRow = ({ label, value, subLabel }: { label: string; value: string | 
 
   return (
     <div className="mb-4 last:mb-0">
-      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{renderLabel()}</p>
+      <p className="text-[10px] text-gray-500 font-bold mb-1">{renderLabel()}</p>
       <div className={`font-semibold text-gray-900 text-sm ${!value || value === 'Not specified' || value === '-' || value === 'N/A' ? 'text-gray-400 italic' : ''}`}>
         {value || '-'}
       </div>
@@ -138,10 +140,10 @@ const MonthlyTable = ({ data, type }: { data: any; type: 'Grid' | 'Renewable' })
       <table className="min-w-full divide-y divide-gray-200 table-auto text-[10px]">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-2 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Month</th>
-            <th className="px-2 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Electricity (kWh)</th>
-            <th className="px-2 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Consumption (GJ)</th>
-            <th className="px-2 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
+            <th className="px-2 py-2 text-left font-bold text-gray-500">Month</th>
+            <th className="px-2 py-2 text-left font-bold text-gray-500">Electricity (kWh)</th>
+            <th className="px-2 py-2 text-left font-bold text-gray-500">Consumption (GJ)</th>
+            <th className="px-2 py-2 text-left font-bold text-gray-500">
               {type === 'Grid' ? 'Spend / Source' : 'Source'}
             </th>
           </tr>
@@ -368,7 +370,7 @@ export default function AssessmentViewPage() {
 
               {(data.energyActivityInput === 'Monthly' || data.energyActivityInput === 'Quarterly' || data.reportingPeriod === 'Monthly' || data.reportingPeriod === 'Quarterly') && (
                 <div className="col-span-1 md:col-span-2 mt-2">
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
+                  <p className="text-[10px] text-gray-500 font-bold mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
                   <MonthlyTable data={data.monthlyData} type="Grid" />
                 </div>
               )}
@@ -404,7 +406,7 @@ export default function AssessmentViewPage() {
 
                   {(data.renewableEnergyActivityInput === 'Monthly' || data.renewableEnergyActivityInput === 'Quarterly') && (
                     <div className="col-span-1 md:col-span-2 mt-2">
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Renewable)</p>
+                      <p className="text-[10px] text-gray-500 font-bold mb-2 border-t pt-4">Monthly Breakdown (Renewable)</p>
                       <MonthlyTable data={data.renewableMonthlyData} type="Renewable" />
                     </div>
                   )}
@@ -418,7 +420,7 @@ export default function AssessmentViewPage() {
           <ReviewCard title="Uploaded Evidence" icon={<EvidenceIcon />} accentColor="#8b5cf6">
             <div className="space-y-4">
               <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Grid Energy Evidence</p>
+                <p className="text-[10px] text-gray-500 font-bold mb-2">Grid Energy Evidence</p>
                 {data.energySupportingEvidenceFileUrl ? (
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                     <p className="text-sm font-semibold text-indigo-600">{data.energySupportingEvidenceFileName || 'Energy Evidence'}</p>
@@ -429,7 +431,7 @@ export default function AssessmentViewPage() {
                 )}
               </div>
               <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Renewable Energy Evidence</p>
+                <p className="text-[10px] text-gray-500 font-bold mb-2">Renewable Energy Evidence</p>
                 {data.renewableSupportingEvidenceFileUrl ? (
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                     <p className="text-sm font-semibold text-indigo-600">{data.renewableSupportingEvidenceFileName || 'Renewable Evidence'}</p>

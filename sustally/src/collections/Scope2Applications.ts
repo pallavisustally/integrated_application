@@ -333,6 +333,10 @@ const Scope2Applications: CollectionConfig = {
       type: "text",
     },
     {
+      name: "dataSourceType",
+      type: "text",
+    },
+    {
       name: "energySupportingEvidenceFile",
       type: "upload",
       relationTo: "media",
@@ -369,6 +373,10 @@ const Scope2Applications: CollectionConfig = {
     },
     {
       name: "renewableElectricity",
+      type: "text",
+    },
+    {
+      name: "renewableDataSourceType",
       type: "text",
     },
     {
@@ -424,6 +432,27 @@ const Scope2Applications: CollectionConfig = {
     {
       name: "energyTotal_kJ",
       type: "number",
+    },
+    {
+      name: "renewableEnergyActivityInput",
+      type: "select",
+      options: [
+        { label: "Monthly", value: "Monthly" },
+        { label: "Yearly", value: "Yearly" },
+      ],
+      defaultValue: "Yearly",
+    },
+    {
+      name: "selectedQuarter",
+      type: "text",
+    },
+    {
+      name: "monthlyData",
+      type: "json",
+    },
+    {
+      name: "renewableMonthlyData",
+      type: "json",
     },
     {
       name: "otp",
@@ -597,10 +626,18 @@ const Scope2Applications: CollectionConfig = {
               energyGrid_kJ: application.energyGrid_kJ,
               energyRenew_kJ: application.energyRenew_kJ,
               energyTotal_kJ: application.energyTotal_kJ,
+              // Additional fields for monthly data and quarterly selections
+              monthlyData: application.monthlyData,
+              renewableMonthlyData: application.renewableMonthlyData,
+              renewableEnergyActivityInput: application.renewableEnergyActivityInput,
+              selectedQuarter: application.selectedQuarter,
+              dataSourceType: application.dataSourceType,
+              renewableDataSourceType: application.renewableDataSourceType,
               // Added for Cost Saving Card
               electricityPurchased: application.electricityPurchased,
               spendAmount: application.spendAmount,
               trackingType: application.trackingType,
+              energyActivityInput: application.energyActivityInput,
             },
           });
         } catch (error) {
