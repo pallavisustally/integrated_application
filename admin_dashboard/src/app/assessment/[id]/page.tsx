@@ -127,9 +127,11 @@ const MonthlyTable = ({ data, type }: { data: any; type: "Grid" | "Renewable" })
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Electricity (kWh)</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Consumption (GJ)</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
-              {type === "Grid" ? "Spend / Source" : "Source"}
-            </th>
+            {type === "Grid" && (
+              <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
+                Spend
+              </th>
+            )}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -138,11 +140,13 @@ const MonthlyTable = ({ data, type }: { data: any; type: "Grid" | "Renewable" })
               <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">
                 {row.month ? (row.month.includes('-') && row.month.split('-').length === 2 ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: '2-digit' }) : row.month) : "-"}
               </td>
-              <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
-              <td className="px-3 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
-              <td className="px-3 py-2 text-gray-700">
-                {type === "Grid" ? (row.dataSourceType || row.spend || "-") : (row.dataSourceType || "-")}
-              </td>
+              <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || 0}</td>
+              <td className="px-3 py-2 text-gray-700">{row.energyConsumption || 0}</td>
+              {type === "Grid" && (
+                <td className="px-3 py-2 text-gray-700">
+                  {row.spend || "-"}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -241,7 +245,6 @@ export default function AssessmentViewPage() {
     if (isNaN(date.getTime())) return dateStr;
 
     const year = date.getFullYear();
-    if (data?.reportingPeriod === "Monthly") return date.toLocaleDateString("default", { month: "short", year: "numeric" });
     return `${year}-${String(year + 1).slice(-2)}`;
   };
 
@@ -348,7 +351,7 @@ export default function AssessmentViewPage() {
 
               <DetailRow label="Electricity Purchased" value={`${data.electricityPurchased || 0} kWh`} />
               <DetailRow label="Energy Consumption" value={`${data.energyConsumption || 0} GJ`} />
-              <DetailRow label="Data Source Type" value={data.dataSourceType || (data.energyActivityInput === "Monthly" ? "Monthly Breakdown" : "-")} />
+
               {data.trackingType && data.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={data.spendAmount ? `${data.spendAmount} INR` : "-"} />}
 
               {data.energyActivityInput === "Monthly" && (
@@ -380,7 +383,7 @@ export default function AssessmentViewPage() {
                   <DetailRow label="Input Type" value={data.renewableEnergyActivityInput || 'Yearly'} />
                   <DetailRow label="Renewable Electricity" value={`${data.renewableElectricity || 0} kWh`} />
                   <DetailRow label="Energy Consumption" value={`${data.renewableEnergyConsumption || 0} GJ`} />
-                  <DetailRow label="Data Source" value={data.renewableDataSourceType || "-"} />
+
 
                   {data.renewableEnergyActivityInput === "Monthly" && (
                     <div className="col-span-1 md:col-span-2 mt-2">

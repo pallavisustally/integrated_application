@@ -112,9 +112,11 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Electricity (kWh)</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Consumption (GJ)</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
-              {type === "Grid" ? "Spend / Source" : "Source"}
-            </th>
+            {type === "Grid" && (
+              <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
+                Spend
+              </th>
+            )}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -125,9 +127,11 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
               </td>
               <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
               <td className="px-3 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
-              <td className="px-3 py-2 text-gray-700">
-                {type === "Grid" ? (row.dataSourceType || row.spend || "-") : (row.dataSourceType || "-")}
-              </td>
+              {type === "Grid" && (
+                <td className="px-3 py-2 text-gray-700">
+                  {row.spend || "-"}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -254,9 +258,7 @@ function ScopeReviewContent() {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr; // If it's already a string like "2023-24"
 
-    // Logic from scope page
     const year = date.getFullYear();
-    if (formData?.reportingPeriod === "Monthly") return date.toLocaleDateString("default", { month: "short", year: "numeric" });
     return `${year}-${String(year + 1).slice(-2)}`;
   };
 
@@ -378,7 +380,7 @@ function ScopeReviewContent() {
 
               <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
               <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
-              <DetailRow label="Data Source Type" value={formData.dataSourceType || (formData.energyActivityInput === "Monthly" ? "Monthly Breakdown" : "-")} />
+
               {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount ? `${formData.spendAmount} INR` : "-"} />}
 
               {formData.energyActivityInput === "Monthly" && (
@@ -411,7 +413,7 @@ function ScopeReviewContent() {
                   <DetailRow label="Input Type" value={formData.renewableEnergyActivityInput || "Yearly"} />
                   <DetailRow label="Renewable Electricity" value={`${formData.renewableElectricity} kWh`} />
                   <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
-                  <DetailRow label="Data Source" value={formData.renewableDataSourceType || "-"} />
+
 
                   {(formData.renewableEnergyActivityInput === "Monthly") && (
                     <div className="col-span-1 md:col-span-2 mt-2">

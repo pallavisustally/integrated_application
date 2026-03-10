@@ -128,9 +128,11 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Elec (kWh)</th>
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Cons (GJ)</th>
-                        <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">
-                            {type === "Grid" ? "Spend" : "Source"}
-                        </th>
+                        {type === "Grid" && (
+                            <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">
+                                Spend
+                            </th>
+                        )}
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -141,9 +143,11 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
                             </td>
                             <td className="px-2 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
                             <td className="px-2 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
-                            <td className="px-2 py-2 text-gray-700">
-                                {type === "Grid" ? (row.spend || "-") : (row.dataSourceType || "-")}
-                            </td>
+                            {type === "Grid" && (
+                                <td className="px-2 py-2 text-gray-700">
+                                    {row.spend || "-"}
+                                </td>
+                            )}
                         </tr>
                     ))}
                 </tbody>
@@ -285,7 +289,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                     return data.energyConsumption || "-";
                                 })()} />
                                 <DetailRow label="Spend Amount" value={data.spendAmount || "-"} />
-                                <DetailRow label="Data Source Type" value={data.dataSourceType || data.energySourceDescription || (data.energyActivityInput === "Monthly" ? "Monthly Breakdown" : "-")} />
+
 
                                 {data.energyActivityInput === "Monthly" && (
                                     <div className="col-span-2 mt-2">

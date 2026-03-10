@@ -36,20 +36,9 @@ function CertificateContent() {
 
       const year = date.getFullYear();
 
-      if (period === "Annually" || period === "Yearly") {
-        return `${year}-${String(year + 1).slice(-2)}`;
-      } else if (period === "Monthly") {
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const monthIndex = date.getMonth();
-        const monthName = monthNames[monthIndex];
-
-        // Get last day of the month
-        const lastDay = new Date(year, monthIndex + 1, 0).getDate();
-
-        return `1 ${monthName} ${year} to ${lastDay} ${monthName} ${year}`;
-      }
-
-      return `${year}`;
+      // Always show FY year label (even when reporting period is Monthly)
+      // This keeps certificate/dashboard/BRSR consistent with the chosen FY.
+      return `${year}-${String(year + 1).slice(-2)}`;
     } catch (e) {
       return dateStr;
     }
@@ -601,30 +590,11 @@ function CertificateContent() {
               })()}
             </div>
             <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
-              {(() => {
-                const isMonthly = data.energyActivityInput === "Monthly" || (data.hasRenewableElectricity === "Yes" && data.renewableEnergyActivityInput === "Monthly");
-                if (!isMonthly) return null;
-
-                const checkIncomplete = (input: string, list: any) => {
-                  if (input !== "Monthly") return false;
-                  const items = typeof list === 'string' ? JSON.parse(list) : (list || []);
-                  const filledCount = items.filter((row: any) => (row.electricityPurchased && String(row.electricityPurchased).trim()) || (row.spend && String(row.spend).trim())).length;
-                  if (data.reportingPeriod === "Annually" || data.reportingPeriod === "Yearly") return filledCount < 12;
-                  return false;
-                };
-
-                const isIncomplete = checkIncomplete(data.energyActivityInput, data.monthlyData) ||
-                  (data.hasRenewableElectricity === "Yes" && checkIncomplete(data.renewableEnergyActivityInput, data.renewableMonthlyData));
-
-                if (isIncomplete) {
-                  return (
-                    <span className="block mb-1">
-                      Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period.
-                    </span>
-                  );
-                }
-                return null;
-              })()}
+              {data.reportingPeriod === "Monthly" ? (
+                <span className="block mb-1">
+                  Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period.
+                </span>
+              ) : null}
               <span className="font-semibold">Disclaimer: </span>
               The suggested sector recommendations are indicative in nature and are derived from sustainability initiatives disclosed by comparable companies in their BRSR reports. These suggestions are intended for general guidance and should be evaluated based on the organization&apos;s specific operational context, resources, and strategic priorities.
             </p>

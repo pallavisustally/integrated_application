@@ -54,7 +54,6 @@ type MonthlyEntry = {
   id: string;
   month: string;
   electricityPurchased: string;
-  dataSourceType: string;
   energyConsumption: string;
   spend: string;
 };
@@ -99,7 +98,6 @@ type FormDataType = {
   energyActivityInput: "Monthly" | "Yearly" | "";
   energyCategory: string;
   electricityPurchased: string;
-  dataSourceType: string;
   energyConsumption: string;
   spendAmount: string;
   trackingType: "Unit consumption" | "Spend amount" | "Both" | "";
@@ -109,7 +107,6 @@ type FormDataType = {
   // Page 2 - Box 2 (Renewable Electricity)
   hasRenewableElectricity: YesNo;
   renewableElectricity: string;
-  renewableDataSourceType: string;
   renewableEnergyConsumption: string;
   renewableSupportingEvidenceFile: File | null;
   renewableEnergySourceDescription: string;
@@ -175,7 +172,6 @@ function TemplateContent() {
     energyActivityInput: "Yearly",
     energyCategory: "Grid Energy", // Set to default disabled value
     electricityPurchased: "",
-    dataSourceType: "",
     energyConsumption: "",
     spendAmount: "",
     trackingType: "Unit consumption",
@@ -185,12 +181,11 @@ function TemplateContent() {
     // Page 2 - Box 2
     hasRenewableElectricity: "",
     renewableElectricity: "",
-    renewableDataSourceType: "",
     renewableEnergyConsumption: "",
     renewableSupportingEvidenceFile: null,
     renewableEnergySourceDescription: "",
     renewableEnergyActivityInput: "Yearly",
-    renewableMonthlyData: [{ id: "r1", month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }],
+    renewableMonthlyData: [{ id: "r1", month: "", electricityPurchased: "", energyConsumption: "", spend: "" }],
 
     // Calculated fields
     gridEmissionFactor: 0,
@@ -201,7 +196,7 @@ function TemplateContent() {
     energyTotal_kJ: 0,
 
     // Initialize with one empty row
-    monthlyData: [{ id: "1", month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }],
+    monthlyData: [{ id: "1", month: "", electricityPurchased: "", energyConsumption: "", spend: "" }],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -556,7 +551,7 @@ function TemplateContent() {
 
 
   const generateMonthlyDataForYear = (date: Date | null): MonthlyEntry[] => {
-    if (!date) return [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+    if (!date) return [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
     const year = date.getFullYear();
     const result: MonthlyEntry[] = [];
     for (let i = 0; i < 12; i++) {
@@ -567,7 +562,6 @@ function TemplateContent() {
         id: Math.random().toString(36).substr(2, 9),
         month: `${yStr}-${mStr}`, // YYYY-MM format
         electricityPurchased: "",
-        dataSourceType: "",
         energyConsumption: "",
         spend: ""
       });
@@ -607,7 +601,7 @@ function TemplateContent() {
           if (prev.monthlyData.length <= 1) updates.monthlyData = generateMonthlyDataForYear(prev.reportingYear);
         } else {
           if (prev.monthlyData.length <= 1) {
-            updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+            updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
           }
         }
       }
@@ -618,7 +612,7 @@ function TemplateContent() {
         if (prev.reportingPeriod === "Monthly") {
           updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
         } else {
-          updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+          updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
         }
       }
 
@@ -765,10 +759,7 @@ function TemplateContent() {
             missingFields.push("Electricity Purchased (Invalid)");
           }
 
-          if (!formData.dataSourceType?.trim()) {
-            newErrors.dataSourceType = "Required";
-            missingFields.push("Data Source Type");
-          }
+
 
           if (!formData.energyConsumption?.trim()) {
             newErrors.energyConsumption = "Required";
@@ -788,34 +779,31 @@ function TemplateContent() {
             missingFields.push("Spend Amount (Invalid)");
           }
 
-          // Also require data source type for spend amount in yearly mode
-          if (!formData.dataSourceType?.trim()) {
-            newErrors.dataSourceType = "Required";
-            missingFields.push("Data Source Type");
-          }
+
         }
       } else if (formData.energyActivityInput === "Monthly") {
         // Validation for Monthly Data
-        const nonEmptyRows = formData.monthlyData.filter(row => row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
+        const nonEmptyRows = formData.monthlyData.filter(row => row.electricityPurchased?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
         if (nonEmptyRows.length === 0) {
           newErrors.monthlyData = "At least one entry with data is required";
           missingFields.push("At least one monthly entry is required");
         } else {
           let rowError = false;
           formData.monthlyData.forEach((row, idx) => {
-            const hasData = row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
+            const hasData = row.electricityPurchased?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
             if (hasData) {
+              if (!row.month) {
+                newErrors[`monthly_${row.id}_month`] = "Required";
+                missingFields.push(`Row ${idx + 1}: Month`);
+                rowError = true;
+              }
               if (formData.trackingType === "Unit consumption" || formData.trackingType === "Both") {
                 if (!isValidNumber(row.electricityPurchased)) {
                   newErrors[`monthly_${row.id}_electricityPurchased`] = "Required";
                   missingFields.push(`Row ${idx + 1}: Electricity Purchased`);
                   rowError = true;
                 }
-                if (!row.dataSourceType?.trim()) {
-                  newErrors[`monthly_${row.id}_dataSourceType`] = "Required";
-                  missingFields.push(`Row ${idx + 1}: Data Source Type`);
-                  rowError = true;
-                }
+
                 if (!isValidNumber(row.energyConsumption)) {
                   newErrors[`monthly_${row.id}_energyConsumption`] = "Required";
                   missingFields.push(`Row ${idx + 1}: Energy Consumption`);
@@ -828,12 +816,7 @@ function TemplateContent() {
                   missingFields.push(`Row ${idx + 1}: Spend Amount`);
                   rowError = true;
                 }
-                // When tracking by spend, we still need data source type for the estimated consumption
-                if (!row.dataSourceType?.trim()) {
-                  newErrors[`monthly_${row.id}_dataSourceType`] = "Required";
-                  missingFields.push(`Row ${idx + 1}: Data Source Type`);
-                  rowError = true;
-                }
+
               }
             }
           });
@@ -856,14 +839,14 @@ function TemplateContent() {
         }
 
         if (formData.renewableEnergyActivityInput === "Monthly") {
-          const nonEmptyRenewRows = formData.renewableMonthlyData.filter(row => row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
+          const nonEmptyRenewRows = formData.renewableMonthlyData.filter(row => row.electricityPurchased?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
           if (nonEmptyRenewRows.length === 0) {
             newErrors.renewableMonthlyData = "At least one renewable entry is required";
             missingFields.push("Renewable Monthly Data (Required)");
           } else {
             let hasError = false;
             formData.renewableMonthlyData.forEach((row, idx) => {
-              const hasData = row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
+              const hasData = row.electricityPurchased?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
               if (hasData) {
                 if (!row.month) {
                   newErrors[`renewableMonthly_${row.id}_month`] = "Required";
@@ -873,10 +856,7 @@ function TemplateContent() {
                   newErrors[`renewableMonthly_${row.id}_electricityPurchased`] = "Required";
                   hasError = true;
                 }
-                if (!row.dataSourceType?.trim()) {
-                  newErrors[`renewableMonthly_${row.id}_dataSourceType`] = "Required";
-                  hasError = true;
-                }
+
               }
             });
 
@@ -894,10 +874,7 @@ function TemplateContent() {
             missingFields.push("Renewable Electricity (Invalid)");
           }
 
-          if (!formData.renewableDataSourceType?.trim()) {
-            newErrors.renewableDataSourceType = "Required";
-            missingFields.push("Renewable Data Source Type");
-          }
+
 
           if (!formData.renewableEnergyConsumption?.trim()) {
             newErrors.renewableEnergyConsumption = "Required";
@@ -924,7 +901,7 @@ function TemplateContent() {
       ...prev,
       monthlyData: [
         ...prev.monthlyData,
-        { id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" },
+        { id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" },
       ],
     }));
   };
@@ -1099,7 +1076,7 @@ function TemplateContent() {
       ...prev,
       renewableMonthlyData: [
         ...prev.renewableMonthlyData,
-        { id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" },
+        { id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" },
       ],
     }));
   };
@@ -1467,6 +1444,9 @@ function TemplateContent() {
                       Turnover Of Your Site <span className="text-gray-400 font-normal ml-1">Optional</span>
                     </label>
                     <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 text-xs font-semibold">Rs</span>
+                      </div>
                       <input
                         type="number"
                         min="0"
@@ -1478,8 +1458,8 @@ function TemplateContent() {
                           }
                         }}
                         onChange={handleChange}
-                        placeholder="E.G., 2000"
-                        className="w-full h-10 px-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        placeholder=" e.g. 2000"
+                        className="w-full h-10 pl-8 pr-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                       />
                     </div>
                     <p className="text-[10px] text-gray-400 mt-1.5">
@@ -1511,97 +1491,65 @@ function TemplateContent() {
                       <label className="block text-xs font-bold text-gray-700 mb-2">
                         Financial Year <span className="text-red-500">*</span>
                       </label>
-                      {formData.reportingPeriod === "Monthly" ? (
-                        <DatePicker
-                          selected={formData.reportingYear}
-                          onChange={(date: Date | null) =>
-                            setFormData((prev) => {
-                              const newYear = date;
-                              // Calculate with new year and current inputs
-                              const results = calculateScope2(prev.electricityPurchased, prev.renewableElectricity, newYear);
-                              return { ...prev, reportingYear: date, ...results };
-                            })
+                      <select
+                        value={formData.reportingYear ? formData.reportingYear.getFullYear() : ""}
+                        onChange={(e) => {
+                          if (!e.target.value) {
+                            setFormData((prev) => ({ ...prev, reportingYear: null }));
+                            return;
                           }
-                          showMonthYearPicker
-                          minDate={new Date(2020, 0, 1)}
-                          maxDate={new Date(2024, 11, 31)}
-                          dateFormat="MM/yyyy"
-                          wrapperClassName="w-full"
-                          customInput={
-                            <button
-                              type="button"
-                              className={`w-full h-10 flex justify-between items-center px-2 text-xs bg-white border rounded-lg text-gray-700 hover:border-gray-300 focus:ring-2 focus:ring-indigo-500 transition-all ${errors.reportingYear ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                            >
-                              {formData.reportingYear
-                                ? formData.reportingYear.toLocaleDateString('default', { month: 'short', year: 'numeric' })
-                                : "Select Month"}
-                              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </button>
-                          }
-                        />
-                      ) : (
-                        <select
-                          value={formData.reportingYear ? formData.reportingYear.getFullYear() : ""}
-                          onChange={(e) => {
-                            if (!e.target.value) {
-                              setFormData((prev) => ({ ...prev, reportingYear: null }));
-                              return;
-                            }
-                            const selectedYear = parseInt(e.target.value);
-                            const date = new Date(selectedYear, 0, 1);
-                            setFormData((prev) => {
-                              let currentElec = prev.electricityPurchased;
-                              let currentRenew = prev.renewableElectricity;
+                          const selectedYear = parseInt(e.target.value);
+                          const date = new Date(selectedYear, 0, 1);
+                          setFormData((prev) => {
+                            let currentElec = prev.electricityPurchased;
+                            let currentRenew = prev.renewableElectricity;
 
-                              const updates: any = { ...prev, reportingYear: date };
+                            const updates: any = { ...prev, reportingYear: date };
 
-                              if (prev.energyActivityInput === "Monthly") {
-                                updates.monthlyData = generateMonthlyDataForYear(date);
-                                if (prev.hasRenewableElectricity === "Yes") {
-                                  updates.renewableMonthlyData = generateMonthlyDataForYear(date);
-                                }
-                                currentElec = "";
-                                updates.electricityPurchased = "";
-                                updates.energyConsumption = "";
-                                updates.spendAmount = "";
-                                currentRenew = "";
-                                updates.renewableElectricity = "";
-                                updates.renewableEnergyConsumption = "";
-                              }
-
-                              if (prev.renewableEnergyActivityInput === "Monthly" && prev.reportingPeriod !== "Monthly") {
+                            if (prev.energyActivityInput === "Monthly") {
+                              updates.monthlyData = generateMonthlyDataForYear(date);
+                              if (prev.hasRenewableElectricity === "Yes") {
                                 updates.renewableMonthlyData = generateMonthlyDataForYear(date);
-                                currentRenew = "";
-                                updates.renewableElectricity = "";
-                                updates.renewableEnergyConsumption = "";
                               }
-
-                              const results = calculateScope2(currentElec, currentRenew, date);
-                              Object.assign(updates, results);
-
-                              return updates;
-                            });
-                          }}
-                          className={`w-full h-10 px-2 text-xs bg-white border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-700 ${errors.reportingYear ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                        >
-                          <option value="">Select Financial Year</option>
-                          {(() => {
-                            const years = [];
-                            // 5 years backward from 2024 means 2020 to 2024 inclusive
-                            for (let year = 2020; year <= 2024; year++) {
-                              years.push(year);
+                              currentElec = "";
+                              updates.electricityPurchased = "";
+                              updates.energyConsumption = "";
+                              updates.spendAmount = "";
+                              currentRenew = "";
+                              updates.renewableElectricity = "";
+                              updates.renewableEnergyConsumption = "";
                             }
-                            // Sort descending for better UX
-                            return years.reverse().map((year) => (
-                              <option key={year} value={year}>
-                                {year}-{String(year + 1).slice(-2)}
-                              </option>
-                            ));
-                          })()}
-                        </select>
-                      )}
+
+                            if (prev.renewableEnergyActivityInput === "Monthly" && prev.reportingPeriod !== "Monthly") {
+                              updates.renewableMonthlyData = generateMonthlyDataForYear(date);
+                              currentRenew = "";
+                              updates.renewableElectricity = "";
+                              updates.renewableEnergyConsumption = "";
+                            }
+
+                            const results = calculateScope2(currentElec, currentRenew, date);
+                            Object.assign(updates, results);
+
+                            return updates;
+                          });
+                        }}
+                        className={`w-full h-10 px-2 text-xs bg-white border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-700 ${errors.reportingYear ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                      >
+                        <option value="">Select Financial Year</option>
+                        {(() => {
+                          const years = [];
+                          // 5 years backward from 2024 means 2020 to 2024 inclusive
+                          for (let year = 2020; year <= 2024; year++) {
+                            years.push(year);
+                          }
+                          // Sort descending for better UX
+                          return years.reverse().map((year) => (
+                            <option key={year} value={year}>
+                              {year}-{String(year + 1).slice(-2)}
+                            </option>
+                          ));
+                        })()}
+                      </select>
                       {errors.reportingYear && <p className="text-red-500 text-xs mt-1">{errors.reportingYear}</p>}
                     </div>
                     {/* Period */}
@@ -1632,9 +1580,9 @@ function TemplateContent() {
                                 } else { // Annually
                                   updates.energyActivityInput = "Yearly";
                                   updates.renewableEnergyActivityInput = "Yearly";
-                                  updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+                                  updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
                                   if (prev.hasRenewableElectricity === "Yes") {
-                                    updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+                                    updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
                                   }
                                   currentElec = ""; updates.electricityPurchased = ""; updates.energyConsumption = ""; updates.spendAmount = "";
                                   currentRenew = ""; updates.renewableElectricity = ""; updates.renewableEnergyConsumption = "";
@@ -2042,7 +1990,6 @@ function TemplateContent() {
                                       {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
                                         <>
                                           <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased (<span className="normal-case">kWh</span>)</th>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source Type</th>
                                           <th className="px-3 py-2 font-bold min-w-[130px]">Energy Consumption (GJ)</th>
                                         </>
                                       )}
@@ -2052,7 +1999,6 @@ function TemplateContent() {
                                       {formData.trackingType === "Spend amount" && (
                                         <>
                                           <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased (<span className="normal-case">kWh</span>)</th>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source Type</th>
                                           <th className="px-3 py-2 font-bold min-w-[130px]">Energy Consumption (GJ)</th>
                                         </>
                                       )}
@@ -2072,7 +2018,7 @@ function TemplateContent() {
                                               type="month"
                                               value={row.month}
                                               onChange={(e) => handleRowChange(row.id, "month", e.target.value)}
-                                              className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
+                                              className={`w-full h-10 px-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400 ${errors[`monthly_${row.id}_month`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                                               placeholder="Select Month"
                                             />
                                           )}
@@ -2095,21 +2041,7 @@ function TemplateContent() {
                                                 />
                                               </div>
                                             </td>
-                                            <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
-                                                <select
-                                                  value={row.dataSourceType}
-                                                  onChange={(e) => handleRowChange(row.id, "dataSourceType", e.target.value)}
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
-                                                >
-                                                  <option value="">Select...</option>
-                                                  <option value="Invoice">Invoice</option>
-                                                  <option value="Meter Reading">Meter Reading</option>
-                                                  <option value="Estimate">Estimate</option>
-                                                  <option value="Other">Other</option>
-                                                </select>
-                                              </div>
-                                            </td>
+
                                             <td className="px-3 py-2">
                                               <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-100 ${errors[`monthly_${row.id}_energyConsumption`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
                                                 <input
@@ -2154,21 +2086,7 @@ function TemplateContent() {
                                                 />
                                               </div>
                                             </td>
-                                            <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
-                                                <select
-                                                  value={row.dataSourceType}
-                                                  onChange={(e) => handleRowChange(row.id, "dataSourceType", e.target.value)}
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
-                                                >
-                                                  <option value="">Select...</option>
-                                                  <option value="Invoice">Invoice</option>
-                                                  <option value="Meter Reading">Meter Reading</option>
-                                                  <option value="Estimate">Estimate</option>
-                                                  <option value="Other">Other</option>
-                                                </select>
-                                              </div>
-                                            </td>
+
                                             <td className="px-3 py-2">
                                               <div className="border rounded-lg h-10 px-2 flex items-center bg-gray-100 border-gray-200">
                                                 <input
@@ -2221,7 +2139,7 @@ function TemplateContent() {
                             // EXISTING YEARLY INPUTS
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
-                                <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {/* Electricity Purchased */}
                                   <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
@@ -2246,25 +2164,7 @@ function TemplateContent() {
                                     {errors.electricityPurchased && <p className="text-red-500 text-xs mt-1">{errors.electricityPurchased}</p>}
                                   </div>
 
-                                  {/* Data Source Type */}
-                                  <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
-                                      Data Source Type <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                      name="dataSourceType"
-                                      value={formData.dataSourceType || ""}
-                                      onChange={handleChange}
-                                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none appearance-none ${errors.dataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                                    >
-                                      <option value="">Select Data Source...</option>
-                                      <option value="Invoice">Invoice</option>
-                                      <option value="Meter Reading">Meter Reading</option>
-                                      <option value="Estimate">Estimate</option>
-                                      <option value="Other">Other</option>
-                                    </select>
-                                    {errors.dataSourceType && <p className="text-red-500 text-xs mt-1">{errors.dataSourceType}</p>}
-                                  </div>
+
 
                                   {/* Energy Consumption */}
                                   <div>
@@ -2289,7 +2189,7 @@ function TemplateContent() {
                               )}
 
                               {(formData.trackingType === "Spend amount" || formData.trackingType === "Both") && (
-                                <div className={`col-span-2 grid grid-cols-1 ${formData.trackingType === 'Spend amount' ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4`}>
+                                <div className={`col-span-2 grid grid-cols-1 ${formData.trackingType === 'Spend amount' ? 'md:grid-cols-3' : 'md:grid-cols-3'} gap-4`}>
                                   <div className="col-span-1 flex flex-col justify-end">
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
                                       Spend Amount <span className="text-red-500">*</span>
@@ -2340,27 +2240,7 @@ function TemplateContent() {
                                     </div>
                                   )}
 
-                                  {/* Data Source Type for Spend Amount Users */}
-                                  {formData.trackingType === "Spend amount" && (
-                                    <div className="col-span-1 flex flex-col justify-end">
-                                      <label className="block text-xs font-bold text-gray-700 mb-2">
-                                        Data Source Type <span className="text-red-500">*</span>
-                                      </label>
-                                      <select
-                                        name="dataSourceType"
-                                        value={formData.dataSourceType || ""}
-                                        onChange={handleChange}
-                                        className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none appearance-none ${errors.dataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                                      >
-                                        <option value="">Select Data Source...</option>
-                                        <option value="Invoice">Invoice</option>
-                                        <option value="Meter Reading">Meter Reading</option>
-                                        <option value="Estimate">Estimate</option>
-                                        <option value="Other">Other</option>
-                                      </select>
-                                      {errors.dataSourceType && <p className="text-red-500 text-xs mt-1">{errors.dataSourceType}</p>}
-                                    </div>
-                                  )}
+
 
                                   {formData.trackingType === "Spend amount" && (
                                     <div className="col-span-1 flex flex-col justify-end">
@@ -2396,13 +2276,11 @@ function TemplateContent() {
                                 electricityPurchased: "",
                                 spendAmount: "",
                                 energyConsumption: "",
-                                dataSourceType: "",
                                 monthlyData: prev.monthlyData.map(row => ({
                                   ...row,
                                   electricityPurchased: "",
                                   spend: "",
-                                  energyConsumption: "",
-                                  dataSourceType: ""
+                                  energyConsumption: ""
                                 }))
                               }));
                             }}
@@ -2582,7 +2460,6 @@ function TemplateContent() {
                                         <tr>
                                           <th className="px-3 py-2 font-bold w-1/4">Month</th>
                                           <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity (<span className="normal-case">kWh</span>)</th>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data source type</th>
                                           <th className="px-3 py-2 font-bold min-w-[120px]">Energy Consumption (GJ)</th>
                                           <th className="px-3 py-2 w-10"></th>
                                         </tr>
@@ -2600,13 +2477,13 @@ function TemplateContent() {
                                                   type="month"
                                                   value={row.month}
                                                   onChange={(e) => handleRenewableRowChange(row.id, "month", e.target.value)}
-                                                  className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
+                                                  className={`w-full h-10 px-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400 ${errors[`renewableMonthly_${row.id}_month`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                                                   placeholder="Select month"
                                                 />
                                               )}
                                             </td>
                                             <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 border-gray-200`}>
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`renewableMonthly_${row.id}_electricityPurchased`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
                                                 <input
                                                   type="number"
                                                   value={row.electricityPurchased}
@@ -2621,21 +2498,7 @@ function TemplateContent() {
                                                 />
                                               </div>
                                             </td>
-                                            <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 border-gray-200`}>
-                                                <select
-                                                  value={row.dataSourceType}
-                                                  onChange={(e) => handleRenewableRowChange(row.id, "dataSourceType", e.target.value)}
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
-                                                >
-                                                  <option value="">Select...</option>
-                                                  <option value="Invoice">Invoice</option>
-                                                  <option value="Meter Reading">Meter Reading</option>
-                                                  <option value="Estimate">Estimate</option>
-                                                  <option value="Other">Other</option>
-                                                </select>
-                                              </div>
-                                            </td>
+
                                             <td className="px-3 py-2">
                                               <div className="border rounded-lg h-10 px-2 flex items-center bg-gray-100 border-gray-200">
                                                 <input
@@ -2683,7 +2546,7 @@ function TemplateContent() {
                                 </>
                               ) : (
                                 // YEARLY VIEW
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                   <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
                                       Renewable Electricity <span className="text-red-500">*</span>
@@ -2706,24 +2569,7 @@ function TemplateContent() {
                                     </div>
                                     {errors.renewableElectricity && <p className="text-red-500 text-xs mt-1">{errors.renewableElectricity}</p>}
                                   </div>
-                                  <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
-                                      Data Source Type <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                      name="renewableDataSourceType"
-                                      value={formData.renewableDataSourceType || ""}
-                                      onChange={handleChange}
-                                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none appearance-none ${errors.renewableDataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                                    >
-                                      <option value="">Select Data Source...</option>
-                                      <option value="Invoice">Invoice</option>
-                                      <option value="Meter Reading">Meter Reading</option>
-                                      <option value="Estimate">Estimate</option>
-                                      <option value="Other">Other</option>
-                                    </select>
-                                    {errors.renewableDataSourceType && <p className="text-red-500 text-xs mt-1">{errors.renewableDataSourceType}</p>}
-                                  </div>
+
                                   <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
                                       Energy Consumption
@@ -2756,12 +2602,10 @@ function TemplateContent() {
                                   ...prev,
                                   renewableElectricity: "",
                                   renewableEnergyConsumption: "",
-                                  renewableDataSourceType: "",
                                   renewableMonthlyData: prev.renewableMonthlyData.map(row => ({
                                     ...row,
                                     electricityPurchased: "",
-                                    energyConsumption: "",
-                                    dataSourceType: ""
+                                    energyConsumption: ""
                                   }))
                                 }));
                               }}

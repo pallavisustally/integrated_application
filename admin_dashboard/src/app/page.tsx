@@ -21,13 +21,18 @@ export default function AdminDashboard() {
   const fetchData = React.useCallback(async () => {
     const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
 
-    // Fetch Applications
     try {
       setApiError(null);
-      const res = await fetch(`${API_URL}/api/scope2-applications?limit=1000`);
-      const data = await res.json();
-      if (data && data.docs) {
-        const mappedUsers = data.docs.map((doc: any) => ({
+      // Fetch both in parallel to reduce wait
+      const [appsRes, slotsRes] = await Promise.all([
+        fetch(`${API_URL}/api/scope2-applications?limit=1000`, { cache: 'no-store' }),
+        fetch(`${API_URL}/api/slot-bookings?limit=0`, { cache: 'no-store' }),
+      ]);
+
+      const [appsJson, slotsJson] = await Promise.all([appsRes.json(), slotsRes.json()]);
+
+      if (appsJson?.docs) {
+        const mappedUsers = appsJson.docs.map((doc: any) => ({
           id: doc.id,
           username: doc.userName || doc.facilityName || 'N/A',
           company: doc.userCompany || doc.facilityName || 'N/A',
@@ -49,6 +54,8 @@ export default function AdminDashboard() {
         }));
         setUsersData(mappedUsers);
       }
+
+      setSlotsBookedCount(slotsJson?.totalDocs ?? 0);
     } catch (err) {
       console.error('Failed to fetch applications:', err);
       if (API_URL.includes('localhost')) {
@@ -57,22 +64,25 @@ export default function AdminDashboard() {
         setApiError(`Backend unreachable at ${API_URL}. Please verify the backend is deployed and running.`);
       }
     }
-
-    // Fetch Slots
-    try {
-      const res = await fetch(`${API_URL}/api/slot-bookings?limit=0`);
-      const data = await res.json();
-      setSlotsBookedCount(data.totalDocs ?? 0);
-    } catch (err) {
-      console.error('Failed to fetch slot bookings:', err);
-    }
   }, []);
 
   React.useEffect(() => {
     fetchData();
-    // Auto-refresh every 10 seconds to keep data in sync
-    const interval = setInterval(fetchData, 10000);
-    return () => clearInterval(interval);
+    // Auto-refresh while open
+    const interval = setInterval(fetchData, 5000);
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') fetchData();
+    };
+
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
   }, [fetchData]);
 
   const filteredUsers = usersData.filter((user) => {
