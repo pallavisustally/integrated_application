@@ -50,17 +50,31 @@ export const POST = async (request: Request) => {
       data = await request.json()
     }
 
-    const parsePossiblyDoubleEncodedJSON = (value: unknown) => {
+    type JsonValue =
+      | string
+      | number
+      | boolean
+      | null
+      | { [k: string]: unknown }
+      | unknown[]
+
+    const toJsonValue = (value: unknown): JsonValue | null => {
       if (value == null) return null
-      if (typeof value !== 'string') return value
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+      if (Array.isArray(value)) return value
+      if (typeof value === 'object') return value as { [k: string]: unknown }
+      return null
+    }
+
+    const parsePossiblyDoubleEncodedJSON = (value: unknown): JsonValue | null => {
+      if (value == null) return null
+      if (typeof value !== 'string') return toJsonValue(value)
       const trimmed = value.trim()
       if (!trimmed) return null
       try {
         let parsed: unknown = JSON.parse(trimmed)
-        if (typeof parsed === 'string') {
-          parsed = JSON.parse(parsed)
-        }
-        return parsed
+        if (typeof parsed === 'string') parsed = JSON.parse(parsed)
+        return toJsonValue(parsed)
       } catch {
         return null
       }
