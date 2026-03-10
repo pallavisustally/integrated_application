@@ -333,9 +333,6 @@ export default function AssessmentViewPage() {
                 subLabel={data.siteCount === "Multiple sites" ? `(${data.siteCountNumber} sites)` : undefined} />
               <DetailRow label="Reporting Year" value={getFinancialYear(data.reportingYear)} />
               <DetailRow label="Period" value={data.reportingPeriod} />
-              {data.reportingPeriod === 'Quarterly' && (
-                <DetailRow label="Selected Quarter" value={data.selectedQuarter || '-'} />
-              )}
               <DetailRow label="Consolidation Approach" value={data.conditionalApproach} />
               {data.utilityProvider && <DetailRow label="Utility Provider" value={data.utilityProvider} />}
               <DetailRow label="Scope Boundary Notes" value={data.scopeBoundaryNotes || "-"} fullWidth />
@@ -351,10 +348,10 @@ export default function AssessmentViewPage() {
 
               <DetailRow label="Electricity Purchased" value={`${data.electricityPurchased || 0} kWh`} />
               <DetailRow label="Energy Consumption" value={`${data.energyConsumption || 0} GJ`} />
-              <DetailRow label="Data Source Type" value={data.dataSourceType || (data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly" ? "Monthly Breakdown" : "-")} />
+              <DetailRow label="Data Source Type" value={data.dataSourceType || (data.energyActivityInput === "Monthly" ? "Monthly Breakdown" : "-")} />
               {data.trackingType && data.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={data.spendAmount ? `${data.spendAmount} INR` : "-"} />}
 
-              {(data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly") && (
+              {data.energyActivityInput === "Monthly" && (
                 <div className="col-span-1 md:col-span-2 mt-2">
                   <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
                   <MonthlyTable data={data.monthlyData} type="Grid" />
@@ -385,7 +382,7 @@ export default function AssessmentViewPage() {
                   <DetailRow label="Energy Consumption" value={`${data.renewableEnergyConsumption || 0} GJ`} />
                   <DetailRow label="Data Source" value={data.renewableDataSourceType || "-"} />
 
-                  {(data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Quarterly") && (
+                  {data.renewableEnergyActivityInput === "Monthly" && (
                     <div className="col-span-1 md:col-span-2 mt-2">
                       <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Renewable)</p>
                       <MonthlyTable data={data.renewableMonthlyData} type="Renewable" />

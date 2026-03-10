@@ -50,6 +50,22 @@ export const POST = async (request: Request) => {
       data = await request.json()
     }
 
+    const parsePossiblyDoubleEncodedJSON = (value: unknown) => {
+      if (value == null) return null
+      if (typeof value !== 'string') return value
+      const trimmed = value.trim()
+      if (!trimmed) return null
+      try {
+        let parsed: unknown = JSON.parse(trimmed)
+        if (typeof parsed === 'string') {
+          parsed = JSON.parse(parsed)
+        }
+        return parsed
+      } catch {
+        return null
+      }
+    }
+
     // Validate required fields
     if (!data.facilityName) {
       throw new APIError('Facility Name is required', 400)
@@ -98,6 +114,7 @@ export const POST = async (request: Request) => {
       userName: data.userName || '',
       userMobile: data.userMobile || '',
       userCompany: data.userCompany || '',
+      userEmail: data.userEmail || '',
       sector: data.sector || '',
       natureOfBusiness: data.natureOfBusiness || '',
       state: data.state || '',
@@ -117,6 +134,7 @@ export const POST = async (request: Request) => {
       energyCategory: data.energyCategory || '',
       trackingType: data.trackingType || '',
       energyConsumption: data.energyConsumption || '',
+      dataSourceType: data.dataSourceType || '',
       // Assign uploaded Media IDs
       energySupportingEvidenceFile: energyEvidenceId,
       energySupportingEvidenceFileUrl: data.energySupportingEvidenceFileUrl || '',
@@ -125,11 +143,15 @@ export const POST = async (request: Request) => {
       hasRenewableElectricity: data.hasRenewableElectricity || '',
       renewableElectricity: data.renewableElectricity || '',
       renewableEnergyConsumption: data.renewableEnergyConsumption || '',
+      renewableDataSourceType: data.renewableDataSourceType || '',
+      renewableEnergyActivityInput: data.renewableEnergyActivityInput || 'Yearly',
       // Assign uploaded Media IDs
       renewableSupportingEvidenceFile: renewableEvidenceId,
       renewableSupportingEvidenceFileUrl: data.renewableSupportingEvidenceFileUrl || '',
       renewableSupportingEvidenceFileName: data.renewableSupportingEvidenceFileName || '',
       renewableEnergySourceDescription: data.renewableEnergySourceDescription || '',
+      monthlyData: parsePossiblyDoubleEncodedJSON(data.monthlyData),
+      renewableMonthlyData: parsePossiblyDoubleEncodedJSON(data.renewableMonthlyData),
       // Energy inputs for Cost Saving Card (grid consumption / spend)
       electricityPurchased: data.electricityPurchased != null && data.electricityPurchased !== ''
         ? parseFloat(String(data.electricityPurchased))

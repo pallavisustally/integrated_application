@@ -250,9 +250,6 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Site Count" value={data.siteCount} />
                                 <DetailRow label="Reporting Year" value={data.reportingYear ? new Date(data.reportingYear).getFullYear().toString() : '2024'} />
                                 <DetailRow label="Period" value={data.reportingPeriod} />
-                                {data.reportingPeriod === "Quarterly" && (
-                                    <DetailRow label="Selected Quarter" value={data.selectedQuarter || "-"} />
-                                )}
                             </DetailGrid>
                         </ReviewCard>
 
@@ -272,7 +269,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Value Type" value="Gross" />
 
                                 <DetailRow label="Electricity Purchased (kWh)" value={(() => {
-                                    if (data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly") {
+                                    if (data.energyActivityInput === "Monthly") {
                                         const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
                                         const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
                                         return sum > 0 ? sum.toFixed(2) : (data.electricityPurchased || "-");
@@ -280,7 +277,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                     return data.electricityPurchased || "-";
                                 })()} />
                                 <DetailRow label="Energy Consumption (GJ)" value={(() => {
-                                    if (data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly") {
+                                    if (data.energyActivityInput === "Monthly") {
                                         const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
                                         const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
                                         return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.energyConsumption || "-");
@@ -288,9 +285,9 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                     return data.energyConsumption || "-";
                                 })()} />
                                 <DetailRow label="Spend Amount" value={data.spendAmount || "-"} />
-                                <DetailRow label="Data Source Type" value={data.dataSourceType || data.energySourceDescription || (data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly" ? "Monthly Breakdown" : "-")} />
+                                <DetailRow label="Data Source Type" value={data.dataSourceType || data.energySourceDescription || (data.energyActivityInput === "Monthly" ? "Monthly Breakdown" : "-")} />
 
-                                {(data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly") && (
+                                {data.energyActivityInput === "Monthly" && (
                                     <div className="col-span-2 mt-2">
                                         <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
                                         <MonthlyTable data={data.monthlyData} type="Grid" />
@@ -307,7 +304,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 {data.hasRenewableElectricity === "Yes" && (
                                     <>
                                         <DetailRow label="Renewable Electricity (kWh)" value={(() => {
-                                            if (data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Quarterly") {
+                                            if (data.renewableEnergyActivityInput === "Monthly") {
                                                 const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);
                                                 const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
                                                 return sum > 0 ? sum.toFixed(2) : (data.renewableElectricity || "-");
@@ -315,7 +312,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                             return data.renewableElectricity || "-";
                                         })()} />
                                         <DetailRow label="Energy Consumption (GJ)" value={(() => {
-                                            if (data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Quarterly") {
+                                            if (data.renewableEnergyActivityInput === "Monthly") {
                                                 const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);
                                                 const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
                                                 return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.renewableEnergyConsumption || "-");
@@ -324,7 +321,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                         })()} />
                                         <DetailRow label="Renewable Source Description" value={data.renewableEnergySourceDescription || "-"} />
 
-                                        {(data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Quarterly") && (
+                                        {data.renewableEnergyActivityInput === "Monthly" && (
                                             <div className="col-span-2 mt-2">
                                                 <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Renewable)</p>
                                                 <MonthlyTable data={data.renewableMonthlyData} type="Renewable" />

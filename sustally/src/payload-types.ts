@@ -140,12 +140,12 @@ export interface User {
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
-  | {
-    id: string;
-    createdAt?: string | null;
-    expiresAt: string;
-  }[]
-  | null;
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
   password?: string | null;
 }
 /**
@@ -214,12 +214,14 @@ export interface Scope2Application {
   userName?: string | null;
   userMobile?: string | null;
   userCompany?: string | null;
+  userEmail?: string | null;
   email?: string | null;
   sector?: string | null;
   natureOfBusiness?: string | null;
   state: string;
   utilityProvider?: string | null;
   siteCount: string;
+  siteCountNumber?: string | null;
   facilityName: string;
   energyIntensityPerRupee?: string | null;
   status: 'PENDING' | 'IN_PROGRESS' | 'APPROVED' | 'REJECTED';
@@ -232,7 +234,7 @@ export interface Scope2Application {
   onsiteExportedKwh?: string | null;
   netMeteringApplicable: 'Yes' | 'No';
   reportingYear: string;
-  reportingPeriod: 'Monthly' | 'Quarterly' | 'Annually';
+  reportingPeriod: 'Monthly' | 'Annually';
   conditionalApproach: 'Operational Control' | 'Equity Share' | 'Financial Control';
   scopeBoundaryNotes?: string | null;
   energyActivityInput: 'Monthly' | 'Yearly';
@@ -241,6 +243,7 @@ export interface Scope2Application {
   spendAmount?: number | null;
   electricityPurchased?: number | null;
   energyConsumption?: string | null;
+  dataSourceType?: string | null;
   /**
    * Supporting evidence uploaded by the user. View the image/file in the admin panel.
    */
@@ -253,6 +256,7 @@ export interface Scope2Application {
   energySourceDescription?: string | null;
   hasRenewableElectricity: 'Yes' | 'No';
   renewableElectricity?: string | null;
+  renewableDataSourceType?: string | null;
   renewableEnergyConsumption?: string | null;
   /**
    * Supporting evidence for renewable electricity. View the image/file in the admin panel.
@@ -264,34 +268,31 @@ export interface Scope2Application {
   renewableSupportingEvidenceFileUrl?: string | null;
   renewableSupportingEvidenceFileName?: string | null;
   renewableEnergySourceDescription?: string | null;
-  renewableEnergyActivityInput?: ('Monthly' | 'Yearly') | null;
-  selectedQuarter?: string | null;
-  monthlyData?:
-  | {
-    [k: string]: unknown;
-  }
-  | unknown[]
-  | string
-  | number
-  | boolean
-  | null;
-  renewableMonthlyData?:
-  | {
-    [k: string]: unknown;
-  }
-  | unknown[]
-  | string
-  | number
-  | boolean
-  | null;
-  dataSourceType?: string | null;
-  renewableDataSourceType?: string | null;
   gridEmissionFactor?: number | null;
   locationBasedEmissions?: number | null;
   marketBasedEmissions?: number | null;
   energyGrid_kJ?: number | null;
   energyRenew_kJ?: number | null;
   energyTotal_kJ?: number | null;
+  renewableEnergyActivityInput?: ('Monthly' | 'Yearly') | null;
+  monthlyData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  renewableMonthlyData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   otp?: string | null;
   otpExpiresAt?: string | null;
   updatedAt: string;
@@ -353,14 +354,14 @@ export interface PayloadKv {
   id: string;
   key: string;
   data:
-  | {
-    [k: string]: unknown;
-  }
-  | unknown[]
-  | string
-  | number
-  | boolean
-  | null;
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -369,30 +370,30 @@ export interface PayloadKv {
 export interface PayloadLockedDocument {
   id: string;
   document?:
-  | ({
-    relationTo: 'users';
-    value: string | User;
-  } | null)
-  | ({
-    relationTo: 'media';
-    value: string | Media;
-  } | null)
-  | ({
-    relationTo: 'applications';
-    value: string | Application;
-  } | null)
-  | ({
-    relationTo: 'scope2-applications';
-    value: string | Scope2Application;
-  } | null)
-  | ({
-    relationTo: 'slot-bookings';
-    value: string | SlotBooking;
-  } | null)
-  | ({
-    relationTo: 'feedback';
-    value: string | Feedback;
-  } | null);
+    | ({
+        relationTo: 'users';
+        value: string | User;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'applications';
+        value: string | Application;
+      } | null)
+    | ({
+        relationTo: 'scope2-applications';
+        value: string | Scope2Application;
+      } | null)
+    | ({
+        relationTo: 'slot-bookings';
+        value: string | SlotBooking;
+      } | null)
+    | ({
+        relationTo: 'feedback';
+        value: string | Feedback;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
@@ -413,14 +414,14 @@ export interface PayloadPreference {
   };
   key?: string | null;
   value?:
-  | {
-    [k: string]: unknown;
-  }
-  | unknown[]
-  | string
-  | number
-  | boolean
-  | null;
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -450,12 +451,12 @@ export interface UsersSelect<T extends boolean = true> {
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
-  | T
-  | {
-    id?: T;
-    createdAt?: T;
-    expiresAt?: T;
-  };
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -475,29 +476,29 @@ export interface MediaSelect<T extends boolean = true> {
   focalX?: T;
   focalY?: T;
   sizes?:
-  | T
-  | {
-    thumbnail?:
     | T
     | {
-      url?: T;
-      width?: T;
-      height?: T;
-      mimeType?: T;
-      filesize?: T;
-      filename?: T;
-    };
-    card?:
-    | T
-    | {
-      url?: T;
-      width?: T;
-      height?: T;
-      mimeType?: T;
-      filesize?: T;
-      filename?: T;
-    };
-  };
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -526,12 +527,14 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   userName?: T;
   userMobile?: T;
   userCompany?: T;
+  userEmail?: T;
   email?: T;
   sector?: T;
   natureOfBusiness?: T;
   state?: T;
   utilityProvider?: T;
   siteCount?: T;
+  siteCountNumber?: T;
   facilityName?: T;
   energyIntensityPerRupee?: T;
   status?: T;
@@ -550,29 +553,28 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   spendAmount?: T;
   electricityPurchased?: T;
   energyConsumption?: T;
+  dataSourceType?: T;
   energySupportingEvidenceFile?: T;
   energySupportingEvidenceFileUrl?: T;
   energySupportingEvidenceFileName?: T;
   energySourceDescription?: T;
   hasRenewableElectricity?: T;
   renewableElectricity?: T;
+  renewableDataSourceType?: T;
   renewableEnergyConsumption?: T;
   renewableSupportingEvidenceFile?: T;
   renewableSupportingEvidenceFileUrl?: T;
   renewableSupportingEvidenceFileName?: T;
   renewableEnergySourceDescription?: T;
-  renewableEnergyActivityInput?: T;
-  selectedQuarter?: T;
-  monthlyData?: T;
-  renewableMonthlyData?: T;
-  dataSourceType?: T;
-  renewableDataSourceType?: T;
   gridEmissionFactor?: T;
   locationBasedEmissions?: T;
   marketBasedEmissions?: T;
   energyGrid_kJ?: T;
   energyRenew_kJ?: T;
   energyTotal_kJ?: T;
+  renewableEnergyActivityInput?: T;
+  monthlyData?: T;
+  renewableMonthlyData?: T;
   otp?: T;
   otpExpiresAt?: T;
   updatedAt?: T;
@@ -662,5 +664,5 @@ export interface Auth {
 
 
 declare module 'payload' {
-  export interface GeneratedTypes extends Config { }
+  export interface GeneratedTypes extends Config {}
 }

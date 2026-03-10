@@ -610,7 +610,6 @@ function CertificateContent() {
                   const items = typeof list === 'string' ? JSON.parse(list) : (list || []);
                   const filledCount = items.filter((row: any) => (row.electricityPurchased && String(row.electricityPurchased).trim()) || (row.spend && String(row.spend).trim())).length;
                   if (data.reportingPeriod === "Annually" || data.reportingPeriod === "Yearly") return filledCount < 12;
-                  if (data.reportingPeriod === "Quarterly") return filledCount < 3;
                   return false;
                 };
 

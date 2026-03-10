@@ -270,7 +270,6 @@ const Scope2Applications: CollectionConfig = {
       type: "select",
       options: [
         { label: "Monthly", value: "Monthly" },
-        { label: "Quarterly", value: "Quarterly" },
         { label: "Annually", value: "Annually" },
       ],
       required: true,
@@ -297,7 +296,6 @@ const Scope2Applications: CollectionConfig = {
       type: "select",
       options: [
         { label: "Monthly", value: "Monthly" },
-        { label: "Quarterly", value: "Quarterly" },
         { label: "Yearly", value: "Yearly" },
       ],
       required: true,
@@ -447,14 +445,9 @@ const Scope2Applications: CollectionConfig = {
       type: "select",
       options: [
         { label: "Monthly", value: "Monthly" },
-        { label: "Quarterly", value: "Quarterly" },
         { label: "Yearly", value: "Yearly" },
       ],
       defaultValue: "Yearly",
-    },
-    {
-      name: "selectedQuarter",
-      type: "text",
     },
     {
       name: "monthlyData",
@@ -636,11 +629,10 @@ const Scope2Applications: CollectionConfig = {
               energyGrid_kJ: application.energyGrid_kJ,
               energyRenew_kJ: application.energyRenew_kJ,
               energyTotal_kJ: application.energyTotal_kJ,
-              // Additional fields for monthly data and quarterly selections
+              // Additional fields for monthly data
               monthlyData: application.monthlyData,
               renewableMonthlyData: application.renewableMonthlyData,
               renewableEnergyActivityInput: application.renewableEnergyActivityInput,
-              selectedQuarter: application.selectedQuarter,
               dataSourceType: application.dataSourceType,
               renewableDataSourceType: application.renewableDataSourceType,
               // Added for Cost Saving Card

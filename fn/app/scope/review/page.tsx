@@ -363,9 +363,6 @@ function ScopeReviewContent() {
                 subLabel={formData.siteCount === "Multiple sites" ? `(${formData.siteCountNumber} sites)` : undefined} />
               <DetailRow label="Reporting Year" value={getFinancialYear(formData.reportingYear)} />
               <DetailRow label="Period" value={formData.reportingPeriod} />
-              {formData.reportingPeriod === "Quarterly" && (
-                <DetailRow label="Selected Quarter" value={formData.selectedQuarter || "-"} />
-              )}
               <DetailRow label="Consolidation Approach" value={formData.conditionalApproach} />
               {formData.utilityProvider && <DetailRow label="Utility Provider" value={formData.utilityProvider} />}
               <DetailRow label="Scope Boundary Notes" value={formData.scopeBoundaryNotes || "-"} fullWidth />
@@ -381,10 +378,10 @@ function ScopeReviewContent() {
 
               <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
               <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
-              <DetailRow label="Data Source Type" value={formData.dataSourceType || (formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly" ? "Monthly Breakdown" : "-")} />
+              <DetailRow label="Data Source Type" value={formData.dataSourceType || (formData.energyActivityInput === "Monthly" ? "Monthly Breakdown" : "-")} />
               {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount ? `${formData.spendAmount} INR` : "-"} />}
 
-              {(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && (
+              {formData.energyActivityInput === "Monthly" && (
                 <div className="col-span-1 md:col-span-2 mt-2">
                   <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
                   <MonthlyTable data={formData.monthlyData} type="Grid" />
@@ -416,7 +413,7 @@ function ScopeReviewContent() {
                   <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
                   <DetailRow label="Data Source" value={formData.renewableDataSourceType || "-"} />
 
-                  {(formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly") && (
+                  {(formData.renewableEnergyActivityInput === "Monthly") && (
                     <div className="col-span-1 md:col-span-2 mt-2">
                       <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Renewable)</p>
                       <MonthlyTable data={formData.renewableMonthlyData} type="Renewable" />
