@@ -140,12 +140,12 @@ export interface User {
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
+  | {
+    id: string;
+    createdAt?: string | null;
+    expiresAt: string;
+  }[]
+  | null;
   password?: string | null;
 }
 /**
@@ -264,6 +264,28 @@ export interface Scope2Application {
   renewableSupportingEvidenceFileUrl?: string | null;
   renewableSupportingEvidenceFileName?: string | null;
   renewableEnergySourceDescription?: string | null;
+  renewableEnergyActivityInput?: ('Monthly' | 'Yearly') | null;
+  selectedQuarter?: string | null;
+  monthlyData?:
+  | {
+    [k: string]: unknown;
+  }
+  | unknown[]
+  | string
+  | number
+  | boolean
+  | null;
+  renewableMonthlyData?:
+  | {
+    [k: string]: unknown;
+  }
+  | unknown[]
+  | string
+  | number
+  | boolean
+  | null;
+  dataSourceType?: string | null;
+  renewableDataSourceType?: string | null;
   gridEmissionFactor?: number | null;
   locationBasedEmissions?: number | null;
   marketBasedEmissions?: number | null;
@@ -331,14 +353,14 @@ export interface PayloadKv {
   id: string;
   key: string;
   data:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  | {
+    [k: string]: unknown;
+  }
+  | unknown[]
+  | string
+  | number
+  | boolean
+  | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -347,30 +369,30 @@ export interface PayloadKv {
 export interface PayloadLockedDocument {
   id: string;
   document?:
-    | ({
-        relationTo: 'users';
-        value: string | User;
-      } | null)
-    | ({
-        relationTo: 'media';
-        value: string | Media;
-      } | null)
-    | ({
-        relationTo: 'applications';
-        value: string | Application;
-      } | null)
-    | ({
-        relationTo: 'scope2-applications';
-        value: string | Scope2Application;
-      } | null)
-    | ({
-        relationTo: 'slot-bookings';
-        value: string | SlotBooking;
-      } | null)
-    | ({
-        relationTo: 'feedback';
-        value: string | Feedback;
-      } | null);
+  | ({
+    relationTo: 'users';
+    value: string | User;
+  } | null)
+  | ({
+    relationTo: 'media';
+    value: string | Media;
+  } | null)
+  | ({
+    relationTo: 'applications';
+    value: string | Application;
+  } | null)
+  | ({
+    relationTo: 'scope2-applications';
+    value: string | Scope2Application;
+  } | null)
+  | ({
+    relationTo: 'slot-bookings';
+    value: string | SlotBooking;
+  } | null)
+  | ({
+    relationTo: 'feedback';
+    value: string | Feedback;
+  } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
@@ -391,14 +413,14 @@ export interface PayloadPreference {
   };
   key?: string | null;
   value?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  | {
+    [k: string]: unknown;
+  }
+  | unknown[]
+  | string
+  | number
+  | boolean
+  | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -428,12 +450,12 @@ export interface UsersSelect<T extends boolean = true> {
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
+  | T
+  | {
+    id?: T;
+    createdAt?: T;
+    expiresAt?: T;
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -453,29 +475,29 @@ export interface MediaSelect<T extends boolean = true> {
   focalX?: T;
   focalY?: T;
   sizes?:
+  | T
+  | {
+    thumbnail?:
     | T
     | {
-        thumbnail?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        card?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-      };
+      url?: T;
+      width?: T;
+      height?: T;
+      mimeType?: T;
+      filesize?: T;
+      filename?: T;
+    };
+    card?:
+    | T
+    | {
+      url?: T;
+      width?: T;
+      height?: T;
+      mimeType?: T;
+      filesize?: T;
+      filename?: T;
+    };
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -539,6 +561,12 @@ export interface Scope2ApplicationsSelect<T extends boolean = true> {
   renewableSupportingEvidenceFileUrl?: T;
   renewableSupportingEvidenceFileName?: T;
   renewableEnergySourceDescription?: T;
+  renewableEnergyActivityInput?: T;
+  selectedQuarter?: T;
+  monthlyData?: T;
+  renewableMonthlyData?: T;
+  dataSourceType?: T;
+  renewableDataSourceType?: T;
   gridEmissionFactor?: T;
   locationBasedEmissions?: T;
   marketBasedEmissions?: T;
@@ -634,5 +662,5 @@ export interface Auth {
 
 
 declare module 'payload' {
-  export interface GeneratedTypes extends Config {}
+  export interface GeneratedTypes extends Config { }
 }
