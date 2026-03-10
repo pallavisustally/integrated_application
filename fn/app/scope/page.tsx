@@ -1789,8 +1789,8 @@ function TemplateContent() {
                                 const updates: any = {
                                   ...prev,
                                   selectedQuarter: q.id as any,
-                                  energyActivityInput: "Yearly",
-                                  renewableEnergyActivityInput: "Yearly"
+                                  energyActivityInput: "Monthly",
+                                  renewableEnergyActivityInput: "Monthly"
                                 };
                                 updates.monthlyData = generateMonthsForQuarter(prev.reportingYear, q.id);
                                 if (prev.hasRenewableElectricity === "Yes") {

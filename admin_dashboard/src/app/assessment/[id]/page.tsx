@@ -113,14 +113,20 @@ const DetailGrid = ({ children }: { children: React.ReactNode }) => (
 // Helper for Monthly Table
 const MonthlyTable = ({ data, type }: { data: any; type: 'Grid' | 'Renewable' }) => {
   const parsedData = useMemo(() => {
+    if (!data) return [];
+    let items = data;
     if (typeof data === 'string') {
       try {
-        return JSON.parse(data);
+        items = JSON.parse(data);
+        // Handle double-stringification if it happens
+        if (typeof items === 'string') {
+          items = JSON.parse(items);
+        }
       } catch (e) {
         return [];
       }
     }
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(items) ? items : [];
   }, [data]);
 
   if (!parsedData || parsedData.length === 0) {
@@ -342,9 +348,23 @@ export default function AssessmentViewPage() {
               <DetailRow label="Energy Category" value={data.energyCategory} />
               <DetailRow label="Tracking Type" value={data.trackingType} />
               <DetailRow label="Data Source Type" value={data.dataSourceType || (data.energyActivityInput === 'Monthly' || data.energyActivityInput === 'Quarterly' ? 'Monthly Breakdown' : '-')} />
-              <DetailRow label="Total Electricity Purchased (kWh)" value={data.electricityPurchased != null ? String(data.electricityPurchased) : '-'} />
+              <DetailRow label="Total Electricity Purchased (kWh)" value={(() => {
+                if (data.energyActivityInput === 'Monthly' || data.energyActivityInput === 'Quarterly') {
+                  const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
+                  const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                  return sum > 0 ? sum.toFixed(2) : (data.electricityPurchased || "-");
+                }
+                return data.electricityPurchased || "-";
+              })()} />
               <DetailRow label="Total Spend Amount (₹)" value={data.spendAmount != null ? String(data.spendAmount) : '-'} />
-              <DetailRow label="Total Energy Consumption (GJ)" value={data.energyConsumption} />
+              <DetailRow label="Total Energy Consumption (GJ)" value={(() => {
+                if (data.energyActivityInput === 'Monthly' || data.energyActivityInput === 'Quarterly') {
+                  const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
+                  const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                  return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.energyConsumption || "-");
+                }
+                return data.energyConsumption || "-";
+              })()} />
 
               {(data.energyActivityInput === 'Monthly' || data.energyActivityInput === 'Quarterly' || data.reportingPeriod === 'Monthly' || data.reportingPeriod === 'Quarterly') && (
                 <div className="col-span-1 md:col-span-2 mt-2">
@@ -365,8 +385,22 @@ export default function AssessmentViewPage() {
               {data.hasRenewableElectricity === 'Yes' && (
                 <>
                   <DetailRow label="Input Type" value={data.renewableEnergyActivityInput || 'Yearly'} />
-                  <DetailRow label="Total Renewable Electricity (kWh)" value={data.renewableElectricity} />
-                  <DetailRow label="Total Renewable Consumption (GJ)" value={data.renewableEnergyConsumption} />
+                  <DetailRow label="Total Renewable Electricity (kWh)" value={(() => {
+                    if (data.renewableEnergyActivityInput === 'Monthly' || data.renewableEnergyActivityInput === 'Quarterly') {
+                      const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);
+                      const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                      return sum > 0 ? sum.toFixed(2) : (data.renewableElectricity || "-");
+                    }
+                    return data.renewableElectricity || "-";
+                  })()} />
+                  <DetailRow label="Total Renewable Consumption (GJ)" value={(() => {
+                    if (data.renewableEnergyActivityInput === 'Monthly' || data.renewableEnergyActivityInput === 'Quarterly') {
+                      const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);
+                      const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                      return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.renewableEnergyConsumption || "-");
+                    }
+                    return data.renewableEnergyConsumption || "-";
+                  })()} />
 
                   {(data.renewableEnergyActivityInput === 'Monthly' || data.renewableEnergyActivityInput === 'Quarterly') && (
                     <div className="col-span-1 md:col-span-2 mt-2">

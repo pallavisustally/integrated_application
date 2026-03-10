@@ -271,8 +271,22 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Category" value={data.energyCategory || "-"} />
                                 <DetailRow label="Value Type" value="Gross" />
 
-                                <DetailRow label="Electricity Purchased (kWh)" value={data.electricityPurchased || "-"} />
-                                <DetailRow label="Energy Consumption (GJ)" value={data.energyConsumption || "-"} />
+                                <DetailRow label="Electricity Purchased (kWh)" value={(() => {
+                                    if (data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly") {
+                                        const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
+                                        const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                                        return sum > 0 ? sum.toFixed(2) : (data.electricityPurchased || "-");
+                                    }
+                                    return data.electricityPurchased || "-";
+                                })()} />
+                                <DetailRow label="Energy Consumption (GJ)" value={(() => {
+                                    if (data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly") {
+                                        const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
+                                        const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                                        return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.energyConsumption || "-");
+                                    }
+                                    return data.energyConsumption || "-";
+                                })()} />
                                 <DetailRow label="Spend Amount" value={data.spendAmount || "-"} />
                                 <DetailRow label="Data Source Type" value={data.dataSourceType || data.energySourceDescription || (data.energyActivityInput === "Monthly" || data.energyActivityInput === "Quarterly" ? "Monthly Breakdown" : "-")} />
 
@@ -292,8 +306,22 @@ export default function ReviewClient({ submission }: { submission: any }) {
 
                                 {data.hasRenewableElectricity === "Yes" && (
                                     <>
-                                        <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity || "-"} />
-                                        <DetailRow label="Energy Consumption (GJ)" value={data.renewableEnergyConsumption || "-"} />
+                                        <DetailRow label="Renewable Electricity (kWh)" value={(() => {
+                                            if (data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Quarterly") {
+                                                const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);
+                                                const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                                                return sum > 0 ? sum.toFixed(2) : (data.renewableElectricity || "-");
+                                            }
+                                            return data.renewableElectricity || "-";
+                                        })()} />
+                                        <DetailRow label="Energy Consumption (GJ)" value={(() => {
+                                            if (data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Quarterly") {
+                                                const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);
+                                                const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                                                return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.renewableEnergyConsumption || "-");
+                                            }
+                                            return data.renewableEnergyConsumption || "-";
+                                        })()} />
                                         <DetailRow label="Renewable Source Description" value={data.renewableEnergySourceDescription || "-"} />
 
                                         {(data.renewableEnergyActivityInput === "Monthly" || data.renewableEnergyActivityInput === "Quarterly") && (
