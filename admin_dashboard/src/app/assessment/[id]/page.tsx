@@ -121,7 +121,7 @@ const MonthlyTable = ({ data, type }: { data: any; type: "Grid" | "Renewable" })
 
   return (
     <div className="overflow-x-auto mt-2 border rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200 table-auto text-[10px]">
+      <table className="min-w-full divide-y divide-gray-200 table-auto text-xs">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
@@ -311,7 +311,7 @@ export default function AssessmentViewPage() {
             <DetailGrid>
               <DetailRow label="Name" value={data.userName || data.name || (slotBooking?.name)} />
               <DetailRow label="Company" value={data.userCompany || data.company || (slotBooking?.company)} />
-              <DetailRow label="Email" value={data.email || (slotBooking?.email)} />
+              <DetailRow label="Email" value={data.userEmail || data.email || (slotBooking?.email)} />
               <DetailRow label="Mobile" value={data.userMobile || (slotBooking?.mobile) || "-"} />
               <DetailRow label="Sector" value={data.sector || (slotBooking?.sector) || "NA"} />
               <DetailRow label="Nature Of Business" value={data.natureOfBusiness || (slotBooking?.natureOfBusiness) || "NA"} />

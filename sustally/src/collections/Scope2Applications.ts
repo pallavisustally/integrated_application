@@ -159,6 +159,10 @@ const Scope2Applications: CollectionConfig = {
       type: "text",
     },
     {
+      name: "userEmail",
+      type: "email",
+    },
+    {
       name: "email",
       type: "email",
       admin: {
@@ -189,6 +193,10 @@ const Scope2Applications: CollectionConfig = {
       name: "siteCount",
       type: "text",
       required: true,
+    },
+    {
+      name: "siteCountNumber",
+      type: "text",
     },
     {
       name: "facilityName",
@@ -289,6 +297,7 @@ const Scope2Applications: CollectionConfig = {
       type: "select",
       options: [
         { label: "Monthly", value: "Monthly" },
+        { label: "Quarterly", value: "Quarterly" },
         { label: "Yearly", value: "Yearly" },
       ],
       required: true,
@@ -438,6 +447,7 @@ const Scope2Applications: CollectionConfig = {
       type: "select",
       options: [
         { label: "Monthly", value: "Monthly" },
+        { label: "Quarterly", value: "Quarterly" },
         { label: "Yearly", value: "Yearly" },
       ],
       defaultValue: "Yearly",
