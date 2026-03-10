@@ -121,7 +121,7 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
           {data.map((row, idx) => (
             <tr key={idx} className="hover:bg-gray-50">
               <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">
-                {row.month ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: '2-digit' }) : "-"}
+                {row.month ? (row.month.includes('-') && row.month.split('-').length === 2 ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: '2-digit' }) : row.month) : "-"}
               </td>
               <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
               <td className="px-3 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
@@ -363,6 +363,9 @@ function ScopeReviewContent() {
                 subLabel={formData.siteCount === "Multiple sites" ? `(${formData.siteCountNumber} sites)` : undefined} />
               <DetailRow label="Reporting Year" value={getFinancialYear(formData.reportingYear)} />
               <DetailRow label="Period" value={formData.reportingPeriod} />
+              {formData.reportingPeriod === "Quarterly" && (
+                <DetailRow label="Selected Quarter" value={formData.selectedQuarter || "-"} />
+              )}
               <DetailRow label="Consolidation Approach" value={formData.conditionalApproach} />
               {formData.utilityProvider && <DetailRow label="Utility Provider" value={formData.utilityProvider} />}
               <DetailRow label="Scope Boundary Notes" value={formData.scopeBoundaryNotes || "-"} fullWidth />
@@ -376,16 +379,14 @@ function ScopeReviewContent() {
               <DetailRow label="Category" value={formData.energyCategory} />
               <DetailRow label="Tracking Type" value={formData.trackingType} />
 
-              {formData.energyActivityInput === "Yearly" ? (
-                <>
-                  <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
-                  <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
-                  <DetailRow label="Data Source Type" value={formData.dataSourceType} />
-                  {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount ? `${formData.spendAmount} INR` : "-"} />}
-                </>
-              ) : (
-                <div className="col-span-1 md:col-span-2">
-                  <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2">Monthly Breakdown (Grid)</p>
+              <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
+              <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
+              <DetailRow label="Data Source Type" value={formData.dataSourceType || (formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly" ? "Monthly Breakdown" : "-")} />
+              {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount ? `${formData.spendAmount} INR` : "-"} />}
+
+              {(formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly") && (
+                <div className="col-span-1 md:col-span-2 mt-2">
+                  <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
                   <MonthlyTable data={formData.monthlyData} type="Grid" />
                 </div>
               )}
@@ -411,19 +412,17 @@ function ScopeReviewContent() {
               {formData.hasRenewableElectricity === "Yes" && (
                 <>
                   <DetailRow label="Input Type" value={formData.renewableEnergyActivityInput || "Yearly"} />
+                  <DetailRow label="Renewable Electricity" value={`${formData.renewableElectricity} kWh`} />
+                  <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
+                  <DetailRow label="Data Source" value={formData.renewableDataSourceType || "-"} />
 
-                  {formData.renewableEnergyActivityInput === "Monthly" ? (
-                    <div className="col-span-1 md:col-span-2">
-                      <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2">Monthly Breakdown (Renewable)</p>
+                  {(formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly") && (
+                    <div className="col-span-1 md:col-span-2 mt-2">
+                      <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Renewable)</p>
                       <MonthlyTable data={formData.renewableMonthlyData} type="Renewable" />
                     </div>
-                  ) : (
-                    <>
-                      <DetailRow label="Renewable Electricity" value={`${formData.renewableElectricity} kWh`} />
-                      <DetailRow label="Data Source" value={formData.renewableDataSourceType || "-"} />
-                      <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
-                    </>
                   )}
+
                   <DetailRow label="Evidence File" value={formData.renewableSupportingEvidenceFile || "No file uploaded"} fullWidth />
                   <DetailRow label="Energy Source Description" value={formData.renewableEnergySourceDescription || "-"} fullWidth />
                 </>

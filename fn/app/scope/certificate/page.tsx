@@ -139,6 +139,7 @@ function CertificateContent() {
         energyActivityInput: parsedData.energyActivityInput || "Yearly",
         renewableEnergyActivityInput: parsedData.renewableEnergyActivityInput || "Yearly",
         monthlyData: parsedData.monthlyData || [],
+        renewableMonthlyData: parsedData.renewableMonthlyData || [],
       });
     } catch (e) {
       console.error("Failed to parse session data", e);
@@ -600,13 +601,33 @@ function CertificateContent() {
               })()}
             </div>
             <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
+              {(() => {
+                const isMonthly = data.energyActivityInput === "Monthly" || (data.hasRenewableElectricity === "Yes" && data.renewableEnergyActivityInput === "Monthly");
+                if (!isMonthly) return null;
+
+                const checkIncomplete = (input: string, list: any) => {
+                  if (input !== "Monthly") return false;
+                  const items = typeof list === 'string' ? JSON.parse(list) : (list || []);
+                  const filledCount = items.filter((row: any) => (row.electricityPurchased && String(row.electricityPurchased).trim()) || (row.spend && String(row.spend).trim())).length;
+                  if (data.reportingPeriod === "Annually" || data.reportingPeriod === "Yearly") return filledCount < 12;
+                  if (data.reportingPeriod === "Quarterly") return filledCount < 3;
+                  return false;
+                };
+
+                const isIncomplete = checkIncomplete(data.energyActivityInput, data.monthlyData) ||
+                  (data.hasRenewableElectricity === "Yes" && checkIncomplete(data.renewableEnergyActivityInput, data.renewableMonthlyData));
+
+                if (isIncomplete) {
+                  return (
+                    <span className="block mb-1">
+                      Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period.
+                    </span>
+                  );
+                }
+                return null;
+              })()}
               <span className="font-semibold">Disclaimer: </span>
               The suggested sector recommendations are indicative in nature and are derived from sustainability initiatives disclosed by comparable companies in their BRSR reports. These suggestions are intended for general guidance and should be evaluated based on the organization&apos;s specific operational context, resources, and strategic priorities.
-              {(data.energyActivityInput === "Monthly" ||
-                (data.hasRenewableElectricity === "Yes" &&
-                  data.renewableEnergyActivityInput === "Monthly")) && (
-                  " Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period."
-                )}
             </p>
           </div>
 

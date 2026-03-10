@@ -65,8 +65,9 @@ export default function FeedbackPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSkip = () => {
-        // Just go to dashboard without clearing session storage, so no OTP is asked for
-        router.push("/scope/certificate");
+        // Clear session storage and redirect to home (slot booking)
+        sessionStorage.clear();
+        router.push("/");
     };
 
     const handleSubmit = async () => {

@@ -128,14 +128,14 @@ const MonthlyTable = ({ data, type }: { data: any; type: 'Grid' | 'Renewable' })
   }
 
   return (
-    <div className="overflow-x-auto mt-2 border rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200 table-auto text-xs">
+    <div className="overflow-x-auto mt-2 border rounded-lg w-full">
+      <table className="min-w-full divide-y divide-gray-200 table-auto text-[10px]">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Month</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Electricity (kWh)</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Consumption (GJ)</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
+            <th className="px-2 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Month</th>
+            <th className="px-2 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Electricity (kWh)</th>
+            <th className="px-2 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Consumption (GJ)</th>
+            <th className="px-2 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
               {type === 'Grid' ? 'Spend / Source' : 'Source'}
             </th>
           </tr>
@@ -143,12 +143,12 @@ const MonthlyTable = ({ data, type }: { data: any; type: 'Grid' | 'Renewable' })
         <tbody className="bg-white divide-y divide-gray-200">
           {parsedData.map((row: any, idx: number) => (
             <tr key={idx} className="hover:bg-gray-50">
-              <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">
-                {row.month ? new Date(row.month + '-01').toLocaleDateString('default', { month: 'short', year: '2-digit' }) : '-'}
+              <td className="px-2 py-2 font-medium text-gray-900 whitespace-nowrap">
+                {row.month ? (row.month.includes('-') && row.month.split('-').length === 2 ? new Date(row.month + '-01').toLocaleDateString('default', { month: 'short', year: '2-digit' }) : row.month) : '-'}
               </td>
-              <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || '-'}</td>
-              <td className="px-3 py-2 text-gray-700">{row.energyConsumption || '-'}</td>
-              <td className="px-3 py-2 text-gray-700">
+              <td className="px-2 py-2 text-gray-700">{row.electricityPurchased || '-'}</td>
+              <td className="px-2 py-2 text-gray-700">{row.energyConsumption || '-'}</td>
+              <td className="px-2 py-2 text-gray-700">
                 {type === 'Grid' ? (row.dataSourceType || row.spend || '-') : (row.dataSourceType || '-')}
               </td>
             </tr>
@@ -320,6 +320,9 @@ export default function AssessmentViewPage() {
               <DetailRow label="Site Count" value={data.siteCount} />
               <DetailRow label="Reporting Year" value={data.reportingYear ? new Date(data.reportingYear).toLocaleDateString('default', { year: 'numeric' }) : '-'} />
               <DetailRow label="Reporting Period" value={data.reportingPeriod} />
+              {data.reportingPeriod === 'Quarterly' && (
+                <DetailRow label="Selected Quarter" value={data.selectedQuarter || '-'} />
+              )}
               <DetailRow label="Consolidation Approach" value={data.conditionalApproach} />
               <DetailRow label="Scope Boundary Notes" value={data.scopeBoundaryNotes} />
             </DetailGrid>
@@ -338,17 +341,14 @@ export default function AssessmentViewPage() {
               <DetailRow label="Energy Activity Input" value={data.energyActivityInput} />
               <DetailRow label="Energy Category" value={data.energyCategory} />
               <DetailRow label="Tracking Type" value={data.trackingType} />
+              <DetailRow label="Data Source Type" value={data.dataSourceType || (data.energyActivityInput === 'Monthly' || data.energyActivityInput === 'Quarterly' ? 'Monthly Breakdown' : '-')} />
+              <DetailRow label="Total Electricity Purchased (kWh)" value={data.electricityPurchased != null ? String(data.electricityPurchased) : '-'} />
+              <DetailRow label="Total Spend Amount (₹)" value={data.spendAmount != null ? String(data.spendAmount) : '-'} />
+              <DetailRow label="Total Energy Consumption (GJ)" value={data.energyConsumption} />
 
-              {data.energyActivityInput === 'Yearly' ? (
-                <>
-                  <DetailRow label="Data Source Type" value={data.dataSourceType} />
-                  <DetailRow label="Electricity Purchased (kWh)" value={data.electricityPurchased != null ? String(data.electricityPurchased) : '-'} />
-                  <DetailRow label="Spend Amount (₹)" value={data.spendAmount != null ? String(data.spendAmount) : '-'} />
-                  <DetailRow label="Energy Consumption (GJ)" value={data.energyConsumption} />
-                </>
-              ) : (
-                <div className="col-span-1 md:col-span-2">
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Grid)</p>
+              {(data.energyActivityInput === 'Monthly' || data.energyActivityInput === 'Quarterly' || data.reportingPeriod === 'Monthly' || data.reportingPeriod === 'Quarterly') && (
+                <div className="col-span-1 md:col-span-2 mt-2">
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
                   <MonthlyTable data={data.monthlyData} type="Grid" />
                 </div>
               )}
@@ -365,17 +365,14 @@ export default function AssessmentViewPage() {
               {data.hasRenewableElectricity === 'Yes' && (
                 <>
                   <DetailRow label="Input Type" value={data.renewableEnergyActivityInput || 'Yearly'} />
+                  <DetailRow label="Total Renewable Electricity (kWh)" value={data.renewableElectricity} />
+                  <DetailRow label="Total Renewable Consumption (GJ)" value={data.renewableEnergyConsumption} />
 
-                  {data.renewableEnergyActivityInput === 'Monthly' || data.renewableEnergyActivityInput === 'Quarterly' ? (
-                    <div className="col-span-1 md:col-span-2">
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Monthly Breakdown (Renewable)</p>
+                  {(data.renewableEnergyActivityInput === 'Monthly' || data.renewableEnergyActivityInput === 'Quarterly') && (
+                    <div className="col-span-1 md:col-span-2 mt-2">
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Renewable)</p>
                       <MonthlyTable data={data.renewableMonthlyData} type="Renewable" />
                     </div>
-                  ) : (
-                    <>
-                      <DetailRow label="Renewable Electricity (kWh)" value={data.renewableElectricity} />
-                      <DetailRow label="Renewable Consumption (GJ)" value={data.renewableEnergyConsumption} />
-                    </>
                   )}
                   <DetailRow label="Renewable Source Description" value={data.renewableEnergySourceDescription} />
                 </>

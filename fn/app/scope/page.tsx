@@ -699,9 +699,13 @@ function TemplateContent() {
       let currentRenew = updates.renewableElectricity !== undefined ? updates.renewableElectricity : prev.renewableElectricity;
 
       const results = calculateScope2(currentElec, currentRenew, prev.reportingYear);
-
       return { ...prev, ...updates, ...results } as FormDataType;
     });
+
+    // Clear error for the field being edited
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleStateChange = (value: string) => {
@@ -713,6 +717,11 @@ function TemplateContent() {
       }
       return { ...prev, ...updates };
     });
+
+    // Clear error for state
+    if (errors.state) {
+      setErrors((prev) => ({ ...prev, state: "" }));
+    }
   };
 
   const handleFileUpload = (
@@ -784,7 +793,7 @@ function TemplateContent() {
         newErrors.facilityName = "Facility Name is required";
         missingFields.push("Facility Name");
       } else if (/\d/.test(formData.facilityName)) {
-        newErrors.facilityName = "Please enter a valid string (no numbers)";
+        newErrors.facilityName = "please enter text only";
         missingFields.push("Facility Name (No Numbers)");
       }
 
@@ -855,10 +864,18 @@ function TemplateContent() {
             newErrors.spendAmount = "Invalid number";
             missingFields.push("Spend Amount (Invalid)");
           }
+
+          // Also require data source type for spend amount in yearly mode
+          if (!formData.dataSourceType?.trim()) {
+            newErrors.dataSourceType = "Required";
+            missingFields.push("Data Source Type");
+          }
         }
       } else if ((formData.energyActivityInput === "Monthly" || formData.energyActivityInput === "Quarterly")) {
         // Validation for Monthly Data
-        if (formData.monthlyData.length === 0) {
+        const nonEmptyRows = formData.monthlyData.filter(row => row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
+        if (nonEmptyRows.length === 0) {
+          newErrors.monthlyData = "At least one entry with data is required";
           missingFields.push("At least one monthly entry is required");
         } else {
           let rowError = false;
@@ -888,6 +905,12 @@ function TemplateContent() {
                   missingFields.push(`Row ${idx + 1}: Spend Amount`);
                   rowError = true;
                 }
+                // When tracking by spend, we still need data source type for the estimated consumption
+                if (!row.dataSourceType?.trim()) {
+                  newErrors[`monthly_${row.id}_dataSourceType`] = "Required";
+                  missingFields.push(`Row ${idx + 1}: Data Source Type`);
+                  rowError = true;
+                }
               }
             }
           });
@@ -904,25 +927,39 @@ function TemplateContent() {
 
       // Page 2 - Box 2 Validation
       if (page === 2 && formData.hasRenewableElectricity === "Yes") {
-        if ((formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly")) {
-          let hasError = false;
-          formData.renewableMonthlyData.forEach((row) => {
-            const hasData = row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
-            if (hasData) {
-              if (!row.month) {
-                hasError = true;
-              }
-              if (!row.electricityPurchased || !isValidNumber(row.electricityPurchased)) {
-                hasError = true;
-              }
-              if (!row.dataSourceType?.trim()) {
-                hasError = true;
-              }
-            }
-          });
+        if (!formData.renewableEnergyActivityInput) {
+          newErrors.renewableEnergyActivityInput = "Required";
+          missingFields.push("Renewable Energy Activity Input");
+        }
 
-          if (hasError) {
-            missingFields.push("Renewable Monthly Data (Check all fields)");
+        if ((formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly")) {
+          const nonEmptyRenewRows = formData.renewableMonthlyData.filter(row => row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
+          if (nonEmptyRenewRows.length === 0) {
+            newErrors.renewableMonthlyData = "At least one renewable entry is required";
+            missingFields.push("Renewable Monthly Data (Required)");
+          } else {
+            let hasError = false;
+            formData.renewableMonthlyData.forEach((row, idx) => {
+              const hasData = row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
+              if (hasData) {
+                if (!row.month) {
+                  newErrors[`renewableMonthly_${row.id}_month`] = "Required";
+                  hasError = true;
+                }
+                if (!row.electricityPurchased || !isValidNumber(row.electricityPurchased)) {
+                  newErrors[`renewableMonthly_${row.id}_electricityPurchased`] = "Required";
+                  hasError = true;
+                }
+                if (!row.dataSourceType?.trim()) {
+                  newErrors[`renewableMonthly_${row.id}_dataSourceType`] = "Required";
+                  hasError = true;
+                }
+              }
+            });
+
+            if (hasError) {
+              missingFields.push("Renewable Monthly Data (Check all fields)");
+            }
           }
         } else {
           // Yearly Validation
@@ -1066,6 +1103,12 @@ function TemplateContent() {
         ...emissionResults,
       };
     });
+
+    // Clear field-specific error
+    const errorKey = `monthly_${id}_${field}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: "", monthlyData: "" }));
+    }
   };
 
   // Helper to prepare chart data for monthly view
@@ -1187,6 +1230,12 @@ function TemplateContent() {
         ...emissionResults,
       };
     });
+
+    // Clear field-specific error
+    const errorKey = `renewableMonthly_${id}_${field}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: "" }));
+    }
   };
 
   const handleNext = () => {
@@ -1441,7 +1490,7 @@ function TemplateContent() {
                   {/* Site Count */}
                   <div className="col-span-1">
                     <label className="block text-xs font-bold text-gray-700 mb-2">
-                      Site Count
+                      Site Count <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -1483,12 +1532,7 @@ function TemplateContent() {
               {/* Box 2: Operational Details */}
               <section className="bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col lg:h-full lg:overflow-y-auto">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-yellow-50 rounded-lg text-yellow-600">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-sm font-bold text-gray-900">
+                  <h2 className="text-sm font-bold text-gray-900 border-b-2 border-transparent hover:border-indigo-100 transition-colors cursor-default">
                     Operational Details
                   </h2>
                 </div>
@@ -1500,15 +1544,19 @@ function TemplateContent() {
                       Turnover Of Your Site <span className="text-gray-400 font-normal ml-1">Optional</span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">Rs.</span>
                       <input
                         type="number"
                         min="0"
                         name="energyIntensityPerRupee"
                         value={formData.energyIntensityPerRupee || ""}
+                        onKeyDown={(e) => {
+                          if (["e", "E", "+", "-"].includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
                         onChange={handleChange}
                         placeholder="E.G., 2000"
-                        className="w-full h-10 pl-9 pr-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        className="w-full h-10 px-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                       />
                     </div>
                     <p className="text-[10px] text-gray-400 mt-1.5">
@@ -2195,6 +2243,11 @@ function TemplateContent() {
                                                 <input
                                                   type="number"
                                                   value={row.electricityPurchased}
+                                                  onKeyDown={(e) => {
+                                                    if (["e", "E", "+", "-"].includes(e.key)) {
+                                                      e.preventDefault();
+                                                    }
+                                                  }}
                                                   onChange={(e) => handleRowChange(row.id, "electricityPurchased", e.target.value)}
                                                   className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
                                                   placeholder="0"
@@ -2235,6 +2288,11 @@ function TemplateContent() {
                                               <input
                                                 type="number"
                                                 value={row.spend}
+                                                onKeyDown={(e) => {
+                                                  if (["e", "E", "+", "-"].includes(e.key)) {
+                                                    e.preventDefault();
+                                                  }
+                                                }}
                                                 onChange={(e) => handleRowChange(row.id, "spend", e.target.value)}
                                                 className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
                                                 placeholder="0"
@@ -2315,7 +2373,8 @@ function TemplateContent() {
                                     </button>
                                   </div>
                                 )}
-                              </div> {/* Closing overflow-x-auto div */}
+                              </div>
+                              {errors.monthlyData && <p className="text-red-500 text-xs mt-2 px-2">{errors.monthlyData}</p>}
                             </>
                           ) : (
                             // EXISTING YEARLY INPUTS
@@ -2329,9 +2388,14 @@ function TemplateContent() {
                                     </label>
                                     <div className="relative">
                                       <input
-                                        type="text"
+                                        type="number"
                                         name="electricityPurchased"
                                         value={formData.electricityPurchased || ""}
+                                        onKeyDown={(e) => {
+                                          if (["e", "E", "+", "-"].includes(e.key)) {
+                                            e.preventDefault();
+                                          }
+                                        }}
                                         onChange={handleChange}
                                         placeholder="Enter value"
                                         className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.electricityPurchased ? "border-red-300 bg-red-50" : "border-gray-200"}`}
@@ -2379,6 +2443,7 @@ function TemplateContent() {
                                     </div>
                                     {errors.energyConsumption && <p className="text-red-500 text-xs mt-1">{errors.energyConsumption}</p>}
                                   </div>
+                                  {errors.energyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.energyActivityInput}</p>}
                                 </div>
                               )}
 
@@ -2389,9 +2454,14 @@ function TemplateContent() {
                                       Spend Amount <span className="text-red-500">*</span>
                                     </label>
                                     <input
-                                      type="text"
+                                      type="number"
                                       name="spendAmount"
                                       value={formData.spendAmount || ""}
+                                      onKeyDown={(e) => {
+                                        if (["e", "E", "+", "-"].includes(e.key)) {
+                                          e.preventDefault();
+                                        }
+                                      }}
                                       onChange={handleChange}
                                       placeholder="Enter amount"
                                       className="w-full h-10 px-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -2506,7 +2576,7 @@ function TemplateContent() {
                           <label className="block text-xs font-bold text-gray-700 mb-2">
                             Supporting Evidence
                           </label>
-                          <div className={`border border-dashed rounded-xl ${errors.energySupportingEvidenceFile ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50/50"} p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group relative`}>
+                          <div className={`border border-dashed rounded-xl ${errors.energySupportingEvidenceFile ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50/50"} p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group relative h-28`}>
                             {formData.energySupportingEvidenceFile ? (
                               <div className="flex flex-col items-center w-full z-10">
                                 <div className="flex items-center justify-between w-full bg-white p-2 rounded border border-gray-100 shadow-sm mb-2">
@@ -2542,7 +2612,7 @@ function TemplateContent() {
                                     onChange={(e) => handleFileUpload(e, "energySupportingEvidenceFile")}
                                   />
                                   <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 0 003 3h10a3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                                   </svg>
                                 </label>
                                 <p className="text-sm font-semibold text-gray-600">
@@ -2664,127 +2734,141 @@ function TemplateContent() {
                                     ))}
                                   </div>
                                 )}
+                                {errors.renewableEnergyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.renewableEnergyActivityInput}</p>}
                               </div>
 
                               {(formData.renewableEnergyActivityInput === "Monthly" || formData.renewableEnergyActivityInput === "Quarterly") ? (
-                                <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                                  <table className="w-full text-xs text-left text-gray-700">
-                                    <thead className="text-xs text-gray-500 bg-gray-50 border-b border-gray-200">
-                                      <tr>
-                                        <th className="px-3 py-2 font-bold w-1/4">Month</th>
-                                        <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity (<span className="normal-case">kWh</span>)</th>
-                                        <th className="px-3 py-2 font-bold min-w-[130px]">Data source type</th>
-                                        <th className="px-3 py-2 font-bold min-w-[120px]">Energy Consumption (GJ)</th>
-                                        <th className="px-3 py-2 w-10"></th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {formData.renewableMonthlyData.map((row) => (
-                                        <tr key={row.id} className="border-b border-gray-100 last:border-none group hover:bg-gray-50/50">
-                                          <td className="px-3 py-2">
-                                            {formData.renewableEnergyActivityInput === "Quarterly" ? (
-                                              <input
-                                                type="text"
-                                                value={row.month}
-                                                onChange={(e) => handleRenewableRowChange(row.id, "month", e.target.value)}
-                                                className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
-                                                placeholder="e.g. Q1 2024"
-                                              />
-                                            ) : formData.reportingPeriod !== "Monthly" ? (
-                                              <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
-                                                {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
-                                              </div>
-                                            ) : (
-                                              <input
-                                                type="month"
-                                                value={row.month}
-                                                onChange={(e) => handleRenewableRowChange(row.id, "month", e.target.value)}
-                                                className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
-                                                placeholder="Select month"
-                                              />
-                                            )}
-                                          </td>
-                                          <td className="px-3 py-2">
-                                            <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 border-gray-200`}>
-                                              <input
-                                                type="number"
-                                                value={row.electricityPurchased}
-                                                onChange={(e) => handleRenewableRowChange(row.id, "electricityPurchased", e.target.value)}
-                                                className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
-                                                placeholder="0"
-                                              />
-                                            </div>
-                                          </td>
-                                          <td className="px-3 py-2">
-                                            <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 border-gray-200`}>
-                                              <select
-                                                value={row.dataSourceType}
-                                                onChange={(e) => handleRenewableRowChange(row.id, "dataSourceType", e.target.value)}
-                                                className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
-                                              >
-                                                <option value="">Select...</option>
-                                                <option value="Invoice">Invoice</option>
-                                                <option value="Meter Reading">Meter Reading</option>
-                                                <option value="Estimate">Estimate</option>
-                                                <option value="Other">Other</option>
-                                              </select>
-                                            </div>
-                                          </td>
-                                          <td className="px-3 py-2">
-                                            <div className="border rounded-lg h-10 px-2 flex items-center bg-gray-100 border-gray-200">
-                                              <input
-                                                type="number"
-                                                value={row.energyConsumption}
-                                                readOnly
-                                                className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
-                                                placeholder="0"
-                                              />
-                                            </div>
-                                          </td>
-                                          <td className="px-2 py-2 text-right">
-                                            {(formData.reportingPeriod === "Monthly" || formData.reportingPeriod === "Quarterly" || formData.energyActivityInput === "Quarterly") && (
-                                              <button
-                                                type="button"
-                                                onClick={() => handleDeleteRenewableRow(row.id)}
-                                                className="p-1 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                                              >
-                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                              </button>
-                                            )}
-                                          </td>
+                                <>
+                                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                                    <table className="w-full text-xs text-left text-gray-700">
+                                      <thead className="text-xs text-gray-500 bg-gray-50 border-b border-gray-200">
+                                        <tr>
+                                          <th className="px-3 py-2 font-bold w-1/4">Month</th>
+                                          <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity (<span className="normal-case">kWh</span>)</th>
+                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data source type</th>
+                                          <th className="px-3 py-2 font-bold min-w-[120px]">Energy Consumption (GJ)</th>
+                                          <th className="px-3 py-2 w-10"></th>
                                         </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                  {(formData.reportingPeriod === "Monthly" || formData.reportingPeriod === "Quarterly" || formData.energyActivityInput === "Quarterly") && (
-                                    <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
-                                      <button
-                                        type="button"
-                                        onClick={handleAddRenewableRow}
-                                        className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                                      >
-                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        {formData.renewableEnergyActivityInput === "Quarterly" ? "Add Quarter" : "Add Month"}
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
+                                      </thead>
+                                      <tbody>
+                                        {formData.renewableMonthlyData.map((row) => (
+                                          <tr key={row.id} className="border-b border-gray-100 last:border-none group hover:bg-gray-50/50">
+                                            <td className="px-3 py-2">
+                                              {formData.renewableEnergyActivityInput === "Quarterly" ? (
+                                                <input
+                                                  type="text"
+                                                  value={row.month}
+                                                  onChange={(e) => handleRenewableRowChange(row.id, "month", e.target.value)}
+                                                  className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
+                                                  placeholder="e.g. Q1 2024"
+                                                />
+                                              ) : formData.reportingPeriod !== "Monthly" ? (
+                                                <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
+                                                  {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
+                                                </div>
+                                              ) : (
+                                                <input
+                                                  type="month"
+                                                  value={row.month}
+                                                  onChange={(e) => handleRenewableRowChange(row.id, "month", e.target.value)}
+                                                  className="w-full h-10 px-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400"
+                                                  placeholder="Select month"
+                                                />
+                                              )}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 border-gray-200`}>
+                                                <input
+                                                  type="number"
+                                                  value={row.electricityPurchased}
+                                                  onKeyDown={(e) => {
+                                                    if (["e", "E", "+", "-"].includes(e.key)) {
+                                                      e.preventDefault();
+                                                    }
+                                                  }}
+                                                  onChange={(e) => handleRenewableRowChange(row.id, "electricityPurchased", e.target.value)}
+                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
+                                                  placeholder="0"
+                                                />
+                                              </div>
+                                            </td>
+                                            <td className="px-3 py-2">
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 border-gray-200`}>
+                                                <select
+                                                  value={row.dataSourceType}
+                                                  onChange={(e) => handleRenewableRowChange(row.id, "dataSourceType", e.target.value)}
+                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                                >
+                                                  <option value="">Select...</option>
+                                                  <option value="Invoice">Invoice</option>
+                                                  <option value="Meter Reading">Meter Reading</option>
+                                                  <option value="Estimate">Estimate</option>
+                                                  <option value="Other">Other</option>
+                                                </select>
+                                              </div>
+                                            </td>
+                                            <td className="px-3 py-2">
+                                              <div className="border rounded-lg h-10 px-2 flex items-center bg-gray-100 border-gray-200">
+                                                <input
+                                                  type="number"
+                                                  value={row.energyConsumption}
+                                                  readOnly
+                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
+                                                  placeholder="0"
+                                                />
+                                              </div>
+                                            </td>
+                                            <td className="px-2 py-2 text-right">
+                                              {(formData.reportingPeriod === "Monthly" || formData.reportingPeriod === "Quarterly" || formData.energyActivityInput === "Quarterly") && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleDeleteRenewableRow(row.id)}
+                                                  className="p-1 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                                                >
+                                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                  </svg>
+                                                </button>
+                                              )}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                    {(formData.reportingPeriod === "Monthly" || formData.reportingPeriod === "Quarterly" || formData.energyActivityInput === "Quarterly") && (
+                                      <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
+                                        <button
+                                          type="button"
+                                          onClick={handleAddRenewableRow}
+                                          className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                                        >
+                                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                          </svg>
+                                          {formData.renewableEnergyActivityInput === "Quarterly" ? "Add Quarter" : "Add Month"}
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {errors.renewableMonthlyData && <p className="text-red-500 text-xs mt-2 px-2">{errors.renewableMonthlyData}</p>}
+                                </>
                               ) : (
                                 // YEARLY VIEW
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                   <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
-                                      Renewable Electricity
+                                      Renewable Electricity <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
                                       <input
-                                        type="text"
+                                        type="number"
                                         name="renewableElectricity"
                                         value={formData.renewableElectricity || ""}
+                                        onKeyDown={(e) => {
+                                          if (["e", "E", "+", "-"].includes(e.key)) {
+                                            e.preventDefault();
+                                          }
+                                        }}
                                         onChange={handleChange}
                                         placeholder="Enter value"
                                         className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.renewableElectricity ? "border-red-300 bg-red-50" : "border-gray-200"}`}
@@ -2891,15 +2975,15 @@ function TemplateContent() {
                                 </div>
                               ) : (
                                 <>
-                                  <label className="bg-green-100 p-2 rounded-full mb-2 hover:scale-110 transition-transform cursor-pointer">
+                                  <label className="bg-green-100 p-2.5 rounded-full mb-3 hover:scale-110 transition-transform cursor-pointer">
                                     <input
                                       type="file"
                                       className="hidden"
                                       accept=".pdf,.png,.jpeg,.jpg"
                                       onChange={(e) => handleFileUpload(e, "renewableSupportingEvidenceFile")}
                                     />
-                                    <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                                     </svg>
                                   </label>
                                   <p className="text-xs font-semibold text-gray-600">
