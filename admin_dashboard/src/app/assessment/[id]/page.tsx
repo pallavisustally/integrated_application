@@ -127,11 +127,9 @@ const MonthlyTable = ({ data, type }: { data: any; type: "Grid" | "Renewable" })
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Electricity (kWh)</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Consumption (GJ)</th>
-            {type === "Grid" && (
-              <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
-                Spend
-              </th>
-            )}
+            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
+              {type === "Grid" ? "Spend / Source" : "Source"}
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -142,11 +140,11 @@ const MonthlyTable = ({ data, type }: { data: any; type: "Grid" | "Renewable" })
               </td>
               <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || 0}</td>
               <td className="px-3 py-2 text-gray-700">{row.energyConsumption || 0}</td>
-              {type === "Grid" && (
-                <td className="px-3 py-2 text-gray-700">
-                  {row.spend || "-"}
-                </td>
-              )}
+              <td className="px-3 py-2 text-gray-700 text-[10px]">
+                {type === "Grid"
+                  ? `${row.spend || '-'} / ${row.dataSourceType || '-'}`
+                  : (row.dataSourceType || "-")}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -350,6 +348,7 @@ export default function AssessmentViewPage() {
               <DetailRow label="Tracking Type" value={data.trackingType} />
 
               <DetailRow label="Electricity Purchased" value={`${data.electricityPurchased || 0} kWh`} />
+              <DetailRow label="Data Source Type" value={data.dataSourceType || "-"} />
               <DetailRow label="Energy Consumption" value={`${data.energyConsumption || 0} GJ`} />
 
               {data.trackingType && data.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={data.spendAmount ? `${data.spendAmount} INR` : "-"} />}
@@ -382,6 +381,7 @@ export default function AssessmentViewPage() {
                 <>
                   <DetailRow label="Input Type" value={data.renewableEnergyActivityInput || 'Yearly'} />
                   <DetailRow label="Renewable Electricity" value={`${data.renewableElectricity || 0} kWh`} />
+                  <DetailRow label="Data Source" value={data.renewableDataSourceType || "-"} />
                   <DetailRow label="Energy Consumption" value={`${data.renewableEnergyConsumption || 0} GJ`} />
 
 

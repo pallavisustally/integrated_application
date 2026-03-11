@@ -269,7 +269,6 @@ const Scope2Applications: CollectionConfig = {
       name: "reportingPeriod",
       type: "select",
       options: [
-        { label: "Monthly", value: "Monthly" },
         { label: "Annually", value: "Annually" },
       ],
       required: true,

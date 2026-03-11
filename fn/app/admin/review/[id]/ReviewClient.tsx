@@ -128,11 +128,9 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Elec (kWh)</th>
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Cons (GJ)</th>
-                        {type === "Grid" && (
-                            <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">
-                                Spend
-                            </th>
-                        )}
+                        <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider uppercase">
+                            {type === "Grid" ? "Spend / Source" : "Source"}
+                        </th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -143,11 +141,11 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
                             </td>
                             <td className="px-2 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
                             <td className="px-2 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
-                            {type === "Grid" && (
-                                <td className="px-2 py-2 text-gray-700">
-                                    {row.spend || "-"}
-                                </td>
-                            )}
+                            <td className="px-2 py-2 text-gray-700 text-[9px]">
+                                {type === "Grid"
+                                    ? `${row.spend || '-'} / ${row.dataSourceType || '-'}`
+                                    : (row.dataSourceType || "-")}
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -280,6 +278,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                     }
                                     return data.electricityPurchased || "-";
                                 })()} />
+                                <DetailRow label="Data Source Type" value={data.dataSourceType || "-"} />
                                 <DetailRow label="Energy Consumption (GJ)" value={(() => {
                                     if (data.energyActivityInput === "Monthly") {
                                         const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
@@ -315,6 +314,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                             }
                                             return data.renewableElectricity || "-";
                                         })()} />
+                                        <DetailRow label="Data Source" value={data.renewableDataSourceType || "-"} />
                                         <DetailRow label="Energy Consumption (GJ)" value={(() => {
                                             if (data.renewableEnergyActivityInput === "Monthly") {
                                                 const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);

@@ -112,11 +112,9 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Electricity (kWh)</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Consumption (GJ)</th>
-            {type === "Grid" && (
-              <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
-                Spend
-              </th>
-            )}
+            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
+              {type === "Grid" ? "Spend / Source" : "Source"}
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -127,11 +125,11 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
               </td>
               <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
               <td className="px-3 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
-              {type === "Grid" && (
-                <td className="px-3 py-2 text-gray-700">
-                  {row.spend || "-"}
-                </td>
-              )}
+              <td className="px-3 py-2 text-gray-700 text-xs">
+                {type === "Grid"
+                  ? `${row.spend || '-'} / ${row.dataSourceType || '-'}`
+                  : (row.dataSourceType || "-")}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -379,6 +377,7 @@ function ScopeReviewContent() {
               <DetailRow label="Tracking Type" value={formData.trackingType} />
 
               <DetailRow label="Electricity Purchased" value={`${formData.electricityPurchased} kWh`} />
+              <DetailRow label="Data Source Type" value={formData.dataSourceType || "-"} />
               <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
 
               {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount ? `${formData.spendAmount} INR` : "-"} />}
@@ -412,6 +411,7 @@ function ScopeReviewContent() {
                 <>
                   <DetailRow label="Input Type" value={formData.renewableEnergyActivityInput || "Yearly"} />
                   <DetailRow label="Renewable Electricity" value={`${formData.renewableElectricity} kWh`} />
+                  <DetailRow label="Data Source" value={formData.renewableDataSourceType || "-"} />
                   <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
 
 

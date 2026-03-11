@@ -54,6 +54,7 @@ type MonthlyEntry = {
   id: string;
   month: string;
   electricityPurchased: string;
+  dataSourceType: string;
   energyConsumption: string;
   spend: string;
 };
@@ -82,7 +83,7 @@ type FormDataType = {
 
   // Page 1 - Box 3
   reportingYear: Date | null;
-  reportingPeriod: "Monthly" | "Annually" | "";
+  reportingPeriod: "Annually" | "";
   conditionalApproach:
   | "Operational Control"
   | "Equity Share"
@@ -98,6 +99,7 @@ type FormDataType = {
   energyActivityInput: "Monthly" | "Yearly" | "";
   energyCategory: string;
   electricityPurchased: string;
+  dataSourceType: string;
   energyConsumption: string;
   spendAmount: string;
   trackingType: "Unit consumption" | "Spend amount" | "Both" | "";
@@ -107,6 +109,7 @@ type FormDataType = {
   // Page 2 - Box 2 (Renewable Electricity)
   hasRenewableElectricity: YesNo;
   renewableElectricity: string;
+  renewableDataSourceType: string;
   renewableEnergyConsumption: string;
   renewableSupportingEvidenceFile: File | null;
   renewableEnergySourceDescription: string;
@@ -172,6 +175,7 @@ function TemplateContent() {
     energyActivityInput: "Yearly",
     energyCategory: "Grid Energy", // Set to default disabled value
     electricityPurchased: "",
+    dataSourceType: "",
     energyConsumption: "",
     spendAmount: "",
     trackingType: "Unit consumption",
@@ -181,11 +185,12 @@ function TemplateContent() {
     // Page 2 - Box 2
     hasRenewableElectricity: "",
     renewableElectricity: "",
+    renewableDataSourceType: "",
     renewableEnergyConsumption: "",
     renewableSupportingEvidenceFile: null,
     renewableEnergySourceDescription: "",
     renewableEnergyActivityInput: "Yearly",
-    renewableMonthlyData: [{ id: "r1", month: "", electricityPurchased: "", energyConsumption: "", spend: "" }],
+    renewableMonthlyData: [{ id: "r1", month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }],
 
     // Calculated fields
     gridEmissionFactor: 0,
@@ -196,7 +201,7 @@ function TemplateContent() {
     energyTotal_kJ: 0,
 
     // Initialize with one empty row
-    monthlyData: [{ id: "1", month: "", electricityPurchased: "", energyConsumption: "", spend: "" }],
+    monthlyData: [{ id: "1", month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -551,7 +556,7 @@ function TemplateContent() {
 
 
   const generateMonthlyDataForYear = (date: Date | null): MonthlyEntry[] => {
-    if (!date) return [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
+    if (!date) return [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
     const year = date.getFullYear();
     const result: MonthlyEntry[] = [];
     for (let i = 0; i < 12; i++) {
@@ -562,6 +567,7 @@ function TemplateContent() {
         id: Math.random().toString(36).substr(2, 9),
         month: `${yStr}-${mStr}`, // YYYY-MM format
         electricityPurchased: "",
+        dataSourceType: "",
         energyConsumption: "",
         spend: ""
       });
@@ -601,19 +607,14 @@ function TemplateContent() {
           if (prev.monthlyData.length <= 1) updates.monthlyData = generateMonthlyDataForYear(prev.reportingYear);
         } else {
           if (prev.monthlyData.length <= 1) {
-            updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
+            updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
           }
         }
       }
 
       if (name === "hasRenewableElectricity" && value === "Yes" && prev.hasRenewableElectricity !== "Yes") {
-        const mode = (prev.reportingPeriod === "Monthly") ? "Monthly" : "Yearly";
-        updates.renewableEnergyActivityInput = mode;
-        if (prev.reportingPeriod === "Monthly") {
-          updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
-        } else {
-          updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
-        }
+        updates.renewableEnergyActivityInput = "Yearly";
+        updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
       }
 
       let currentElec = updates.electricityPurchased !== undefined ? updates.electricityPurchased : prev.electricityPurchased;
@@ -780,17 +781,21 @@ function TemplateContent() {
           }
 
 
+          if (!formData.dataSourceType) {
+            newErrors.dataSourceType = "Required";
+            missingFields.push("Data Source Type");
+          }
         }
       } else if (formData.energyActivityInput === "Monthly") {
         // Validation for Monthly Data
-        const nonEmptyRows = formData.monthlyData.filter(row => row.electricityPurchased?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
+        const nonEmptyRows = formData.monthlyData.filter(row => row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
         if (nonEmptyRows.length === 0) {
           newErrors.monthlyData = "At least one entry with data is required";
           missingFields.push("At least one monthly entry is required");
         } else {
           let rowError = false;
           formData.monthlyData.forEach((row, idx) => {
-            const hasData = row.electricityPurchased?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
+            const hasData = row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
             if (hasData) {
               if (!row.month) {
                 newErrors[`monthly_${row.id}_month`] = "Required";
@@ -817,6 +822,10 @@ function TemplateContent() {
                   rowError = true;
                 }
 
+                if (!row.dataSourceType) {
+                  newErrors[`monthly_${row.id}_dataSourceType`] = "Required";
+                  rowError = true;
+                }
               }
             }
           });
@@ -839,14 +848,14 @@ function TemplateContent() {
         }
 
         if (formData.renewableEnergyActivityInput === "Monthly") {
-          const nonEmptyRenewRows = formData.renewableMonthlyData.filter(row => row.electricityPurchased?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
+          const nonEmptyRenewRows = formData.renewableMonthlyData.filter(row => row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim());
           if (nonEmptyRenewRows.length === 0) {
             newErrors.renewableMonthlyData = "At least one renewable entry is required";
             missingFields.push("Renewable Monthly Data (Required)");
           } else {
             let hasError = false;
             formData.renewableMonthlyData.forEach((row, idx) => {
-              const hasData = row.electricityPurchased?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
+              const hasData = row.electricityPurchased?.trim() || row.dataSourceType?.trim() || row.energyConsumption?.trim() || row.spend?.trim();
               if (hasData) {
                 if (!row.month) {
                   newErrors[`renewableMonthly_${row.id}_month`] = "Required";
@@ -883,6 +892,11 @@ function TemplateContent() {
             newErrors.renewableEnergyConsumption = "Invalid number";
             missingFields.push("Renewable Energy Consumption (Invalid)");
           }
+
+          if (!formData.renewableDataSourceType) {
+            newErrors.renewableDataSourceType = "Required";
+            missingFields.push("Renewable Data Source Type");
+          }
         }
 
         if (!formData.netMeteringApplicable) {
@@ -901,7 +915,7 @@ function TemplateContent() {
       ...prev,
       monthlyData: [
         ...prev.monthlyData,
-        { id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" },
+        { id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" },
       ],
     }));
   };
@@ -1076,7 +1090,7 @@ function TemplateContent() {
       ...prev,
       renewableMonthlyData: [
         ...prev.renewableMonthlyData,
-        { id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" },
+        { id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" },
       ],
     }));
   };
@@ -1520,7 +1534,7 @@ function TemplateContent() {
                               updates.renewableEnergyConsumption = "";
                             }
 
-                            if (prev.renewableEnergyActivityInput === "Monthly" && prev.reportingPeriod !== "Monthly") {
+                            if (prev.renewableEnergyActivityInput === "Monthly") {
                               updates.renewableMonthlyData = generateMonthlyDataForYear(date);
                               currentRenew = "";
                               updates.renewableElectricity = "";
@@ -1558,35 +1572,24 @@ function TemplateContent() {
                         Reporting Period <span className="text-red-500">*</span>
                       </label>
                       <div className={`flex flex-col sm:flex-row h-auto sm:h-10 text-xs font-medium bg-gray-50 border rounded-lg p-1 ${errors.reportingPeriod ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
-                        {["Monthly", "Annually"].map((p, index) => (
+                        {["Annually"].map((p, index) => (
                           <div key={p} className="contents">
                             <button
                               type="button"
                               onClick={() => setFormData(prev => {
-                                const updates: any = { ...prev, reportingPeriod: p as any };
+                                const updates: any = { ...prev, reportingPeriod: "Annually" as any };
 
                                 let currentElec = prev.electricityPurchased;
                                 let currentRenew = prev.renewableElectricity;
 
-                                if (p === "Monthly") {
-                                  updates.energyActivityInput = "Monthly";
-                                  updates.renewableEnergyActivityInput = "Monthly";
-                                  updates.monthlyData = generateMonthlyDataForYear(prev.reportingYear);
-                                  if (prev.hasRenewableElectricity === "Yes") {
-                                    updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
-                                  }
-                                  currentElec = ""; updates.electricityPurchased = ""; updates.energyConsumption = ""; updates.spendAmount = "";
-                                  currentRenew = ""; updates.renewableElectricity = ""; updates.renewableEnergyConsumption = "";
-                                } else { // Annually
-                                  updates.energyActivityInput = "Yearly";
-                                  updates.renewableEnergyActivityInput = "Yearly";
-                                  updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
-                                  if (prev.hasRenewableElectricity === "Yes") {
-                                    updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", energyConsumption: "", spend: "" }];
-                                  }
-                                  currentElec = ""; updates.electricityPurchased = ""; updates.energyConsumption = ""; updates.spendAmount = "";
-                                  currentRenew = ""; updates.renewableElectricity = ""; updates.renewableEnergyConsumption = "";
+                                updates.energyActivityInput = "Yearly";
+                                updates.renewableEnergyActivityInput = "Yearly";
+                                updates.monthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
+                                if (prev.hasRenewableElectricity === "Yes") {
+                                  updates.renewableMonthlyData = [{ id: Math.random().toString(36).substr(2, 9), month: "", electricityPurchased: "", dataSourceType: "", energyConsumption: "", spend: "" }];
                                 }
+                                currentElec = ""; updates.electricityPurchased = ""; updates.energyConsumption = ""; updates.spendAmount = "";
+                                currentRenew = ""; updates.renewableElectricity = ""; updates.renewableEnergyConsumption = "";
 
                                 const results = calculateScope2(currentElec, currentRenew, prev.reportingYear);
                                 Object.assign(updates, results);
@@ -1879,32 +1882,21 @@ function TemplateContent() {
                             <label className="block text-xs font-bold text-gray-700 mb-2">
                               Energy Activity Input <span className="text-red-500">*</span>
                             </label>
-                            {formData.reportingPeriod === "Annually" ? (
-                              <div className="flex bg-gray-100 p-1 rounded-lg w-full md:w-fit opacity-60 cursor-not-allowed">
+                            <div className={`flex bg-gray-100 p-1 rounded-lg w-full md:w-fit ${errors.energyActivityInput ? "border-red-300 bg-red-50 ring-1 ring-red-300" : ""}`}>
+                              {["Monthly", "Yearly"].map((m) => (
                                 <button
+                                  key={m}
                                   type="button"
-                                  className="flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-bold bg-white text-indigo-600 shadow-sm"
+                                  onClick={() => handleRadioChange("energyActivityInput", m)}
+                                  className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all ${formData.energyActivityInput === m
+                                    ? "bg-white text-indigo-600 shadow-sm"
+                                    : "text-gray-500 hover:text-gray-700"
+                                    }`}
                                 >
-                                  Yearly
+                                  {m}
                                 </button>
-                              </div>
-                            ) : (
-                              <div className={`flex bg-gray-100 p-1 rounded-lg w-full md:w-fit ${errors.energyActivityInput ? "border-red-300 bg-red-50 ring-1 ring-red-300" : ""}`}>
-                                {["Monthly", "Yearly"].map((m) => (
-                                  <button
-                                    key={m}
-                                    type="button"
-                                    onClick={() => handleRadioChange("energyActivityInput", m)}
-                                    className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all ${formData.energyActivityInput === m
-                                      ? "bg-white text-indigo-600 shadow-sm"
-                                      : "text-gray-500 hover:text-gray-700"
-                                      }`}
-                                  >
-                                    {m}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
+                              ))}
+                            </div>
                             {errors.energyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.energyActivityInput}</p>}
                           </div>
 
@@ -1990,7 +1982,7 @@ function TemplateContent() {
                                       {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
                                         <>
                                           <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased (<span className="normal-case">kWh</span>)</th>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Energy Consumption (GJ)</th>
+                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source Type</th>
                                         </>
                                       )}
                                       {(formData.trackingType === "Spend amount" || formData.trackingType === "Both") && (
@@ -1999,8 +1991,10 @@ function TemplateContent() {
                                       {formData.trackingType === "Spend amount" && (
                                         <>
                                           <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased (<span className="normal-case">kWh</span>)</th>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Energy Consumption (GJ)</th>
                                         </>
+                                      )}
+                                      {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both" || formData.trackingType === "Spend amount") && (
+                                        <th className="px-3 py-2 font-bold min-w-[130px]">Energy Consumption (GJ)</th>
                                       )}
                                       <th className="px-3 py-2 w-10"></th>
                                     </tr>
@@ -2009,19 +2003,9 @@ function TemplateContent() {
                                     {formData.monthlyData.map((row, index) => (
                                       <tr key={row.id} className="border-b border-gray-100 last:border-none group hover:bg-gray-50/50">
                                         <td className="px-3 py-2">
-                                          {formData.reportingPeriod !== "Monthly" ? (
-                                            <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
-                                              {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
-                                            </div>
-                                          ) : (
-                                            <input
-                                              type="month"
-                                              value={row.month}
-                                              onChange={(e) => handleRowChange(row.id, "month", e.target.value)}
-                                              className={`w-full h-10 px-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400 ${errors[`monthly_${row.id}_month`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                                              placeholder="Select Month"
-                                            />
-                                          )}
+                                          <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
+                                            {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
+                                          </div>
                                         </td>
                                         {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
                                           <>
@@ -2043,14 +2027,18 @@ function TemplateContent() {
                                             </td>
 
                                             <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-100 ${errors[`monthly_${row.id}_energyConsumption`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
-                                                <input
-                                                  type="number"
-                                                  value={row.energyConsumption}
-                                                  readOnly
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
-                                                  placeholder="0"
-                                                />
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                                <select
+                                                  value={row.dataSourceType}
+                                                  onChange={(e) => handleRowChange(row.id, "dataSourceType", e.target.value)}
+                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                                >
+                                                  <option value="">Select...</option>
+                                                  <option value="Invoice">Invoice</option>
+                                                  <option value="Meter Reading">Meter Reading</option>
+                                                  <option value="Estimate">Estimate</option>
+                                                  <option value="Other">Other</option>
+                                                </select>
                                               </div>
                                             </td>
                                           </>
@@ -2086,52 +2074,28 @@ function TemplateContent() {
                                                 />
                                               </div>
                                             </td>
-
-                                            <td className="px-3 py-2">
-                                              <div className="border rounded-lg h-10 px-2 flex items-center bg-gray-100 border-gray-200">
-                                                <input
-                                                  type="text"
-                                                  value={row.energyConsumption ? parseFloat(row.energyConsumption).toFixed(2) : ""}
-                                                  readOnly
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
-                                                  placeholder="0"
-                                                />
-                                              </div>
-                                            </td>
                                           </>
                                         )}
+
+                                        <td className="px-3 py-2">
+                                          <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-100 ${errors[`monthly_${row.id}_energyConsumption`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                            <input
+                                              type="number"
+                                              value={row.energyConsumption ? parseFloat(row.energyConsumption).toFixed(2) : ""}
+                                              readOnly
+                                              className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
+                                              placeholder="0"
+                                            />
+                                          </div>
+                                        </td>
                                         <td className="px-2 py-2 text-right">
-                                          {formData.reportingPeriod === "Monthly" && (
-                                            <button
-                                              type="button"
-                                              onClick={() => handleDeleteRow(row.id)}
-                                              className="p-1 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                                              title="Delete row"
-                                            >
-                                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                              </svg>
-                                            </button>
-                                          )}
+                                          {/* Delete row button removed as periods are fixed to Annual */}
                                         </td>
                                       </tr>
                                     ))}
                                   </tbody>
                                 </table>
-                                {formData.reportingPeriod === "Monthly" && (
-                                  <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
-                                    <button
-                                      type="button"
-                                      onClick={handleAddRow}
-                                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                                    >
-                                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                      </svg>
-                                      Add Month
-                                    </button>
-                                  </div>
-                                )}
+                                {/* Add Month button removed as periods are fixed to Annual */}
                               </div>
                               {errors.monthlyData && <p className="text-red-500 text-xs mt-2 px-2">{errors.monthlyData}</p>}
                             </>
@@ -2139,7 +2103,7 @@ function TemplateContent() {
                             // EXISTING YEARLY INPUTS
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
-                                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                   {/* Electricity Purchased */}
                                   <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
@@ -2164,7 +2128,27 @@ function TemplateContent() {
                                     {errors.electricityPurchased && <p className="text-red-500 text-xs mt-1">{errors.electricityPurchased}</p>}
                                   </div>
 
-
+                                  {/* Data Source Type */}
+                                  <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                      Data Source Type <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors.dataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                      <select
+                                        name="dataSourceType"
+                                        value={formData.dataSourceType}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                      >
+                                        <option value="">Select...</option>
+                                        <option value="Invoice">Invoice</option>
+                                        <option value="Meter Reading">Meter Reading</option>
+                                        <option value="Estimate">Estimate</option>
+                                        <option value="Other">Other</option>
+                                      </select>
+                                    </div>
+                                    {errors.dataSourceType && <p className="text-red-500 text-xs mt-1">{errors.dataSourceType}</p>}
+                                  </div>
 
                                   {/* Energy Consumption */}
                                   <div>
@@ -2184,12 +2168,12 @@ function TemplateContent() {
                                     </div>
                                     {errors.energyConsumption && <p className="text-red-500 text-xs mt-1">{errors.energyConsumption}</p>}
                                   </div>
-                                  {errors.energyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.energyActivityInput}</p>}
                                 </div>
                               )}
+                              {errors.energyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.energyActivityInput}</p>}
 
                               {(formData.trackingType === "Spend amount" || formData.trackingType === "Both") && (
-                                <div className={`col-span-2 grid grid-cols-1 ${formData.trackingType === 'Spend amount' ? 'md:grid-cols-3' : 'md:grid-cols-3'} gap-4`}>
+                                <div className={`col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4`}>
                                   <div className="col-span-1 flex flex-col justify-end">
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
                                       Spend Amount <span className="text-red-500">*</span>
@@ -2242,6 +2226,28 @@ function TemplateContent() {
 
 
 
+                                  {/* Data Source Type for Spend-based */}
+                                  <div className="col-span-1 flex flex-col justify-end">
+                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                      Data Source Type <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors.dataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                      <select
+                                        name="dataSourceType"
+                                        value={formData.dataSourceType}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                      >
+                                        <option value="">Select...</option>
+                                        <option value="Invoice">Invoice</option>
+                                        <option value="Meter Reading">Meter Reading</option>
+                                        <option value="Estimate">Estimate</option>
+                                        <option value="Other">Other</option>
+                                      </select>
+                                    </div>
+                                    {errors.dataSourceType && <p className="text-red-500 text-xs mt-1">{errors.dataSourceType}</p>}
+                                  </div>
+
                                   {formData.trackingType === "Spend amount" && (
                                     <div className="col-span-1 flex flex-col justify-end">
                                       <label className="block text-xs font-bold text-gray-700 mb-2 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -2274,11 +2280,13 @@ function TemplateContent() {
                               setFormData(prev => ({
                                 ...prev,
                                 electricityPurchased: "",
+                                dataSourceType: "",
                                 spendAmount: "",
                                 energyConsumption: "",
                                 monthlyData: prev.monthlyData.map(row => ({
                                   ...row,
                                   electricityPurchased: "",
+                                  dataSourceType: "",
                                   spend: "",
                                   energyConsumption: ""
                                 }))
@@ -2411,44 +2419,33 @@ function TemplateContent() {
                                 <label className="block text-xs font-bold text-gray-700 mb-2">
                                   Renewable Activity Input <span className="text-red-500">*</span>
                                 </label>
-                                {formData.reportingPeriod === "Annually" ? (
-                                  <div className="flex bg-gray-100 p-1 rounded-lg w-full md:w-fit opacity-60 cursor-not-allowed">
+                                <div className={`flex bg-gray-100 p-1 rounded-lg w-full md:w-fit ${errors.renewableEnergyActivityInput ? "border-red-300 bg-red-50 ring-1 ring-red-300" : ""}`}>
+                                  {["Monthly", "Yearly"].map((type) => (
                                     <button
+                                      key={type}
                                       type="button"
-                                      className="flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-bold bg-white text-indigo-600 shadow-sm"
-                                    >
-                                      Yearly
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <div className="flex bg-gray-100 p-1 rounded-lg w-full md:w-fit">
-                                    {["Monthly", "Yearly"].map((type) => (
-                                      <button
-                                        key={type}
-                                        type="button"
-                                        onClick={() => {
-                                          if (hasRenewableData(formData)) {
-                                            alert("Please clear the existing data before switching input modes.");
-                                            return;
+                                      onClick={() => {
+                                        if (hasRenewableData(formData)) {
+                                          alert("Please clear the existing data before switching input modes.");
+                                          return;
+                                        }
+                                        setFormData(prev => {
+                                          const updates: any = { ...prev, renewableEnergyActivityInput: type as "Monthly" | "Yearly" };
+                                          if (type === "Monthly") {
+                                            if (prev.renewableMonthlyData.length <= 1) updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
                                           }
-                                          setFormData(prev => {
-                                            const updates: any = { ...prev, renewableEnergyActivityInput: type as "Monthly" | "Yearly" };
-                                            if (type === "Monthly") {
-                                              if (prev.renewableMonthlyData.length <= 1) updates.renewableMonthlyData = generateMonthlyDataForYear(prev.reportingYear);
-                                            }
-                                            return updates;
-                                          })
-                                        }}
-                                        className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all ${formData.renewableEnergyActivityInput === type
-                                          ? "bg-white text-indigo-600 shadow-sm"
-                                          : "text-gray-500 hover:text-gray-700"
-                                          }`}
-                                      >
-                                        {type}
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
+                                          return updates;
+                                        })
+                                      }}
+                                      className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all ${formData.renewableEnergyActivityInput === type
+                                        ? "bg-white text-indigo-600 shadow-sm"
+                                        : "text-gray-500 hover:text-gray-700"
+                                        }`}
+                                    >
+                                      {type}
+                                    </button>
+                                  ))}
+                                </div>
                                 {errors.renewableEnergyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.renewableEnergyActivityInput}</p>}
                               </div>
 
@@ -2460,6 +2457,7 @@ function TemplateContent() {
                                         <tr>
                                           <th className="px-3 py-2 font-bold w-1/4">Month</th>
                                           <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity (<span className="normal-case">kWh</span>)</th>
+                                          <th className="px-3 py-2 font-bold min-w-[120px]">Data source type</th>
                                           <th className="px-3 py-2 font-bold min-w-[120px]">Energy Consumption (GJ)</th>
                                           <th className="px-3 py-2 w-10"></th>
                                         </tr>
@@ -2468,19 +2466,9 @@ function TemplateContent() {
                                         {formData.renewableMonthlyData.map((row) => (
                                           <tr key={row.id} className="border-b border-gray-100 last:border-none group hover:bg-gray-50/50">
                                             <td className="px-3 py-2">
-                                              {formData.reportingPeriod !== "Monthly" ? (
-                                                <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
-                                                  {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
-                                                </div>
-                                              ) : (
-                                                <input
-                                                  type="month"
-                                                  value={row.month}
-                                                  onChange={(e) => handleRenewableRowChange(row.id, "month", e.target.value)}
-                                                  className={`w-full h-10 px-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs text-gray-700 placeholder-gray-400 ${errors[`renewableMonthly_${row.id}_month`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}
-                                                  placeholder="Select month"
-                                                />
-                                              )}
+                                              <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
+                                                {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
+                                              </div>
                                             </td>
                                             <td className="px-3 py-2">
                                               <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`renewableMonthly_${row.id}_electricityPurchased`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
@@ -2500,10 +2488,25 @@ function TemplateContent() {
                                             </td>
 
                                             <td className="px-3 py-2">
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`renewableMonthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                                <select
+                                                  value={row.dataSourceType}
+                                                  onChange={(e) => handleRenewableRowChange(row.id, "dataSourceType", e.target.value)}
+                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                                >
+                                                  <option value="">Select...</option>
+                                                  <option value="Invoice">Invoice</option>
+                                                  <option value="Meter Reading">Meter Reading</option>
+                                                  <option value="Estimate">Estimate</option>
+                                                  <option value="Other">Other</option>
+                                                </select>
+                                              </div>
+                                            </td>
+                                            <td className="px-3 py-2">
                                               <div className="border rounded-lg h-10 px-2 flex items-center bg-gray-100 border-gray-200">
                                                 <input
                                                   type="number"
-                                                  value={row.energyConsumption}
+                                                  value={row.energyConsumption ? parseFloat(row.energyConsumption).toFixed(2) : ""}
                                                   readOnly
                                                   className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
                                                   placeholder="0"
@@ -2511,42 +2514,19 @@ function TemplateContent() {
                                               </div>
                                             </td>
                                             <td className="px-2 py-2 text-right">
-                                              {formData.reportingPeriod === "Monthly" && (
-                                                <button
-                                                  type="button"
-                                                  onClick={() => handleDeleteRenewableRow(row.id)}
-                                                  className="p-1 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                                                >
-                                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                  </svg>
-                                                </button>
-                                              )}
+                                              {/* Delete row button removed as periods are fixed to Annual */}
                                             </td>
                                           </tr>
                                         ))}
                                       </tbody>
                                     </table>
-                                    {formData.reportingPeriod === "Monthly" && (
-                                      <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
-                                        <button
-                                          type="button"
-                                          onClick={handleAddRenewableRow}
-                                          className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                                        >
-                                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                          </svg>
-                                          Add Month
-                                        </button>
-                                      </div>
-                                    )}
+                                    {/* Add Month button removed as periods are fixed to Annual */}
                                   </div>
                                   {errors.renewableMonthlyData && <p className="text-red-500 text-xs mt-2 px-2">{errors.renewableMonthlyData}</p>}
                                 </>
                               ) : (
                                 // YEARLY VIEW
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                   <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-2">
                                       Renewable Electricity <span className="text-red-500">*</span>
@@ -2568,6 +2548,27 @@ function TemplateContent() {
                                       <span className="absolute right-3 top-3 text-[10px] text-gray-400">kWh</span>
                                     </div>
                                     {errors.renewableElectricity && <p className="text-red-500 text-xs mt-1">{errors.renewableElectricity}</p>}
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                      Data Source Type <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors.renewableDataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                      <select
+                                        name="renewableDataSourceType"
+                                        value={formData.renewableDataSourceType}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                      >
+                                        <option value="">Select...</option>
+                                        <option value="Invoice">Invoice</option>
+                                        <option value="Meter Reading">Meter Reading</option>
+                                        <option value="Estimate">Estimate</option>
+                                        <option value="Other">Other</option>
+                                      </select>
+                                    </div>
+                                    {errors.renewableDataSourceType && <p className="text-red-500 text-xs mt-1">{errors.renewableDataSourceType}</p>}
                                   </div>
 
                                   <div>
@@ -2601,10 +2602,12 @@ function TemplateContent() {
                                 setFormData(prev => ({
                                   ...prev,
                                   renewableElectricity: "",
+                                  renewableDataSourceType: "",
                                   renewableEnergyConsumption: "",
                                   renewableMonthlyData: prev.renewableMonthlyData.map(row => ({
                                     ...row,
                                     electricityPurchased: "",
+                                    dataSourceType: "",
                                     energyConsumption: ""
                                   }))
                                 }));
