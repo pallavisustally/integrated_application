@@ -68,3 +68,8 @@ coverage/
 # Misc
 *.pem
 *.tsbuildinfo
+
+# AI Agents
+.agent/
+.agents/
+skills-lock.json

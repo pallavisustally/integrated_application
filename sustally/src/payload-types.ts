@@ -234,7 +234,7 @@ export interface Scope2Application {
   onsiteExportedKwh?: string | null;
   netMeteringApplicable: 'Yes' | 'No';
   reportingYear: string;
-  reportingPeriod: 'Monthly' | 'Annually';
+  reportingPeriod: 'Annually';
   conditionalApproach: 'Operational Control' | 'Equity Share' | 'Financial Control';
   scopeBoundaryNotes?: string | null;
   energyActivityInput: 'Monthly' | 'Yearly';

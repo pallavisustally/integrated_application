@@ -815,17 +815,19 @@ function TemplateContent() {
                   rowError = true;
                 }
               }
+
               if (formData.trackingType === "Spend amount" || formData.trackingType === "Both") {
                 if (!isValidNumber(row.spend)) {
                   newErrors[`monthly_${row.id}_spend`] = "Required";
                   missingFields.push(`Row ${idx + 1}: Spend Amount`);
                   rowError = true;
                 }
+              }
 
-                if (!row.dataSourceType) {
-                  newErrors[`monthly_${row.id}_dataSourceType`] = "Required";
-                  rowError = true;
-                }
+              // Data Source Type is required for all tracking types in Monthly mode
+              if (!row.dataSourceType) {
+                newErrors[`monthly_${row.id}_dataSourceType`] = "Required";
+                rowError = true;
               }
             }
           });
@@ -865,7 +867,10 @@ function TemplateContent() {
                   newErrors[`renewableMonthly_${row.id}_electricityPurchased`] = "Required";
                   hasError = true;
                 }
-
+                if (!row.dataSourceType) {
+                  newErrors[`renewableMonthly_${row.id}_dataSourceType`] = "Required";
+                  hasError = true;
+                }
               }
             });
 
@@ -1981,16 +1986,17 @@ function TemplateContent() {
                                       <th className="px-3 py-2 font-bold min-w-[130px]">Month</th>
                                       {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
                                         <>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased (<span className="normal-case">kWh</span>)</th>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source Type</th>
+                                          <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased (<span className="normal-case">kWh</span>) <span className="text-red-500">*</span></th>
+                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source Type <span className="text-red-500">*</span></th>
                                         </>
                                       )}
                                       {(formData.trackingType === "Spend amount" || formData.trackingType === "Both") && (
-                                        <th className="px-3 py-2 font-bold min-w-[130px]">Spend Amount</th>
+                                        <th className="px-3 py-2 font-bold min-w-[130px]">Spend Amount <span className="text-red-500">*</span></th>
                                       )}
                                       {formData.trackingType === "Spend amount" && (
                                         <>
                                           <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased (<span className="normal-case">kWh</span>)</th>
+                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source Type <span className="text-red-500">*</span></th>
                                         </>
                                       )}
                                       {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both" || formData.trackingType === "Spend amount") && (
@@ -2072,6 +2078,22 @@ function TemplateContent() {
                                                   className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
                                                   placeholder="0"
                                                 />
+                                              </div>
+                                            </td>
+
+                                            <td className="px-3 py-2">
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                                <select
+                                                  value={row.dataSourceType}
+                                                  onChange={(e) => handleRowChange(row.id, "dataSourceType", e.target.value)}
+                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                                >
+                                                  <option value="">Select...</option>
+                                                  <option value="Invoice">Invoice</option>
+                                                  <option value="Meter Reading">Meter Reading</option>
+                                                  <option value="Estimate">Estimate</option>
+                                                  <option value="Other">Other</option>
+                                                </select>
                                               </div>
                                             </td>
                                           </>
@@ -2456,8 +2478,8 @@ function TemplateContent() {
                                       <thead className="text-xs text-gray-500 bg-gray-50 border-b border-gray-200">
                                         <tr>
                                           <th className="px-3 py-2 font-bold w-1/4">Month</th>
-                                          <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity (<span className="normal-case">kWh</span>)</th>
-                                          <th className="px-3 py-2 font-bold min-w-[120px]">Data source type</th>
+                                          <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity (<span className="normal-case">kWh</span>) <span className="text-red-500">*</span></th>
+                                          <th className="px-3 py-2 font-bold min-w-[120px]">Data Source Type <span className="text-red-500">*</span></th>
                                           <th className="px-3 py-2 font-bold min-w-[120px]">Energy Consumption (GJ)</th>
                                           <th className="px-3 py-2 w-10"></th>
                                         </tr>

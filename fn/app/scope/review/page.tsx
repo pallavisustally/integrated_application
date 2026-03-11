@@ -112,9 +112,10 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Electricity (kWh)</th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Consumption (GJ)</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">
-              {type === "Grid" ? "Spend / Source" : "Source"}
-            </th>
+            {type === "Grid" && data.some(r => r.spend && parseFloat(r.spend) > 0) && (
+              <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Spend (INR)</th>
+            )}
+            <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Data Source Type</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -125,10 +126,11 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
               </td>
               <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
               <td className="px-3 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
-              <td className="px-3 py-2 text-gray-700 text-xs">
-                {type === "Grid"
-                  ? `${row.spend || '-'} / ${row.dataSourceType || '-'}`
-                  : (row.dataSourceType || "-")}
+              {type === "Grid" && data.some(r => r.spend && parseFloat(r.spend) > 0) && (
+                <td className="px-3 py-2 text-gray-700">{row.spend || "-"}</td>
+              )}
+              <td className="px-3 py-2 text-gray-700">
+                {row.dataSourceType || "-"}
               </td>
             </tr>
           ))}
