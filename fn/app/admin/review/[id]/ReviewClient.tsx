@@ -141,8 +141,8 @@ const MonthlyTable = ({ data, type, isEstimated = false }: { data: any[]; type: 
                             <td className="px-2 py-2 font-medium text-gray-900 whitespace-nowrap">
                                 {row.month ? (row.month.includes('-') && row.month.split('-').length === 2 ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: '2-digit' }) : row.month) : "-"}
                             </td>
-                            <td className="px-2 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
-                            <td className="px-2 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
+                            <td className="px-2 py-2 text-gray-700">{row.electricityPurchased ? parseFloat(row.electricityPurchased).toFixed(2) : "-"}</td>
+                            <td className="px-2 py-2 text-gray-700">{row.energyConsumption ? parseFloat(row.energyConsumption).toFixed(2) : "-"}</td>
                             <td className="px-2 py-2 text-gray-700 text-[9px]">
                                 {type === "Grid"
                                     ? `${row.spend || '-'} / ${row.dataSourceType || '-'}`
@@ -283,7 +283,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                                         const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
                                                         return sum > 0 ? sum.toFixed(2) : (data.electricityPurchased || "-");
                                                     }
-                                                    return data.electricityPurchased || "-";
+                                                    return data.electricityPurchased ? parseFloat(data.electricityPurchased).toFixed(2) : "-";
                                                 })()}
                                             </span>
                                             {data.trackingType === "Spend amount" && (
@@ -299,9 +299,9 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                     if (data.energyActivityInput === "Monthly") {
                                         const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
                                         const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
-                                        return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.energyConsumption || "-");
+                                        return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.energyConsumption ? parseFloat(data.energyConsumption).toFixed(2) : "-");
                                     }
-                                    return data.energyConsumption || "-";
+                                    return data.energyConsumption ? parseFloat(data.energyConsumption).toFixed(2) : "-";
                                 })()} />
                                 <DetailRow label="Spend Amount" value={data.spendAmount || "-"} />
 
@@ -326,18 +326,18 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                             if (data.renewableEnergyActivityInput === "Monthly") {
                                                 const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);
                                                 const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
-                                                return sum > 0 ? sum.toFixed(2) : (data.renewableElectricity || "-");
+                                                return sum > 0 ? sum.toFixed(2) : (data.renewableElectricity ? parseFloat(data.renewableElectricity).toFixed(2) : "-");
                                             }
-                                            return data.renewableElectricity || "-";
+                                            return data.renewableElectricity ? parseFloat(data.renewableElectricity).toFixed(2) : "-";
                                         })()} />
                                         <DetailRow label="Data Source" value={data.renewableDataSourceType || "-"} />
                                         <DetailRow label="Energy Consumption (GJ)" value={(() => {
                                             if (data.renewableEnergyActivityInput === "Monthly") {
                                                 const items = typeof data.renewableMonthlyData === 'string' ? JSON.parse(data.renewableMonthlyData) : (data.renewableMonthlyData || []);
                                                 const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
-                                                return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.renewableEnergyConsumption || "-");
+                                                return sum > 0 ? (sum * 0.0036).toFixed(2) : (data.renewableEnergyConsumption ? parseFloat(data.renewableEnergyConsumption).toFixed(2) : "-");
                                             }
-                                            return data.renewableEnergyConsumption || "-";
+                                            return data.renewableEnergyConsumption ? parseFloat(data.renewableEnergyConsumption).toFixed(2) : "-";
                                         })()} />
                                         <DetailRow label="Renewable Source Description" value={data.renewableEnergySourceDescription || "-"} />
 

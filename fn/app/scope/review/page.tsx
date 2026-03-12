@@ -126,10 +126,10 @@ const MonthlyTable = ({ data, type, isEstimated = false }: { data: any[]; type: 
               <td className="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">
                 {row.month ? (row.month.includes('-') && row.month.split('-').length === 2 ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: '2-digit' }) : row.month) : "-"}
               </td>
-              <td className="px-3 py-2 text-gray-700">{row.electricityPurchased || "-"}</td>
-              <td className="px-3 py-2 text-gray-700">{row.energyConsumption || "-"}</td>
+              <td className="px-3 py-2 text-gray-700">{row.electricityPurchased ? parseFloat(row.electricityPurchased).toFixed(2) : "-"}</td>
+              <td className="px-3 py-2 text-gray-700">{row.energyConsumption ? parseFloat(row.energyConsumption).toFixed(2) : "-"}</td>
               {type === "Grid" && data.some(r => r.spend && parseFloat(r.spend) > 0) && (
-                <td className="px-3 py-2 text-gray-700">{row.spend || "-"}</td>
+                <td className="px-3 py-2 text-gray-700">{row.spend ? parseFloat(row.spend).toFixed(2) : "-"}</td>
               )}
               <td className="px-3 py-2 text-gray-700">
                 {row.dataSourceType || "-"}
@@ -384,7 +384,7 @@ function ScopeReviewContent() {
                 label="Electricity Purchased" 
                 value={
                   <div className="flex items-center gap-2">
-                    <span>{formData.electricityPurchased} kWh</span>
+                    <span>{parseFloat(formData.electricityPurchased || "0").toFixed(2)} kWh</span>
                     {formData.trackingType === "Spend amount" && (
                       <span className="bg-yellow-100 text-yellow-800 text-[10px] font-medium px-1.5 py-0.5 rounded border border-yellow-200 uppercase">
                         Estimated
@@ -394,7 +394,7 @@ function ScopeReviewContent() {
                 } 
               />
               <DetailRow label="Data Source Type" value={formData.dataSourceType || "-"} />
-              <DetailRow label="Energy Consumption" value={`${formData.energyConsumption} GJ`} />
+              <DetailRow label="Energy Consumption" value={`${parseFloat(formData.energyConsumption || "0").toFixed(2)} GJ`} />
 
               {formData.trackingType && formData.trackingType.includes("Spend") && <DetailRow label="Spend Amount" value={formData.spendAmount ? `${formData.spendAmount} INR` : "-"} />}
 
@@ -426,9 +426,9 @@ function ScopeReviewContent() {
               {formData.hasRenewableElectricity === "Yes" && (
                 <>
                   <DetailRow label="Input Type" value={formData.renewableEnergyActivityInput || "Yearly"} />
-                  <DetailRow label="Renewable Electricity" value={`${formData.renewableElectricity} kWh`} />
+                  <DetailRow label="Renewable Electricity" value={`${parseFloat(formData.renewableElectricity || "0").toFixed(2)} kWh`} />
                   <DetailRow label="Data Source" value={formData.renewableDataSourceType || "-"} />
-                  <DetailRow label="Energy Consumption" value={`${formData.renewableEnergyConsumption} GJ`} />
+                  <DetailRow label="Energy Consumption" value={`${parseFloat(formData.renewableEnergyConsumption || "0").toFixed(2)} GJ`} />
 
 
                   {(formData.renewableEnergyActivityInput === "Monthly") && (

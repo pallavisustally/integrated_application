@@ -594,7 +594,7 @@ function CertificateContent() {
               The suggested sector recommendations are indicative in nature and are derived from sustainability initiatives disclosed by comparable companies in their BRSR reports. These suggestions are intended for general guidance and should be evaluated based on the organization&apos;s specific operational context, resources, and strategic priorities.
               {data.energyActivityInput === "Monthly" && data.renewableEnergyActivityInput === "Monthly" && (
                 <span className="block mt-1">
-                  _Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period.
+                  Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period.
                 </span>
               )}
             </p>
@@ -700,12 +700,26 @@ function CertificateContent() {
               </p>
 
               {/* Signatures / Logos */}
-              <div className="w-full flex justify-center items-end">
-                <img
-                  src="/certificate-assets/asset-2.png"
-                  alt="Signatories"
-                  className="w-full max-w-3xl object-contain h-24"
-                />
+              <div className="w-full flex justify-center items-end relative mt-20">
+                <div className="relative w-full max-w-3xl">
+                  {/* SPSL Signature */}
+                  <img
+                    src="/certificate-assets/spsl-sign.png"
+                    alt="SPSL Sign"
+                    className="absolute left-[13%] bottom-16 h-20 object-contain"
+                  />
+                  {/* Future & Beyond Signature */}
+                  <img
+                    src="/certificate-assets/future-sign.png"
+                    alt="Future Sign"
+                    className="absolute left-[43%] bottom-16 h-20 object-contain"
+                  />
+                  <img
+                    src="/certificate-assets/asset-2.png"
+                    alt="Signatories"
+                    className="w-full object-contain h-24 relative z-10"
+                  />
+                </div>
               </div>
             </div>
 
