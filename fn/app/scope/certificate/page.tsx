@@ -22,6 +22,7 @@ function CertificateContent() {
   const [isDownloadingBrsr, setIsDownloadingBrsr] = useState(false);
   const [spslExists, setSpslExists] = useState(true);
   const [futureExists, setFutureExists] = useState(true);
+  const [anithaExists, setAnithaExists] = useState(true);
   const formatCertificateId = () => {
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
@@ -80,6 +81,7 @@ function CertificateContent() {
         sector: "Automobile and Auto Components", // Mock sector for preview
         energyActivityInput: "Yearly",
         renewableEnergyActivityInput: "Yearly",
+        userCompany: "Demo Manufacturing Ltd. (Company)",
       });
       setLoading(false);
       return;
@@ -131,6 +133,7 @@ function CertificateContent() {
         renewableEnergyActivityInput: parsedData.renewableEnergyActivityInput || "Yearly",
         monthlyData: parsedData.monthlyData || [],
         renewableMonthlyData: parsedData.renewableMonthlyData || [],
+        userCompany: parsedData.userCompany || parsedData.user_company || parsedData.facilityName || "-",
       });
     } catch (e) {
       console.error("Failed to parse session data", e);
@@ -223,7 +226,7 @@ function CertificateContent() {
       });
 
       pdf.addImage(dataUrl, 'PNG', 0, 0, 794, 1123);
-      pdf.save(`Certification_${data.facilityName}_${data.reportingYear}.pdf`);
+      pdf.save(`Certification_${data.userCompany !== "-" ? data.userCompany : data.facilityName}_${data.reportingYear}.pdf`);
     } catch (err) {
       console.error("Failed to generate certificate", err);
       alert("Failed to generate certificate. Please try again.");
@@ -260,7 +263,7 @@ function CertificateContent() {
       const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
 
       pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Assessment_Report_${data.facilityName}_${data.reportingYear}.pdf`);
+      pdf.save(`Assessment_Report_${data.userCompany !== "-" ? data.userCompany : data.facilityName}_${data.reportingYear}.pdf`);
     } catch (err) {
       console.error("Failed to generate report", err);
       alert("Failed to generate report. Please try again.");
@@ -287,7 +290,7 @@ function CertificateContent() {
       const dataUrl2 = await toPng(brsrPage2Ref.current, { cacheBust: true, width: 794, height: 1123, pixelRatio: 2 });
       pdf.addImage(dataUrl2, 'PNG', 0, 0, 794, 1123);
 
-      pdf.save(`BRSR_P6_Report_${data.facilityName}_${data.reportingYear}.pdf`);
+      pdf.save(`BRSR_P6_Report_${data.userCompany !== "-" ? data.userCompany : data.facilityName}_${data.reportingYear}.pdf`);
     } catch (err) {
       console.error("Failed to generate BRSR report", err);
       alert("Failed to generate BRSR report. Please try again.");
@@ -305,7 +308,7 @@ function CertificateContent() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 leading-tight">Scope 2 Emissions & Cost Performance</h1>
             <div className="flex items-center gap-3 mt-1 text-gray-500 text-sm">
-              <span className="font-medium text-gray-700">{data.facilityName}</span>
+              <span className="font-medium text-gray-700">{data.userCompany !== "-" ? data.userCompany : data.facilityName}</span>
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
               <span>{data.reportingYear}</span>
             </div>
@@ -644,19 +647,26 @@ function CertificateContent() {
           />
 
           <div className="relative z-10 w-full h-full flex flex-col items-center pt-28 pb-24 px-24">
+            {/* Fonts */}
+            <style dangerouslySetInnerHTML={{
+              __html: `
+              @import url('https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap');
+              @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap');
+              @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+              .font-signature { font-family: 'Dancing Script', cursive; }
+              .font-playfair { font-family: 'Playfair Display', serif; }
+              .font-montserrat { font-family: 'Montserrat', sans-serif; }
+            ` }} />
 
-            {/* Title Section */}
-            <div className="text-center mb-14">
-              <h1 className="text-3xl font-cinzel weight-500 line-height-1.6 letter-spacing-large text-[#1e3a3a] tracking-widest font-medium">
-                Planet Positive
+            <div className="text-center mb-14 font-montserrat">
+              <h1 className="font-playfair font-bold line-height-1.2 letter-spacing-large text-[#1e3a3a] tracking-widest uppercase" style={{ fontSize: '27px' }}>
+                Planet Positive Stewardship Recognition
               </h1>
 
-              <h2 className="text-3xl  font-cinzel weight-500 line-height-1.6 letter-spacing-large text-[#1e3a3a] tracking-widest font-medium mt-2">
-                Stewardship Recognition
-              </h2>
+
 
               {/* Decoration */}
-              <div className="mt-6 flex justify-center">
+              <div className="mt-2 mb-4 flex justify-center">
                 <img
                   src="/certificate-assets/asset-1.png"
                   alt="Decoration"
@@ -664,71 +674,111 @@ function CertificateContent() {
                 />
               </div>
               {/* Awarded To */}
-              <p className="text-xl font-cormorant Garamond italic text-gray-600 mb-8">
+              <p className="font-playfair italic text-gray-600 mb-4" style={{ fontSize: '16px' }}>
                 This certificate is awarded to
               </p>
-              {/* Facility Name */}
-              <h2 className="text-4xl font-cinzel font-bold text-[#1e3a3a] uppercase tracking-wide mb-12 text-center">
-                {data.facilityName}
+              {/* Facility Name/Company Name */}
+              <h2 className="font-bold text-[#1e3a3a] uppercase tracking-wide mb-4 text-center" style={{ fontSize: '25px' }}>
+                {data.userCompany !== "-" ? data.userCompany : data.facilityName}
               </h2>
               {/* Body Text */}
-              <div className="text-center max-w-2xl space-y-4 mb-12">
-                <p className="text-lg font-Cormorant Garamond style italic size-medium Line-height-relaxed text-gray-700 leading-relaxed italic">
+              <div className="text-center max-w-2xl space-y-2 mb-6 font-playfair">
+                <p className="style italic size-medium Line-height-relaxed text-gray-700 leading-relaxed italic" style={{ fontSize: '16px' }}>
                   in recognition of leadership in environmental transparency through the
                   proactive initiation of a Scope 2 emissions assessment for the reporting
                   period <span className="font-semibold not-italic">{fyYear}</span> conducted during
                 </p>
 
-                <p className="text-lg font-Cormorant Garamond font-bold text-[#1e3a3a]">
+                <p className="font-bold text-[#1e3a3a]" style={{ fontSize: '16px' }}>
                   PPTL Season 3, India’s first certified carbon-neutral sports event
                 </p>
               </div>
               {/* Quote */}
-              <p className="text-lg font-Cormorant Garamond Italic  text-gray-600 mb-4">
+              <p className="font-playfair italic text-gray-600 mb-4" style={{ fontSize: '16px' }}>
                 A foundational milestone toward accountable climate action.
               </p>
 
               {/* Seal */}
-              <div className="mb-10 flex justify-center">
+              <div className="mb-1 flex justify-center">
                 <img
                   src="/certificate-assets/asset-3.png"
                   alt="Seal"
-                  className="w-36 h-36 object-contain"
+                  className="w-64 h-auto object-contain"
                 />
               </div>
               {/* Certificate ID */}
-              <p className="text-xs font-Libre Baskerville text-gray-500 mb-16">
+              <p className="font-playfair text-gray-500 mb-4" style={{ fontSize: '12px' }}>
                 Certificate ID: {data.certificateId}
               </p>
 
-              {/* Signatures / Logos */}
-              <div className="w-full flex justify-center items-end relative mt-20">
-                <div className="relative w-full max-w-3xl">
-                  {/* Signatures - Only rendered if files are present to prevent PDF crash */}
-                  {spslExists && (
-                    <img
-                      src="/certificate-assets/spsl-sign.png"
-                      alt=""
-                      className="absolute left-[7%] bottom-[95px] h-10 object-contain"
-                      style={{ mixBlendMode: "multiply" }}
-                      onError={() => setSpslExists(false)}
-                    />
-                  )}
-                  {futureExists && (
-                    <img
-                      src="/certificate-assets/future-sign.png"
-                      alt=""
-                      className="absolute left-[45%] bottom-[95px] h-10 object-contain"
-                      style={{ mixBlendMode: "multiply" }}
-                      onError={() => setFutureExists(false)}
-                    />
-                  )}
+              {/* Signatories / Logos */}
+              <div className="w-full mt-8">
+                <div className="grid grid-cols-3 gap-8 items-end w-full max-w-4xl mx-auto">
 
-                  <img
-                    src="/certificate-assets/asset-2.png"
-                    alt="Signatories"
-                    className="w-full object-contain h-24 relative z-10"
-                  />
+                  {/* Signatory 1 - Virendra Singh */}
+                  <div className="flex flex-col items-center relative">
+                    {spslExists && (
+                      <img
+                        src="/certificate-assets/spsl-sign.png"
+                        alt=""
+                        className="absolute bottom-[140px] h-14 object-contain scale-x-125"
+                        style={{ mixBlendMode: "multiply" }}
+                        onError={() => setSpslExists(false)}
+                      />
+                    )}
+                    <p className={`font-signature text-2xl text-[#475569] h-10 italic ${spslExists ? 'opacity-0' : ''}`}>Virendra Singh</p>
+                    <div className="w-32 h-[1px] bg-gray-200 my-2"></div>
+                    <p className="font-bold text-[#1e3a3a] tracking-wide uppercase leading-tight" style={{ fontSize: '12px' }}>Virendra Singh</p>
+                    <p className="text-gray-500 font-medium uppercase mt-1" style={{ fontSize: '12px' }}>CEO & Director</p>
+                    <p className="text-gray-500 font-medium uppercase" style={{ fontSize: '12px' }}>Veda SPSL Foundation</p>
+                    <div className="mt-4 h-16 flex items-center justify-center">
+                      {/* For SPSL using the relevant part of asset-2 */}
+                      <img src="/certificate-assets/asset-2.png" className="h-12 object-contain" style={{ clipPath: 'inset(0 66% 0 0)', transform: 'translateX(112%) scale(2.8)', transformOrigin: 'center' }} onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    </div>
+                  </div>
+
+                  {/* Signatory 2 - Priyadarshi Tiwari */}
+                  <div className="flex flex-col items-center relative">
+                    {futureExists && (
+                      <img
+                        src="/certificate-assets/future-sign.png"
+                        alt=""
+                        className="absolute bottom-[140px] h-10 object-contain"
+                        style={{ mixBlendMode: "multiply" }}
+                        onError={() => setFutureExists(false)}
+                      />
+                    )}
+                    <p className={`font-signature text-2xl text-[#475569] h-10 italic ${futureExists ? 'opacity-0' : ''}`}>Priyadarshi Tiwari</p>
+                    <div className="w-32 h-[1px] bg-gray-200 my-2"></div>
+                    <p className="font-bold text-[#1e3a3a] tracking-wide uppercase leading-tight text-nowrap" style={{ fontSize: '12px' }}>Priyadarshi Tiwari</p>
+                    <p className="text-gray-500 font-medium uppercase mt-1" style={{ fontSize: '12px' }}>Founder</p>
+                    <p className="text-gray-500 font-medium uppercase" style={{ fontSize: '12px' }}>Future & Beyond</p>
+                    <div className="mt-4 h-16 flex items-center justify-center">
+                      <img src="/certificate-assets/future-beyond-logo.png" className="h-14 object-contain" />
+                    </div>
+                  </div>
+
+                  {/* Signatory 3 - Anitha C */}
+                  <div className="flex flex-col items-center relative">
+                    {anithaExists && (
+                      <img
+                        src="/certificate-assets/signare-3.jpg"
+                        alt=""
+                        className="absolute bottom-[140px] h-14 object-contain"
+                        style={{ mixBlendMode: "multiply" }}
+                        onError={() => setAnithaExists(false)}
+                      />
+                    )}
+                    <p className={`font-signature text-2xl text-[#475569] h-10 italic text-nowrap ${anithaExists ? 'opacity-0' : ''}`}>Anitha C</p>
+                    <div className="w-32 h-[1px] bg-gray-200 my-2"></div>
+                    <p className="font-bold text-[#1e3a3a] tracking-wide uppercase leading-tight" style={{ fontSize: '12px' }}>Anitha C</p>
+                    <p className="text-gray-500 font-medium uppercase mt-1" style={{ fontSize: '12px' }}>Founder</p>
+                    <p className="text-gray-500 font-medium uppercase" style={{ fontSize: '12px' }}>Sustally</p>
+                    <div className="mt-4 h-16 flex items-center justify-center">
+                      <img src="/sustally-logo.png" className="h-14 object-contain" />
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -867,7 +917,7 @@ function CertificateContent() {
 
             <div className="mt-auto">
               <p className="text-[10px] italic leading-tight text-gray-600 border-t border-gray-100 pt-4">
-                The assessment is carried out by <span className="font-bold">Sustally Technologies Private Limited</span>, which analyzes electricity consumption data provided by the <span className="font-bold underline">{data.facilityName}</span> to estimate Scope-2 emissions using standardized emission factors and automated statistical analysis aligned with carbon accounting principles.
+                The assessment is carried out by <span className="font-bold">Sustally Technologies Private Limited</span>, which analyzes electricity consumption data provided by the <span className="font-bold underline">{data.userCompany !== "-" ? data.userCompany : data.facilityName}</span> to estimate Scope-2 emissions using standardized emission factors and automated statistical analysis aligned with carbon accounting principles.
               </p>
 
               <div className="flex justify-end items-center mt-6 gap-2">
@@ -955,12 +1005,29 @@ function CertificateContent() {
 
             <div className="mt-auto">
               <p className="text-[10px] italic leading-tight text-gray-600 border-t border-gray-100 pt-4">
-                The assessment is carried out by <span className="font-bold">Sustally Technologies Private Limited</span>, which analyzes electricity consumption data provided by the <span className="font-bold underline">{data.facilityName}</span> to estimate Scope-2 emissions using standardized emission factors and automated statistical analysis aligned with carbon accounting principles.
+                The assessment is carried out by <span className="font-bold">Sustally Technologies Private Limited</span>, which analyzes electricity consumption data provided by the <span className="font-bold underline">{data.userCompany !== "-" ? data.userCompany : data.facilityName}</span> to estimate Scope-2 emissions using standardized emission factors and automated statistical analysis aligned with carbon accounting principles.
               </p>
 
-              <div className="flex justify-end items-center mt-6 gap-2">
-                <span className="text-[11px] text-gray-500">Powered By</span>
-                <img src="/sustally-logo.png" alt="Sustally Logo" className="h-6 object-contain" />
+              <div className="flex justify-between items-end mt-12 px-2">
+                <div className="flex flex-col items-start relative pb-4">
+                  {anithaExists && (
+                    <img
+                      src="/certificate-assets/signare-3.jpg"
+                      alt=""
+                      className="absolute bottom-[70px] left-0 h-10 object-contain"
+                      style={{ mixBlendMode: "multiply" }}
+                    />
+                  )}
+                  <p className={`font-signature text-xl text-[#475569] h-8 italic ${anithaExists ? 'opacity-0' : ''}`}>Anitha C</p>
+                  <div className="w-24 h-[1px] bg-gray-300 my-1"></div>
+                  <p className="font-cinzel font-bold text-[#1e3a3a] text-[10px] tracking-wide uppercase">Anitha C</p>
+                  <p className="font-cormorant text-[8px] text-gray-500 font-medium uppercase">Founder, Sustally</p>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-[11px] text-gray-500">Powered By</span>
+                  <img src="/sustally-logo.png" alt="Sustally Logo" className="h-6 object-contain" />
+                </div>
               </div>
             </div>
           </div>
