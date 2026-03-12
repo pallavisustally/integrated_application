@@ -80,7 +80,7 @@ const ReviewCard = ({
     </div>
 );
 
-const DetailRow = ({ label, value, subLabel }: { label: string; value: string; subLabel?: string }) => {
+const DetailRow = ({ label, value, subLabel }: { label: string; value: string | React.ReactNode; subLabel?: string }) => {
     const renderLabel = () => {
         if (label.includes('(kWh)')) return <>{label.replace(' (kWh)', '')} <span className="normal-case">(kWh)</span></>;
         if (label.includes('(GJ)')) return <>{label.replace(' (GJ)', '')} <span className="normal-case">(GJ)</span></>;
@@ -91,9 +91,9 @@ const DetailRow = ({ label, value, subLabel }: { label: string; value: string; s
     return (
         <div className="mb-4 last:mb-0">
             <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-1">{renderLabel()}</p>
-            <p className={`font-semibold text-gray-900 text-sm ${!value || value === "Not specified" || value === "-" ? "text-gray-400 italic" : ""}`}>
+            <div className={`font-semibold text-gray-900 text-sm ${!value || value === "Not specified" || value === "-" ? "text-gray-400 italic" : ""}`}>
                 {value || "-"}
-            </p>
+            </div>
             {subLabel && <p className="text-xs text-gray-500 mt-1">{subLabel}</p>}
         </div>
     );
@@ -108,7 +108,7 @@ const DetailGrid = ({ children }: { children: React.ReactNode }) => (
 const SUSTALLY_API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
 
 // Helper for Monthly Table
-const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" }) => {
+const MonthlyTable = ({ data, type, isEstimated = false }: { data: any[]; type: "Grid" | "Renewable"; isEstimated?: boolean }) => {
     // Helper to parse if it's a string
     let items = [];
     try {
@@ -126,7 +126,9 @@ const MonthlyTable = ({ data, type }: { data: any[]; type: "Grid" | "Renewable" 
                 <thead className="bg-gray-50">
                     <tr>
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
-                        <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Elec (kWh)</th>
+                        <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">
+                            Elec (kWh) {isEstimated && <span className="ml-1 bg-yellow-100 text-yellow-800 text-[8px] px-1 py-0.5 rounded border border-yellow-200 uppercase">Est</span>}
+                        </th>
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider">Cons (GJ)</th>
                         <th className="px-2 py-2 text-left font-bold text-gray-500 tracking-wider uppercase">
                             {type === "Grid" ? "Spend / Source" : "Source"}
@@ -270,14 +272,28 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 <DetailRow label="Category" value={data.energyCategory || "-"} />
                                 <DetailRow label="Value Type" value="Gross" />
 
-                                <DetailRow label="Electricity Purchased (kWh)" value={(() => {
-                                    if (data.energyActivityInput === "Monthly") {
-                                        const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
-                                        const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
-                                        return sum > 0 ? sum.toFixed(2) : (data.electricityPurchased || "-");
-                                    }
-                                    return data.electricityPurchased || "-";
-                                })()} />
+                                <DetailRow 
+                                    label="Electricity Purchased (kWh)" 
+                                    value={
+                                        <div className="flex items-center gap-1.5 translate-y-[1px]">
+                                            <span>
+                                                {(() => {
+                                                    if (data.energyActivityInput === "Monthly") {
+                                                        const items = typeof data.monthlyData === 'string' ? JSON.parse(data.monthlyData) : (data.monthlyData || []);
+                                                        const sum = Array.isArray(items) ? items.reduce((acc: number, row: any) => acc + (parseFloat(row.electricityPurchased) || 0), 0) : 0;
+                                                        return sum > 0 ? sum.toFixed(2) : (data.electricityPurchased || "-");
+                                                    }
+                                                    return data.electricityPurchased || "-";
+                                                })()}
+                                            </span>
+                                            {data.trackingType === "Spend amount" && (
+                                                <span className="bg-yellow-100 text-yellow-800 text-[9px] font-medium px-1 py-0.5 rounded border border-yellow-200 uppercase leading-none">
+                                                    Estimated
+                                                </span>
+                                            )}
+                                        </div>
+                                    } 
+                                />
                                 <DetailRow label="Data Source Type" value={data.dataSourceType || "-"} />
                                 <DetailRow label="Energy Consumption (GJ)" value={(() => {
                                     if (data.energyActivityInput === "Monthly") {
@@ -293,7 +309,7 @@ export default function ReviewClient({ submission }: { submission: any }) {
                                 {data.energyActivityInput === "Monthly" && (
                                     <div className="col-span-2 mt-2">
                                         <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
-                                        <MonthlyTable data={data.monthlyData} type="Grid" />
+                                        <MonthlyTable data={data.monthlyData} type="Grid" isEstimated={data.trackingType === "Spend amount"} />
                                     </div>
                                 )}
                             </DetailGrid>

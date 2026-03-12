@@ -590,13 +590,13 @@ function CertificateContent() {
               })()}
             </div>
             <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
-              {data.reportingPeriod === "Monthly" ? (
-                <span className="block mb-1">
-                  Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period.
-                </span>
-              ) : null}
               <span className="font-semibold">Disclaimer: </span>
               The suggested sector recommendations are indicative in nature and are derived from sustainability initiatives disclosed by comparable companies in their BRSR reports. These suggestions are intended for general guidance and should be evaluated based on the organization&apos;s specific operational context, resources, and strategic priorities.
+              {data.energyActivityInput === "Monthly" && data.renewableEnergyActivityInput === "Monthly" && (
+                <span className="block mt-1">
+                  _Complete data for the selected reporting period has not been provided. The results reflect only the reported months and should not be interpreted as a complete assessment for the reporting period.
+                </span>
+              )}
             </p>
           </div>
 

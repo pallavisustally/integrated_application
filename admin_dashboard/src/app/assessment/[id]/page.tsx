@@ -102,7 +102,7 @@ const DetailGrid = ({ children }: { children: React.ReactNode }) => (
 );
 
 // Helper for Monthly Table
-const MonthlyTable = ({ data, type }: { data: any; type: "Grid" | "Renewable" }) => {
+const MonthlyTable = ({ data, type, isEstimated = false }: { data: any; type: "Grid" | "Renewable"; isEstimated?: boolean }) => {
   const parsedData = useMemo(() => {
     if (!data) return [];
     let items = data;
@@ -125,7 +125,9 @@ const MonthlyTable = ({ data, type }: { data: any; type: "Grid" | "Renewable" })
         <thead className="bg-gray-50">
           <tr>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Month</th>
-            <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Electricity (kWh)</th>
+            <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">
+              Electricity (kWh) {isEstimated && <span className="ml-1 bg-yellow-100 text-yellow-800 text-[10px] px-1.5 py-0.5 rounded border border-yellow-200 uppercase">Estimated</span>}
+            </th>
             <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Consumption (GJ)</th>
             {type === "Grid" && parsedData.some((r: any) => r.spend && parseFloat(r.spend) > 0) && (
               <th className="px-3 py-2 text-left font-bold text-gray-500 tracking-wider">Spend (INR)</th>
@@ -349,7 +351,19 @@ export default function AssessmentViewPage() {
               <DetailRow label="Category" value={data.energyCategory} />
               <DetailRow label="Tracking Type" value={data.trackingType} />
 
-              <DetailRow label="Electricity Purchased" value={`${data.electricityPurchased || 0} kWh`} />
+              <DetailRow 
+                label="Electricity Purchased" 
+                value={
+                  <div className="flex items-center gap-2">
+                    <span>{data.electricityPurchased || 0} kWh</span>
+                    {data.trackingType === "Spend amount" && (
+                      <span className="bg-yellow-100 text-yellow-800 text-[10px] font-medium px-1.5 py-0.5 rounded border border-yellow-200 uppercase">
+                        Estimated
+                      </span>
+                    )}
+                  </div>
+                } 
+              />
               <DetailRow label="Data Source Type" value={data.dataSourceType || "-"} />
               <DetailRow label="Energy Consumption" value={`${data.energyConsumption || 0} GJ`} />
 
@@ -358,7 +372,7 @@ export default function AssessmentViewPage() {
               {data.energyActivityInput === "Monthly" && (
                 <div className="col-span-1 md:col-span-2 mt-2">
                   <p className="text-[10px] text-gray-500 font-bold tracking-wider mb-2 border-t pt-4">Monthly Breakdown (Grid)</p>
-                  <MonthlyTable data={data.monthlyData} type="Grid" />
+                  <MonthlyTable data={data.monthlyData} type="Grid" isEstimated={data.trackingType === "Spend amount"} />
                 </div>
               )}
               <DetailRow label="Evidence File" value={data.energySupportingEvidenceFileName || "No file uploaded"} fullWidth />
