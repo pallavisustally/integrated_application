@@ -20,6 +20,8 @@ function CertificateContent() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDownloadingReport, setIsDownloadingReport] = useState(false);
   const [isDownloadingBrsr, setIsDownloadingBrsr] = useState(false);
+  const [spslExists, setSpslExists] = useState(true);
+  const [futureExists, setFutureExists] = useState(true);
   const formatCertificateId = () => {
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
@@ -702,18 +704,26 @@ function CertificateContent() {
               {/* Signatures / Logos */}
               <div className="w-full flex justify-center items-end relative mt-20">
                 <div className="relative w-full max-w-3xl">
-                  {/* SPSL Signature */}
-                  <img
-                    src="/certificate-assets/spsl-sign.png"
-                    alt="SPSL Sign"
-                    className="absolute left-[13%] bottom-16 h-20 object-contain"
-                  />
-                  {/* Future & Beyond Signature */}
-                  <img
-                    src="/certificate-assets/future-sign.png"
-                    alt="Future Sign"
-                    className="absolute left-[43%] bottom-16 h-20 object-contain"
-                  />
+                  {/* Signatures - Only rendered if files are present to prevent PDF crash */}
+                  {spslExists && (
+                    <img
+                      src="/certificate-assets/spsl-sign.png"
+                      alt=""
+                      className="absolute left-[7%] bottom-[95px] h-10 object-contain"
+                      style={{ mixBlendMode: "multiply" }}
+                      onError={() => setSpslExists(false)}
+                    />
+                  )}
+                  {futureExists && (
+                    <img
+                      src="/certificate-assets/future-sign.png"
+                      alt=""
+                      className="absolute left-[45%] bottom-[95px] h-10 object-contain"
+                      style={{ mixBlendMode: "multiply" }}
+                      onError={() => setFutureExists(false)}
+                    />
+                  )}
+
                   <img
                     src="/certificate-assets/asset-2.png"
                     alt="Signatories"
