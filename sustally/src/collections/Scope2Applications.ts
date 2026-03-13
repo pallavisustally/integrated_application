@@ -606,6 +606,7 @@ const Scope2Applications: CollectionConfig = {
             success: true,
             user: {
               facilityName: application.facilityName,
+              userCompany: application.userCompany,
               email: application.email,
               id: application.id,
               certificateId: application.certificateId,
