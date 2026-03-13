@@ -41,7 +41,7 @@ function CertificateContent() {
 
       // Always show FY year label (even when reporting period is Monthly)
       // This keeps certificate/dashboard/BRSR consistent with the chosen FY.
-      return `${year}-${String(year + 1).slice(-2)}`;
+      return `FY ${year}-${String(year + 1).slice(-2)}`;
     } catch (e) {
       return dateStr;
     }
@@ -60,7 +60,7 @@ function CertificateContent() {
         state: "Maharashtra",
         siteCount: "Single Site",
         facilityName: "Demo Manufacturing Ltd.",
-        reportingYear: "2024 - 2025",
+        reportingYear: "FY2024-25",
         rawReportingYear: "2024",
         reportingPeriod: "Annually",
         scopeBoundaryNotes: "Operational Control",
@@ -106,7 +106,7 @@ function CertificateContent() {
         state: parsedData.state || "-",
         siteCount: parsedData.siteCount || "-",
         facilityName: parsedData.facilityName || "ACME MANUFACTURING LTD.",
-        reportingYear: formattedPeriod || "2025-26",
+        reportingYear: formattedPeriod || "FY2025-26",
         rawReportingYear: rawReportingYear,
         reportingPeriod: rawReportingPeriod,
         scopeBoundaryNotes: parsedData.scopeBoundaryNotes || "-",
@@ -150,9 +150,9 @@ function CertificateContent() {
 
   // Use energyGrid_kJ and energyRenew_kJ when available (canonical values from scope form)
   // Conversion: 1 GWh = 3,600,000,000 kJ
-  const energyGridKj = parseFloat(data.energyGrid) || 0;
-  const energyRenewKj = parseFloat(data.energyRenew) || 0;
-  const energyTotalKj = parseFloat(data.energyTotal) || 0;
+  const energyGridKj = parseFloat(data.energyGrid) || parseFloat(data.energyGrid_kJ) || 0;
+  const energyRenewKj = parseFloat(data.energyRenew) || parseFloat(data.energyRenew_kJ) || 0;
+  const energyTotalKj = parseFloat(data.energyTotal) || parseFloat(data.energyTotal_kJ) || 0;
 
   let derivedGridKWh: number;
   let derivedRenewKWh: number;
@@ -205,7 +205,7 @@ function CertificateContent() {
   const energyTotalGj = formatGj(totalGjValue);
 
   const scope2Emissions = data.marketBasedEmissions ? parseFloat(data.marketBasedEmissions).toFixed(2) : "NA";
-  const fyYear = data.reportingYear?.includes("FY") ? data.reportingYear : `FY ${data.reportingYear}`;
+  const fyYear = data.reportingYear?.startsWith("FY") ? data.reportingYear : `FY${data.reportingYear}`;
 
 
   const handleDownloadCertificate = async () => {
@@ -971,7 +971,11 @@ function CertificateContent() {
                     <span className="font-normal text-[10px] text-gray-600">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations)</span>
                   </td>
                   <td className="border border-black p-3 text-center italic">Metric Tonnes Of Co2 Equivalent/(Crore INR)</td>
-                  <td className="border border-black p-3 text-right font-bold text-black">NA</td>
+                  <td className="border border-black p-3 text-right font-bold text-black">
+                    {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
+                      ? (parseFloat(scope2Emissions) / (parseFloat(data.energyIntensityPerRupee) / 10000000)).toLocaleString("en-IN", { maximumFractionDigits: 6 })
+                      : "NA"}
+                  </td>
                 </tr>
 
                 {/* PPP Intensity Row */}
@@ -981,8 +985,23 @@ function CertificateContent() {
                     for Purchasing Power Parity (PPP)<br />
                     <span className="font-normal text-[10px] text-gray-600">(Total Scope 1 and Scope 2 GHG emissions / Revenue from operations adjusted for PPP)</span>
                   </td>
-                  <td className="border border-black p-3 border-b-0"></td>
-                  <td className="border border-black p-3 text-right font-bold text-black">NA</td>
+                  <td className="border border-black p-3 text-center italic">Metric Tonnes Of Co2 Equivalent/(PPP Adjusted Crore INR)</td>
+                  <td className="border border-black p-3 text-right font-bold text-black">
+                    {data.energyIntensityPerRupee && !isNaN(parseFloat(data.energyIntensityPerRupee)) && parseFloat(data.energyIntensityPerRupee) > 0
+                      ? (() => {
+                        const turnover = parseFloat(data.energyIntensityPerRupee);
+                        const pppRates: Record<string, number> = {
+                          "2019-20": 20.24, "2020-21": 20.319, "2021-22": 20.728, "2022-23": 20.493, "2023-24": 20.274, "2024-25": 20.392,
+                        };
+                        const yearMatch = fyYear.match(/20\d{2}-\d{2}/);
+                        const extractedYear = yearMatch ? yearMatch[0] : null;
+                        const pppRate = extractedYear && pppRates[extractedYear] ? pppRates[extractedYear] : 20.392;
+                        const pppAdjustedTurnover = turnover / pppRate;
+                        // tCO2e / (Turnover / pppRate / 1e7)
+                        return (parseFloat(scope2Emissions) / (pppAdjustedTurnover / 10000000)).toLocaleString("en-IN", { maximumFractionDigits: 6 });
+                      })()
+                      : "NA"}
+                  </td>
                 </tr>
 
 

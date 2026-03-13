@@ -261,7 +261,7 @@ function ScopeReviewContent() {
     if (isNaN(date.getTime())) return dateStr; // If it's already a string like "2023-24"
 
     const year = date.getFullYear();
-    return `${year}-${String(year + 1).slice(-2)}`;
+    return `FY${year}-${String(year + 1).slice(-2)}`;
   };
 
   if (isSubmitted) {

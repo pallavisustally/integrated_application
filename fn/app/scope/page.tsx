@@ -1986,8 +1986,8 @@ function TemplateContent() {
                                       <th className="px-3 py-2 font-bold min-w-[130px]">Month</th>
                                       {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
                                         <>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased (<span className="normal-case">kWh</span>) <span className="text-red-500">*</span></th>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source Type <span className="text-red-500">*</span></th>
+                                          <th className="px-3 py-2 font-bold min-w-[130px]">Electricity Purchased<br />(<span className="normal-case">kWh</span>) <span className="text-red-500">*</span></th>
+                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source<br />Type <span className="text-red-500">*</span></th>
                                         </>
                                       )}
                                       {(formData.trackingType === "Spend amount" || formData.trackingType === "Both") && (
@@ -1995,24 +1995,27 @@ function TemplateContent() {
                                       )}
                                       {formData.trackingType === "Spend amount" && (
                                         <>
-                                          <th className="px-3 py-2 font-bold min-w-[150px]">
-                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                              <span>Electricity Purchased (<span className="normal-case">kWh</span>)</span>
-                                              <span className="bg-yellow-100 text-yellow-800 text-[10px] font-medium px-1.5 py-0.5 rounded border border-yellow-200">
-                                                Estimated
-                                              </span>
-                                              <div className="group relative flex items-center">
-                                                <svg className="w-3.5 h-3.5 text-gray-400 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-2 bg-gray-900 text-white text-[10px] font-normal leading-tight rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 shadow-lg pointer-events-none">
-                                                  Electricity consumption is estimated using a spend-based methodology and state-wise average electricity tariff data provided in the SEBI BRSR Core document (SEBI/HO/CFD/CFD-SEC-2/P/CIR/2023/122). The estimation is a proxy and may differ from actual metered consumption.
-                                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-900"></div>
+                                          <th className="px-3 py-2 font-bold min-w-[180px]">
+                                            <div className="flex flex-col">
+                                              <span>Electricity Purchased</span>
+                                              <div className="flex items-center gap-1.5">
+                                                <span className="normal-case font-bold">(kWh)</span>
+                                                <span className="bg-yellow-100 text-yellow-800 text-[10px] font-medium px-1.5 py-0.5 rounded border border-yellow-200">
+                                                  Estimated
+                                                </span>
+                                                <div className="group relative flex items-center">
+                                                  <svg className="w-3.5 h-3.5 text-gray-400 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                  </svg>
+                                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-2 bg-gray-900 text-white text-[10px] font-normal leading-tight rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 shadow-lg pointer-events-none">
+                                                    Electricity consumption is estimated using a spend-based methodology and state-wise average electricity tariff data provided in the SEBI BRSR Core document (SEBI/HO/CFD/CFD-SEC-2/P/CIR/2023/122). The estimation is a proxy and may differ from actual metered consumption.
+                                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-900"></div>
+                                                  </div>
                                                 </div>
                                               </div>
                                             </div>
                                           </th>
-                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source Type <span className="text-red-500">*</span></th>
+                                          <th className="px-3 py-2 font-bold min-w-[130px]">Data Source<br />Type <span className="text-red-500">*</span></th>
                                         </>
                                       )}
                                       {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both" || formData.trackingType === "Spend amount") && (
@@ -2494,8 +2497,8 @@ function TemplateContent() {
                                       <thead className="text-xs text-gray-500 bg-gray-50 border-b border-gray-200">
                                         <tr>
                                           <th className="px-3 py-2 font-bold w-1/4">Month</th>
-                                          <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity (<span className="normal-case">kWh</span>) <span className="text-red-500">*</span></th>
-                                          <th className="px-3 py-2 font-bold min-w-[120px]">Data Source Type <span className="text-red-500">*</span></th>
+                                          <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity<br />(<span className="normal-case">kWh</span>) <span className="text-red-500">*</span></th>
+                                          <th className="px-3 py-2 font-bold min-w-[120px]">Data Source<br />Type <span className="text-red-500">*</span></th>
                                           <th className="px-3 py-2 font-bold min-w-[120px]">Energy Consumption (GJ)</th>
                                           <th className="px-3 py-2 w-10"></th>
                                         </tr>
