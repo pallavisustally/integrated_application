@@ -741,10 +741,10 @@ function CertificateContent() {
                   <div className="flex flex-col items-center relative">
                     {futureExists && (
                       <img
-                        src="/certificate-assets/future-sign.png"
+                        src="/certificate-assets/priyadarshi-sign.png"
                         alt=""
-                        className="absolute bottom-[140px] h-10 object-contain"
-                        style={{ mixBlendMode: "multiply" }}
+                        className="absolute bottom-[130px] h-19 object-contain"
+                        style={{ mixBlendMode: "multiply", transform: "rotate(35deg)" }}
                         onError={() => setFutureExists(false)}
                       />
                     )}
