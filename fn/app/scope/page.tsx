@@ -299,10 +299,20 @@ function TemplateContent() {
         return; // Allow access if params are missing (legacy or direct access)
       }
 
-      // Combine date and time string
-      // Format: "Month DD, YYYY" and "HH:MM AM/PM"
-      const dateString = `${assignmentDate} ${assignmentTime}`;
-      const targetDate = new Date(dateString);
+      let targetDate: Date;
+      if (assignmentTime === "Immediately") {
+        let startTime = sessionStorage.getItem("immediate_start_time");
+        if (!startTime) {
+          startTime = (Date.now() + 10000).toString(); // 10 seconds from now
+          sessionStorage.setItem("immediate_start_time", startTime);
+        }
+        targetDate = new Date(parseInt(startTime));
+      } else {
+        // Combine date and time string
+        // Format: "Month DD, YYYY" and "HH:MM AM/PM"
+        const dateString = `${assignmentDate} ${assignmentTime}`;
+        targetDate = new Date(dateString);
+      }
 
       if (isNaN(targetDate.getTime())) {
         // If parsing fails, allow access

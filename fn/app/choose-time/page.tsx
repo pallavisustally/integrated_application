@@ -23,6 +23,12 @@ const CloudIcon = () => (
     </svg>
 );
 
+const ClockIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+);
+
 const MoonIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
@@ -47,15 +53,19 @@ const getDayName = (date: Date) => {
     // Reset time parts for accurate comparison
     const d1 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const d2 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const diffDays = Math.round((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (d1.getTime() === d2.getTime()) return "Today";
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Tomorrow";
 
     return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
 };
 
-type ShiftType = "Morning" | "Afternoon" | "Evening";
+type ShiftType = "Now" | "Morning" | "Afternoon" | "Evening";
 
 const timeSlotsByShift: Record<ShiftType, string[]> = {
+    Now: ["Immediately"],
     Morning: ["09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"],
     Afternoon: ["12:00 PM", "12:30 PM", "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM"],
     Evening: ["05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM", "07:00 PM", "07:30 PM", "08:00 PM"]
@@ -63,6 +73,7 @@ const timeSlotsByShift: Record<ShiftType, string[]> = {
 
 // Helper to check if a time slot is in the past (for Today)
 const isTimeSlotInPast = (timeSlot: string) => {
+    if (timeSlot === "Immediately") return false;
     const date = new Date();
     const currentHours = date.getHours();
     const currentMinutes = date.getMinutes();
@@ -82,6 +93,7 @@ const isTimeSlotInPast = (timeSlot: string) => {
 };
 
 const shifts: { label: ShiftType; icon: React.ReactNode; range: string }[] = [
+    { label: "Now", icon: <ClockIcon />, range: "Instant Access" },
     { label: "Morning", icon: <SunIcon />, range: "9 AM - 12 PM" },
     { label: "Afternoon", icon: <CloudIcon />, range: "12 PM - 5 PM" },
     { label: "Evening", icon: <MoonIcon />, range: "5 PM - 8 PM" }
@@ -130,36 +142,31 @@ function ChooseTimeContent() {
     }, [selectedDateIndex, selectedShift, selectedTime, termsAccepted, isLoaded]);
 
 
-    // Dates: Today (0), Next 1 Day (Tomorrow) (1)
-    const date0 = getFutureDate(0);
-    const date1 = getFutureDate(1);
-
-    // Only show Today and Tomorrow as requested (2 options: instant/today, and selected day/tomorrow)
-    // Or maybe they meant Today + 2 other days? 
-    // "so after selecting today , the timgs remaing of the day will generate as same as we have already the 2 days in choose time"
-    // I'll keep 3 options logic (Today, Tomorrow, Day After) to be safe or just 2 if they strictly said "2 options".
-    // "2 options . one for instat , and 2nd if for within the selected day" -> confusing.
-    // Let's assume they want Today + the original 2 days (Tomorrow, Day After) or just Today + Tomorrow.
-    // "we have already the 2 days in choose time" implies keeping existing logic but adding Today.
-    // So distinct options: Today, Tomorrow, Day After.
-
-    const date2 = getFutureDate(2);
-
+    const currentYear = new Date().getFullYear();
     const dates = [
-        { label: "Today", date: date0, id: 0 },
-        { label: "Tomorrow", date: date1, id: 1 },
-        { label: getDayName(date2), date: date2, id: 2 }
+        { label: getDayName(new Date(currentYear, 2, 15)), date: new Date(currentYear, 2, 15), id: 0 },
+        { label: getDayName(new Date(currentYear, 3, 8)), date: new Date(currentYear, 3, 8), id: 1 },
+        { label: getDayName(new Date(currentYear, 3, 9)), date: new Date(currentYear, 3, 9), id: 2 },
+        { label: getDayName(new Date(currentYear, 3, 10)), date: new Date(currentYear, 3, 10), id: 3 },
+        { label: getDayName(new Date(currentYear, 3, 11)), date: new Date(currentYear, 3, 11), id: 4 },
+        { label: getDayName(new Date(currentYear, 3, 12)), date: new Date(currentYear, 3, 12), id: 5 }
     ];
 
     const handleDateSelect = (index: number) => {
         setSelectedDateIndex(index);
         setSelectedTime(null);
-        // We can keep the shift or reset it. Let's keep it for better UX.
+        if (index !== 0 && selectedShift === "Now") {
+            setSelectedShift(null);
+        }
     };
 
     const handleShiftSelect = (shift: ShiftType) => {
         setSelectedShift(shift);
-        setSelectedTime(null); // Reset time when shift changes
+        if (shift === "Now") {
+            setSelectedTime("Immediately");
+        } else {
+            setSelectedTime(null); // Reset time when shift changes
+        }
     }
 
     const handleTimeSelect = (time: string) => {
@@ -258,9 +265,18 @@ function ChooseTimeContent() {
         const data = prepareBookingData();
         if (!data) return;
 
-        const success = await sendBookingEmail(data);
-        if (success) {
-            setIsSuccess(true);
+        if (selectedShift === "Now") {
+            // Wait for DB save, but pass a flag to skip sending the email
+            const success = await sendBookingEmail({ ...data, skipEmail: true });
+            if (success) {
+                // Redirect directly to the assessment link immediately
+                window.location.href = data.assessmentLink;
+            }
+        } else {
+            const success = await sendBookingEmail(data);
+            if (success) {
+                setIsSuccess(true);
+            }
         }
     };
 
@@ -477,7 +493,7 @@ function ChooseTimeContent() {
                                     Select A Date <span className="text-red-500">*</span>
                                 </label>
                                 <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Assessment Date</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
                                     {dates.map((d, index) => (
                                         <button
                                             key={index}
@@ -516,8 +532,8 @@ function ChooseTimeContent() {
                                         Select Time Of Day <span className="text-red-500">*</span>
                                     </label>
                                     <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Time Period</p>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                        {shifts.map((shift) => {
+                                    <div className={`grid grid-cols-2 ${selectedDateIndex === 0 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3 sm:gap-4`}>
+                                        {shifts.filter(s => selectedDateIndex === 0 || s.label !== "Now").map((shift) => {
                                             // Optional: Filter shifts if all its slots are past (for Today)
                                             // But for now, let's just let the user click and see empty/filtered slots or handle it here
                                             // Let's filter shifts that are completely in the past
@@ -562,49 +578,64 @@ function ChooseTimeContent() {
                             {/* Time Selection */}
                             {selectedShift !== null && (
                                 <div className="min-h-[150px] animate-fade-in">
-                                    <label className="block text-xs font-medium text-gray-700 mb-2">
-                                        Select Specific Time <span className="text-red-500">*</span>
-                                    </label>
-                                    <p className="text-[10px] text-gray-500 mb-3">Pick Your Exact Appointment Time</p>
+                                    {selectedShift !== "Now" && (
+                                        <>
+                                            <label className="block text-xs font-medium text-gray-700 mb-2">
+                                                Select Specific Time <span className="text-red-500">*</span>
+                                            </label>
+                                            <p className="text-[10px] text-gray-500 mb-3">Pick Your Exact Appointment Time</p>
 
-                                    <div className="flex flex-wrap gap-3">
-                                        {timeSlotsByShift[selectedShift]
-                                            .filter(time => {
-                                                if (selectedDateIndex !== null) {
-                                                    const isToday = dates[selectedDateIndex].label === "Today";
-                                                    if (isToday) {
-                                                        return !isTimeSlotInPast(time);
+                                            <div className="flex flex-wrap gap-3">
+                                                {timeSlotsByShift[selectedShift]
+                                                    .filter(time => {
+                                                        if (selectedDateIndex !== null) {
+                                                            const isToday = dates[selectedDateIndex].label === "Today";
+                                                            if (isToday) {
+                                                                return !isTimeSlotInPast(time);
+                                                            }
+                                                        }
+                                                        return true;
+                                                    })
+                                                    .map((time) => (
+                                                        <button
+                                                            key={time}
+                                                            onClick={() => handleTimeSelect(time)}
+                                                            className={`py-3 px-6 rounded-full text-xs font-bold transition-all text-center border min-w-[100px] ${selectedTime === time
+                                                                ? "bg-white text-indigo-600 border-indigo-500 ring-1 ring-indigo-500 shadow-sm"
+                                                                : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                                                                }`}
+                                                        >
+                                                            {time}
+                                                        </button>
+                                                    ))}
+                                                {/* Show message if all slots are filtered out but shift was selectable (edge case) */}
+                                                {timeSlotsByShift[selectedShift].filter(time => {
+                                                    if (selectedDateIndex !== null) {
+                                                        const isToday = dates[selectedDateIndex].label === "Today";
+                                                        if (isToday) return !isTimeSlotInPast(time);
                                                     }
-                                                }
-                                                return true;
-                                            })
-                                            .map((time) => (
-                                                <button
-                                                    key={time}
-                                                    onClick={() => handleTimeSelect(time)}
-                                                    className={`py-3 px-6 rounded-full text-xs font-bold transition-all text-center border min-w-[100px] ${selectedTime === time
-                                                        ? "bg-white text-indigo-600 border-indigo-500 ring-1 ring-indigo-500 shadow-sm"
-                                                        : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                                                        }`}
-                                                >
-                                                    {time}
-                                                </button>
-                                            ))}
-                                        {/* Show message if all slots are filtered out but shift was selectable (edge case) */}
-                                        {timeSlotsByShift[selectedShift].filter(time => {
-                                            if (selectedDateIndex !== null) {
-                                                const isToday = dates[selectedDateIndex].label === "Today";
-                                                if (isToday) return !isTimeSlotInPast(time);
-                                            }
-                                            return true;
-                                        }).length === 0 && (
-                                                <p className="text-xs text-gray-500 italic w-full text-center py-4">
-                                                    No Available Slots For This Shift Today.
-                                                </p>
-                                            )}
-                                    </div>
+                                                    return true;
+                                                }).length === 0 && (
+                                                        <p className="text-xs text-gray-500 italic w-full text-center py-4">
+                                                            No Available Slots For This Shift Today.
+                                                        </p>
+                                                    )}
+                                            </div>
+                                        </>
+                                    )}
 
-                                    {!selectedTime && (
+                                    {selectedShift === "Now" && (
+                                        <div className="mt-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-2 animate-fade-in">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0">
+                                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                                            </svg>
+                                            <p className="text-[11px] sm:text-xs text-indigo-700 font-medium leading-relaxed">
+                                                Selecting the <span className="font-bold bg-indigo-100 px-1 py-0.5 rounded">Now</span> option will instantly redirect you to begin your assessment right away. Upon confirmation, your assessment will launch automatically after a brief 10-second countdown.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {!selectedTime && selectedShift !== "Now" && (
                                         <p className="text-[10px] text-gray-400 mt-2 italic animate-pulse">
                                             * Select A Time Slot To Proceed.
                                         </p>

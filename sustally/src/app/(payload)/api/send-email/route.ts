@@ -266,18 +266,20 @@ Assignment Time: ${reviewDetails.assignmentTime}
 This email was sent from Sustally Application System
     `.trim()
 
-    // Check if email adapter is configured
-    if (!payload.email) {
-      throw new APIError('Email service is not configured. Please set SMTP_USER and SMTP_PASS environment variables.', 503)
-    }
+    if (!data.skipEmail) {
+      // Check if email adapter is configured
+      if (!payload.email) {
+        throw new APIError('Email service is not configured. Please set SMTP_USER and SMTP_PASS environment variables.', 503)
+      }
 
-    // Send email using Payload's email adapter
-    await payload.sendEmail({
-      to: reviewDetails.email,
-      subject: 'Your Application Review Details',
-      html: emailHtml,
-      text: emailText,
-    })
+      // Send email using Payload's email adapter
+      await payload.sendEmail({
+        to: reviewDetails.email,
+        subject: 'Your Application Review Details',
+        html: emailHtml,
+        text: emailText,
+      })
+    }
 
     // Get origin for CORS
     const origin = request.headers.get('origin')
