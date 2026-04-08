@@ -155,17 +155,18 @@ function ChooseTimeContent() {
     const date = new Date();
     const currentYear = date.getFullYear();
     const dates = [
-        { label: getDayName(date), date: date, id: 0 },
-        { label: getDayName(new Date(currentYear, 3, 8)), date: new Date(currentYear, 3, 8), id: 1 },
-        { label: getDayName(new Date(currentYear, 3, 9)), date: new Date(currentYear, 3, 9), id: 2 },
-        { label: getDayName(new Date(currentYear, 3, 10)), date: new Date(currentYear, 3, 10), id: 3 },
-        { label: getDayName(new Date(currentYear, 3, 11)), date: new Date(currentYear, 3, 11), id: 4 },
-        { label: getDayName(new Date(currentYear, 3, 12)), date: new Date(currentYear, 3, 12), id: 5 }
+        { label: getDayName(new Date(currentYear, 3, 8)), date: new Date(currentYear, 3, 8), id: 0 },
+        { label: getDayName(new Date(currentYear, 3, 9)), date: new Date(currentYear, 3, 9), id: 1 },
+        { label: getDayName(new Date(currentYear, 3, 10)), date: new Date(currentYear, 3, 10), id: 2 },
+        { label: getDayName(new Date(currentYear, 3, 11)), date: new Date(currentYear, 3, 11), id: 3 },
+        { label: getDayName(new Date(currentYear, 3, 12)), date: new Date(currentYear, 3, 12), id: 4 }
     ];
 
     const handleDateSelect = (index: number) => {
         setSelectedDateIndex(index);
-        if (selectedShift === "Now" && index !== 0) {
+        const now = new Date();
+        const isTodaySelected = dates[index].date.getDate() === now.getDate() && dates[index].date.getMonth() === now.getMonth() && dates[index].date.getFullYear() === now.getFullYear();
+        if (selectedShift === "Now" && !isTodaySelected) {
             setSelectedShift(null);
         }
         setSelectedTime(null);
@@ -559,7 +560,7 @@ function ChooseTimeContent() {
                                     Select A Date <span className="text-red-500">*</span>
                                 </label>
                                 <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Assessment Date</p>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
                                     {dates.map((d, index) => (
                                         <button
                                             key={index}
@@ -598,28 +599,35 @@ function ChooseTimeContent() {
                                         Select Time Of Day <span className="text-red-500">*</span>
                                     </label>
                                     <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Time Period</p>
-                                    <div className={`grid grid-cols-2 ${selectedDateIndex === 0 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3 sm:gap-4`}>
-                                        {selectedDateIndex === 0 && (
-                                            <button
-                                                key="Now"
-                                                onClick={() => handleShiftSelect("Now")}
-                                                className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all h-[120px] gap-2 ${
-                                                    selectedShift === "Now"
-                                                        ? "bg-gray-900 text-white border-gray-900 shadow-md"
-                                                        : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                                                    }`}
-                                            >
-                                                <div className={`${selectedShift === "Now" ? "text-white" : "text-gray-900"}`}>
-                                                    <ClockIcon />
-                                                </div>
-                                                <span className={`text-sm font-bold ${selectedShift === "Now" ? "text-white" : "text-gray-900"}`}>
-                                                    Now
-                                                </span>
-                                                <span className={`text-[10px] font-medium ${selectedShift === "Now" ? "text-gray-300" : "text-gray-500"}`}>
-                                                    Immediately
-                                                </span>
-                                            </button>
-                                        )}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                                        {(() => {
+                                            const now = new Date();
+                                            const isTodaySelected = dates[selectedDateIndex]?.date.getDate() === now.getDate() && dates[selectedDateIndex]?.date.getMonth() === now.getMonth() && dates[selectedDateIndex]?.date.getFullYear() === now.getFullYear();
+                                            return (
+                                                <button
+                                                    key="Now"
+                                                    onClick={() => handleShiftSelect("Now")}
+                                                    disabled={!isTodaySelected}
+                                                    className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all h-[120px] gap-2 ${
+                                                        !isTodaySelected
+                                                            ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-100"
+                                                            : selectedShift === "Now"
+                                                                ? "bg-gray-900 text-white border-gray-900 shadow-md"
+                                                                : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                                                        }`}
+                                                >
+                                                    <div className={`${selectedShift === "Now" ? "text-white" : "text-gray-900"}`}>
+                                                        <ClockIcon />
+                                                    </div>
+                                                    <span className={`text-sm font-bold ${selectedShift === "Now" ? "text-white" : "text-gray-900"}`}>
+                                                        Now
+                                                    </span>
+                                                    <span className={`text-[10px] font-medium ${selectedShift === "Now" ? "text-gray-300" : "text-gray-500"}`}>
+                                                        Immediately
+                                                    </span>
+                                                </button>
+                                            );
+                                        })()}
                                         {shifts.map((shift) => {
                                             // Optional: Filter shifts if all its slots are past (for Today)
                                             // But for now, let's just let the user click and see empty/filtered slots or handle it here
