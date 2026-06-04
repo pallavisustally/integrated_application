@@ -3,10 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-const API_URL =
-  process.env.NEXT_PUBLIC_SUSTALLY_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:3001'
+import { SUSTALLY_API_URL as API_URL } from '@/lib/api-url'
 
 type Scope1Submission = {
   id: string

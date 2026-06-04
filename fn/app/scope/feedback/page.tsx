@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SUSTALLY_API_URL } from "@/lib/api-url";
 
 function StarRating({
     value,
@@ -93,9 +94,7 @@ export default function FeedbackPage() {
                 comment,
             };
 
-            const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-            await fetch(`${NEXT_PUBLIC_API_URL}/api/feedback`, {
+            await fetch(`${SUSTALLY_API_URL}/api/feedback`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),

@@ -1,11 +1,6 @@
 import ReviewClient from './ReviewClient'
 import Scope1ReviewClient from './Scope1ReviewClient'
-
-const SUSTALLY_API_URL =
-  process.env.NEXT_PUBLIC_SUSTALLY_API_URL ||
-  process.env.SUSTALLY_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:3001'
+import { SUSTALLY_API_URL } from '@/lib/api-url'
 
 async function getScope2Submission(id: string) {
   try {

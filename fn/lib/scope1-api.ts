@@ -1,12 +1,11 @@
 /** Scope 1 calculation API client (sustally backend). */
 
-export const SCOPE1_API_URL =
-  process.env.NEXT_PUBLIC_SUSTALLY_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:3001'
+import { SUSTALLY_API_URL as SCOPE1_API_URL } from './api-url'
+
+export { SCOPE1_API_URL }
 
 export function scope1Api(path: string): string {
-  const base = SCOPE1_API_URL.replace(/\/$/, '')
+  const base = SCOPE1_API_URL
   const p = path.startsWith('/') ? path : `/${path}`
   return `${base}${p}`
 }

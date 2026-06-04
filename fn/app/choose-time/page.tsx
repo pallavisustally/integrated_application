@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Modal from "../../components/Modal";
 import { bookAssessment, type AssessmentType } from "../../lib/assessment-api";
+import { SUSTALLY_API_URL } from "../../lib/api-url";
 import {
     buildBookingDateSlots,
     type BookingDateSlot,
@@ -247,8 +248,7 @@ function ChooseTimeContent() {
     const sendBookingEmail = async (data: any) => {
         setIsSendingEmail(true);
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-            const response = await fetch(`${apiUrl}/api/send-email`, {
+            const response = await fetch(`${SUSTALLY_API_URL}/api/send-email`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

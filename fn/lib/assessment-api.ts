@@ -1,9 +1,8 @@
+import { SUSTALLY_API_URL } from './api-url'
+
 export type AssessmentType = 'SCOPE_1' | 'SCOPE_2'
 
-export const SUSTALLY_API_URL =
-  process.env.NEXT_PUBLIC_SUSTALLY_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:3001'
+export { SUSTALLY_API_URL }
 
 export type BookAssessmentPayload = {
   assessmentType: AssessmentType

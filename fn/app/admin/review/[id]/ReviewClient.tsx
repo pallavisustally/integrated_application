@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SUSTALLY_API_URL } from '@/lib/api-url';
 
 // ------------- ICONS (Reused) -------------
 const BoundaryIcon = () => (
@@ -104,8 +105,6 @@ const DetailGrid = ({ children }: { children: React.ReactNode }) => (
         {children}
     </div>
 );
-
-const SUSTALLY_API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
 
 // Helper for Monthly Table
 const MonthlyTable = ({ data, type, isEstimated = false }: { data: any[]; type: "Grid" | "Renewable"; isEstimated?: boolean }) => {
