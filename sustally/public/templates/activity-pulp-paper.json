@@ -1,0 +1,8 @@
+{
+  "_comment": "Pulp & Paper activity data template",
+  "production": {},
+  "stationaryCombustion": [],
+  "biomassCombustion": [],
+  "mobile": [],
+  "refrigerants": []
+}

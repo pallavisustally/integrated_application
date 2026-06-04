@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import CostSavingCard from "./CostSavingCard";
+import {
+    generateDashboardOtp,
+    verifyDashboardOtp,
+    usesUnifiedAssessmentOtp,
+} from "@/lib/dashboard-api";
 
 function DashboardContent() {
     const router = useRouter();
@@ -17,6 +22,7 @@ function DashboardContent() {
         const param = searchParams.get("email");
         return param ? param.trim().toLowerCase() : "";
     });
+    const assessmentId = searchParams.get("assessmentId")?.trim() || "";
     const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -30,8 +36,6 @@ function DashboardContent() {
     // Prevent double OTP send on mount (React Strict Mode)
     const hasSentInitialOtp = useRef(false);
 
-    const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
     const sendOtp = async (emailAddress: string) => {
         const normalizedEmail = String(emailAddress || "").trim().toLowerCase();
         if (!normalizedEmail) return;
@@ -39,11 +43,10 @@ function DashboardContent() {
         setLoading(true);
 
         try {
-            const res = await fetch(`${NEXT_PUBLIC_API_URL}/api/scope2-applications/generate-otp`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: normalizedEmail }),
-            });
+            const res = await generateDashboardOtp(
+                normalizedEmail,
+                assessmentId || undefined,
+            );
 
             const data = await res.json();
 
@@ -82,6 +85,12 @@ function DashboardContent() {
         if (!initialized) {
             // Check session storage first
             if (typeof window !== "undefined") {
+                const storedScope1 = sessionStorage.getItem("scope1_user");
+                if (storedScope1) {
+                    router.replace("/scope1/report");
+                    setInitialized(true);
+                    return;
+                }
                 const storedUser = sessionStorage.getItem("scope2_user");
                 if (storedUser) {
                     setUserData(JSON.parse(storedUser));
@@ -126,27 +135,31 @@ function DashboardContent() {
         setLoading(true);
 
         try {
-            // Updated endpoint to Scope 2
-            const res = await fetch(`${NEXT_PUBLIC_API_URL}/api/scope2-applications/verify-otp`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: String(email || "").trim().toLowerCase(),
-                    otp: String(otp || "").trim(),
-                }),
-            });
+            const res = await verifyDashboardOtp(
+                String(email || ""),
+                String(otp || ""),
+                assessmentId || undefined,
+            );
 
             const data = await res.json();
 
             if (res.ok) {
-                setUserData(data.user);
-
-                // Save user data to session storage
-                if (typeof window !== "undefined") {
-                    sessionStorage.setItem("scope2_user", JSON.stringify(data.user));
+                if (data.assessmentType === "SCOPE_1" && data.user) {
+                    if (typeof window !== "undefined") {
+                        sessionStorage.setItem("scope1_user", JSON.stringify(data.user));
+                        sessionStorage.removeItem("scope2_user");
+                    }
+                    router.replace("/scope1/report");
+                    return;
                 }
 
-                // Redirect to Scope 2 Certificate Page (Clean URL)
+                setUserData(data.user);
+
+                if (typeof window !== "undefined") {
+                    sessionStorage.setItem("scope2_user", JSON.stringify(data.user));
+                    sessionStorage.removeItem("scope1_user");
+                }
+
                 router.replace(`/scope/certificate`);
             } else {
                 setError(data.error || "Invalid OTP");
@@ -163,7 +176,11 @@ function DashboardContent() {
         setEmail("");
         setOtp("");
         setUserData(null);
-        router.push("/"); // Redirect to home or keep on restricted page
+        if (typeof window !== "undefined") {
+            sessionStorage.removeItem("scope2_user");
+            sessionStorage.removeItem("scope1_user");
+        }
+        router.push("/");
     };
 
     // Render Logic
@@ -204,6 +221,9 @@ function DashboardContent() {
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Otp</h1>
                         <p className="text-gray-500 text-sm">Enter The Code Sent To {email}</p>
+                        {usesUnifiedAssessmentOtp(assessmentId) && (
+                            <p className="text-gray-400 text-xs mt-1">Assessment {assessmentId}</p>
+                        )}
                         <p className="text-gray-400 text-xs mt-2">Wait For A Few Mins For The Otp To Arrive In Your Inbox, If Not Resend Again.</p>
                     </div>
 

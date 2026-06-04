@@ -2,6 +2,18 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { APIError } from 'payload'
 
+function formatAssessmentTypeLabel(assessmentType?: string): string {
+  if (assessmentType === 'SCOPE_1') return 'Scope 1 — Direct emissions inventory'
+  if (assessmentType === 'SCOPE_2') return 'Scope 2 — Purchased electricity'
+  return 'Assessment'
+}
+
+function formatAssessmentTypeShort(assessmentType?: string): string {
+  if (assessmentType === 'SCOPE_1') return 'Scope 1 Assessment'
+  if (assessmentType === 'SCOPE_2') return 'Scope 2 Assessment'
+  return 'Assessment'
+}
+
 export const OPTIONS = async (request: Request) => {
   // Handle CORS preflight
   const origin = request.headers.get('origin')
@@ -34,30 +46,37 @@ export const POST = async (request: Request) => {
       throw new APIError('Email address is required', 400)
     }
 
-    // Save slot booking to DB when it's a slot booking (has assignment details)
+    // Assessments are created via POST /api/assessments/book before send-email.
+    // Mirror slot-bookings only if missing (legacy / email-only path).
     const isSlotBooking = data.assignmentDate || data.assignmentSlot || data.assignmentTime
-    if (isSlotBooking) {
+    if (isSlotBooking && data.assessmentId) {
       try {
-        await payload.create({
+        const existingBooking = await payload.find({
           collection: 'slot-bookings',
-          data: {
-            name: data.name || '',
-            email: data.email || '',
-            mobile: data.mobile || '',
-            company: data.company || '',
-            sector: data.sector || '',
-            natureOfBusiness: data.natureOfBusiness || '',
-            country: data.country || '',
-            assignmentDate: data.assignmentDate || '',
-            assignmentSlot: data.assignmentSlot || '',
-            assignmentTime: data.assignmentTime || '',
-            assessmentId: data.assessmentId || '',
-            assessmentLink: data.assessmentLink || '',
-          },
+          where: { assessmentId: { equals: data.assessmentId } },
+          limit: 1,
         })
+        if (existingBooking.totalDocs === 0) {
+          await payload.create({
+            collection: 'slot-bookings',
+            data: {
+              name: data.name || '',
+              email: data.email || '',
+              mobile: data.mobile || '',
+              company: data.company || '',
+              sector: data.sector || '',
+              natureOfBusiness: data.natureOfBusiness || '',
+              country: data.country || '',
+              assignmentDate: data.assignmentDate || '',
+              assignmentSlot: data.assignmentSlot || '',
+              assignmentTime: data.assignmentTime || '',
+              assessmentId: data.assessmentId || '',
+              assessmentLink: data.assessmentLink || '',
+            },
+          })
+        }
       } catch (saveErr) {
         console.warn('[send-email] Failed to save slot booking:', saveErr)
-        // Continue with email - don't fail the whole request
       }
     }
 
@@ -81,6 +100,9 @@ export const POST = async (request: Request) => {
       company: data.company || '-',
       sector: data.sector || '-',
       natureOfBusiness: data.natureOfBusiness || '-',
+      assessmentType: data.assessmentType || '',
+      assessmentTypeLabel: formatAssessmentTypeLabel(data.assessmentType),
+      assessmentTypeShort: formatAssessmentTypeShort(data.assessmentType),
 
       assignmentDate: data.assignmentDate || "-",
       assignmentSlot: data.assignmentSlot || "-",
@@ -198,12 +220,8 @@ export const POST = async (request: Request) => {
                 <span class="detail-value">${reviewDetails.company}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Sector: &nbsp;</span>
-                <span class="detail-value">${reviewDetails.sector}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Nature of Business: &nbsp;</span>
-                <span class="detail-value">${reviewDetails.natureOfBusiness}</span>
+                <span class="detail-label">Assessment Type: &nbsp;</span>
+                <span class="detail-value">${reviewDetails.assessmentTypeLabel}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Country: &nbsp;</span>
@@ -248,15 +266,10 @@ Name: ${reviewDetails.name}
 Mobile: ${reviewDetails.mobile}
 Email: ${reviewDetails.email}
 Company: ${reviewDetails.company}
-Sector: ${reviewDetails.sector}
-Nature of Business: ${reviewDetails.natureOfBusiness}
+Assessment Type: ${reviewDetails.assessmentTypeLabel}
 Country: ${reviewDetails.country}
 
-
-
-
-
-Scope 2 Assessment:
+${reviewDetails.assessmentTypeShort}:
 
 Assignment Date: ${reviewDetails.assignmentDate}
 Assignment Slot: ${reviewDetails.assignmentSlot}
@@ -275,7 +288,7 @@ This email was sent from Sustally Application System
       // Send email using Payload's email adapter
       await payload.sendEmail({
         to: reviewDetails.email,
-        subject: 'Your Application Review Details',
+        subject: `Your ${reviewDetails.assessmentTypeShort} Slot Confirmation`,
         html: emailHtml,
         text: emailText,
       })

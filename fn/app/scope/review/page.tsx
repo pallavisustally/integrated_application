@@ -3,6 +3,8 @@
 import { useMemo, useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import { SUSTALLY_API_URL } from "../../../lib/assessment-api";
+import { loadAssessmentSession } from "../../../lib/assessment-session";
 
 // ------------- ICONS -------------
 
@@ -211,8 +213,19 @@ function ScopeReviewContent() {
     try {
       if (!formData) throw new Error("No data found to submit.");
 
+      const session = loadAssessmentSession();
+      const resolvedAssessmentId =
+        formData.assessmentId ||
+        searchParams.get("assessmentId") ||
+        session?.assessmentId ||
+        "";
+
       const formDataToSend = new FormData();
+      if (resolvedAssessmentId) {
+        formDataToSend.append("assessmentId", resolvedAssessmentId);
+      }
       Object.entries(formData).forEach(([key, value]) => {
+        if (key === "assessmentId") return;
         if (key === "monthlyData" || key === "renewableMonthlyData") {
           formDataToSend.append(key, typeof value === "string" ? value : JSON.stringify(value));
         } else if (value !== null && value !== undefined) {
@@ -226,8 +239,7 @@ function ScopeReviewContent() {
         }
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || "https://render-beryl.vercel.app";
-      const saveResponse = await fetch(`${apiUrl}/api/save-scope2`, {
+      const saveResponse = await fetch(`${SUSTALLY_API_URL}/api/save-scope2`, {
         method: "POST",
         body: formDataToSend,
       });

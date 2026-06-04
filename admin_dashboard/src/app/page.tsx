@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { buildReviewUrl } from '@/lib/resolve-application';
 
 const users: any[] = [];
 
@@ -18,42 +19,70 @@ export default function AdminDashboard() {
   const [feedbackModal, setFeedbackModal] = useState<{ text: string; facility: string } | null>(null);
   const itemsPerPage = 8;
 
+  const mapApplication = (doc: any, scope: 'SCOPE_1' | 'SCOPE_2') => ({
+    id: doc.id,
+    scope,
+    username: doc.userName || doc.facilityName || doc.inventoryName || 'N/A',
+    company: doc.userCompany || doc.facilityName || 'N/A',
+    contact: doc.userMobile || '-',
+    email: doc.email || '-',
+    regDate: new Date(doc.createdAt).toISOString().split('T')[0],
+    subDate: new Date(doc.createdAt).toISOString().split('T')[0],
+    appDate: new Date(doc.updatedAt).toISOString().split('T')[0],
+    status:
+      doc.status === 'PENDING'
+        ? 'Pending Review'
+        : doc.status === 'IN_PROGRESS'
+          ? 'In Progress'
+          : doc.status === 'APPROVED'
+            ? 'Approved'
+            : doc.status === 'REJECTED'
+              ? 'Rejected'
+              : 'In Progress',
+    statusColor:
+      doc.status === 'PENDING'
+        ? 'bg-orange-50 text-orange-500 border border-orange-200'
+        : doc.status === 'IN_PROGRESS'
+          ? 'bg-blue-50 text-blue-500 border border-blue-200'
+          : doc.status === 'APPROVED'
+            ? 'bg-green-50 text-emerald-500 border border-emerald-200'
+            : doc.status === 'REJECTED'
+              ? 'bg-red-50 text-red-500 border border-red-200'
+              : 'bg-blue-50 text-blue-500 border border-blue-200',
+    reviewLink: true,
+    action: doc.status === 'PENDING' || doc.status === 'IN_PROGRESS' || !doc.status,
+    feedback: doc.rejectionReason || '---',
+    originalDoc: doc,
+  });
+
   const fetchData = React.useCallback(async () => {
     const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
 
     try {
       setApiError(null);
-      // Fetch both in parallel to reduce wait
-      const [appsRes, slotsRes] = await Promise.all([
+      const [scope2Res, scope1Res, slotsRes] = await Promise.all([
         fetch(`${API_URL}/api/scope2-applications?limit=1000`, { cache: 'no-store' }),
+        fetch(`${API_URL}/api/scope1-applications?limit=1000`, { cache: 'no-store' }),
         fetch(`${API_URL}/api/slot-bookings?limit=0`, { cache: 'no-store' }),
       ]);
 
-      const [appsJson, slotsJson] = await Promise.all([appsRes.json(), slotsRes.json()]);
+      const [scope2Json, scope1Json, slotsJson] = await Promise.all([
+        scope2Res.json(),
+        scope1Res.json(),
+        slotsRes.json(),
+      ]);
 
-      if (appsJson?.docs) {
-        const mappedUsers = appsJson.docs.map((doc: any) => ({
-          id: doc.id,
-          username: doc.userName || doc.facilityName || 'N/A',
-          company: doc.userCompany || doc.facilityName || 'N/A',
-          contact: doc.userMobile || '-',
-          email: doc.email || '-',
-          regDate: new Date(doc.createdAt).toISOString().split('T')[0],
-          subDate: new Date(doc.createdAt).toISOString().split('T')[0],
-          appDate: new Date(doc.updatedAt).toISOString().split('T')[0],
-          status: doc.status === 'PENDING' ? 'Pending Review' : doc.status === 'IN_PROGRESS' ? 'In Progress' : doc.status === 'APPROVED' ? 'Approved' : doc.status === 'REJECTED' ? 'Rejected' : 'In Progress',
-          statusColor: doc.status === 'PENDING' ? 'bg-orange-50 text-orange-500 border border-orange-200' :
-            doc.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-500 border border-blue-200' :
-              doc.status === 'APPROVED' ? 'bg-green-50 text-emerald-500 border border-emerald-200' :
-                doc.status === 'REJECTED' ? 'bg-red-50 text-red-500 border border-red-200' :
-                  'bg-blue-50 text-blue-500 border border-blue-200',
-          reviewLink: true,
-          action: doc.status === 'PENDING' || doc.status === 'IN_PROGRESS' || !doc.status,
-          feedback: doc.rejectionReason || '---',
-          originalDoc: doc
-        }));
-        setUsersData(mappedUsers);
+      const mapped: any[] = [];
+      if (scope2Json?.docs) {
+        mapped.push(...scope2Json.docs.map((doc: any) => mapApplication(doc, 'SCOPE_2')));
       }
+      if (scope1Json?.docs) {
+        mapped.push(...scope1Json.docs.map((doc: any) => mapApplication(doc, 'SCOPE_1')));
+      }
+      mapped.sort(
+        (a, b) => new Date(b.appDate).getTime() - new Date(a.appDate).getTime(),
+      );
+      setUsersData(mapped);
 
       setSlotsBookedCount(slotsJson?.totalDocs ?? 0);
     } catch (err) {
@@ -131,10 +160,13 @@ export default function AdminDashboard() {
     );
   };
 
-  const handleApprove = async (id: number | string) => {
+  const applicationCollection = (scope: 'SCOPE_1' | 'SCOPE_2') =>
+    scope === 'SCOPE_1' ? 'scope1-applications' : 'scope2-applications';
+
+  const handleApprove = async (id: number | string, scope: 'SCOPE_1' | 'SCOPE_2' = 'SCOPE_2') => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
-      await fetch(`${API_URL}/api/scope2-applications/${id}`, {
+      await fetch(`${API_URL}/api/${applicationCollection(scope)}/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'APPROVED' })
@@ -149,12 +181,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleReject = async (id: number | string) => {
+  const handleReject = async (id: number | string, scope: 'SCOPE_1' | 'SCOPE_2' = 'SCOPE_2') => {
     const reason = window.prompt("Please enter the reason for rejection (feedback):");
     if (reason === null) return; // Action cancelled
     try {
       const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
-      await fetch(`${API_URL}/api/scope2-applications/${id}`, {
+      await fetch(`${API_URL}/api/${applicationCollection(scope)}/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'REJECTED', rejectionReason: reason })
@@ -176,8 +208,8 @@ export default function AdminDashboard() {
     <div className="h-[100dvh] w-full overflow-hidden bg-[#f3f4f6] flex flex-col p-3 md:p-5 font-sans">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 px-1 md:px-2 gap-3 md:gap-0 shrink-0">
         <div>
-          <h1 className="text-lg md:text-xl font-bold text-gray-800">Scope 2 Emissions Admin Dashboard</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Monitor and manage Scope-2 emissions assessments</p>
+          <h1 className="text-lg md:text-xl font-bold text-gray-800">Sustally Admin Dashboard</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Monitor and manage Scope 1 and Scope 2 assessments</p>
         </div>
         <div className="flex items-center space-x-2 self-end md:self-auto">
           <Image src="/sustally-logo.png" alt="Sustally Logo" width={120} height={32} className="object-contain" style={{ width: 'auto', height: 'auto' }} />
@@ -286,6 +318,7 @@ export default function AdminDashboard() {
           <table className="w-full text-[11px] text-left text-gray-600 relative">
             <thead className="text-[11px] text-gray-500 bg-gray-50 uppercase border-b border-gray-100 font-bold tracking-wider sticky top-0 z-10 shadow-sm">
               <tr>
+                <th className="px-4 py-3 whitespace-nowrap">Scope</th>
                 <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" onClick={() => handleSort('username')}>Username {renderSortIcon('username')}</th>
                 <th className="px-4 py-3 whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" onClick={() => handleSort('company')}>Company Name {renderSortIcon('company')}</th>
                 <th className="px-4 py-3 whitespace-nowrap">Contact Number</th>
@@ -302,6 +335,11 @@ export default function AdminDashboard() {
               {paginatedUsers.length > 0 ? (
                 paginatedUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${user.scope === 'SCOPE_1' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                        {user.scope === 'SCOPE_1' ? 'Scope 1' : 'Scope 2'}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 font-semibold text-gray-800">{user.username}</td>
                     <td className="px-4 py-3 text-gray-500">{user.company}</td>
                     <td className="px-4 py-3 text-gray-500">{user.contact}</td>
@@ -316,7 +354,7 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3">
                       {user.reviewLink ? (
                         <span
-                          onClick={() => window.open(`/assessment/${user.id}`, '_blank')}
+                          onClick={() => window.open(buildReviewUrl(String(user.id), user.scope), '_blank')}
                           className="text-emerald-600 hover:text-emerald-700 font-semibold flex items-center text-[11px] whitespace-nowrap cursor-pointer"
                         >
                           View
@@ -341,11 +379,11 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3 whitespace-nowrap">
                       {user.action ? (
                         <div className="flex items-center space-x-2">
-                          <button onClick={() => handleApprove(user.id)} className="bg-[#00b050] text-white pl-1.5 pr-2.5 py-1 rounded text-[11px] font-semibold flex items-center hover:bg-[#009040] transition-colors cursor-pointer">
+                          <button onClick={() => handleApprove(user.id, user.scope)} className="bg-[#00b050] text-white pl-1.5 pr-2.5 py-1 rounded text-[11px] font-semibold flex items-center hover:bg-[#009040] transition-colors cursor-pointer">
                             <svg className="w-2.5 h-2.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                             Approve
                           </button>
-                          <button onClick={() => handleReject(user.id)} className="text-red-500 pl-1.5 pr-2.5 py-1 rounded text-[11px] font-semibold flex items-center hover:bg-red-50 transition-colors cursor-pointer">
+                          <button onClick={() => handleReject(user.id, user.scope)} className="text-red-500 pl-1.5 pr-2.5 py-1 rounded text-[11px] font-semibold flex items-center hover:bg-red-50 transition-colors cursor-pointer">
                             <svg className="w-2.5 h-2.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             Reject
                           </button>
@@ -358,7 +396,7 @@ export default function AdminDashboard() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
                     No matching records found.
                   </td>
                 </tr>

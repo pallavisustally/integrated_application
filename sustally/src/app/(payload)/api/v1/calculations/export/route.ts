@@ -1,0 +1,86 @@
+import { NextResponse } from 'next/server'
+
+import { calculate } from '@/lib/engine/calculate'
+import { corsHeaders } from '@/lib/cors'
+import { scope1Options } from '@/lib/scope1-api'
+import type { InputPayload } from '@/lib/engine/types'
+import { buildPdf } from '@/lib/report/pdf'
+import { buildWorkbook } from '@/lib/report/workbook'
+
+export const runtime = 'nodejs'
+
+export const OPTIONS = scope1Options
+
+function withCors(req: Request, response: Response): Response {
+  const headers = corsHeaders(req)
+  response.headers.forEach((value, key) => headers.set(key, value))
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
+
+export async function POST(req: Request) {
+  let body: { payload: InputPayload; format: 'json' | 'xlsx' | 'pdf' }
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+  const { payload, format } = body
+  if (!payload) return NextResponse.json({ error: 'Missing payload' }, { status: 400 })
+
+  const result = calculate(payload)
+  // Strip non-ASCII characters from the filename — Content-Disposition headers
+  // must be ASCII-only (bytes 0-255). Em-dash, smart quotes, accented chars
+  // in facility names would otherwise crash the response with
+  // "Cannot convert argument to a ByteString because the character ... is
+  // greater than 255."
+  const safeName = (payload.facility?.name ?? 'facility')
+    .replace(/[^\x20-\x7E]/g, '_')   // non-printable-ASCII → '_'
+    .replace(/[\\/:*?"<>|]/g, '_')   // reserved filesystem chars → '_'
+    .replace(/\s+/g, '_')
+  const base = `scope1-${safeName}-FY${result.reportingPeriod.year}`
+
+  if (format === 'json') {
+    return withCors(
+      req,
+      new NextResponse(JSON.stringify({ inputPayload: payload, result }, null, 2), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Disposition': `attachment; filename="${base}.json"`,
+        },
+      }),
+    )
+  }
+
+  if (format === 'xlsx') {
+    const buf = await buildWorkbook(payload, result)
+    return withCors(
+      req,
+      new NextResponse(new Uint8Array(buf), {
+        headers: {
+          'Content-Type':
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': `attachment; filename="${base}.xlsx"`,
+        },
+      }),
+    )
+  }
+
+  if (format === 'pdf') {
+    const buf = await buildPdf(payload, result)
+    return withCors(
+      req,
+      new NextResponse(new Uint8Array(buf), {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${base}.pdf"`,
+        },
+      }),
+    )
+  }
+
+  return withCors(req, NextResponse.json({ error: 'Unknown format' }, { status: 400 }))
+}

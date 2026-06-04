@@ -1,0 +1,54 @@
+/**
+ * Shared helpers for unified assessment booking (Scope 1 + Scope 2).
+ */
+
+export type AssessmentType = 'SCOPE_1' | 'SCOPE_2'
+
+export type AssessmentStatus =
+  | 'BOOKED'
+  | 'INVITED'
+  | 'IN_PROGRESS'
+  | 'SUBMITTED'
+  | 'APPROVED'
+  | 'REJECTED'
+
+export function generateAssessmentId(): string {
+  return Math.random().toString(36).substring(2, 10).toUpperCase()
+}
+
+export function buildAssessmentStartLink(assessmentId: string, email: string): string {
+  const base = (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.PAYLOAD_PUBLIC_SERVER_URL ||
+    'http://localhost:3000'
+  ).replace(/\/$/, '')
+  const params = new URLSearchParams({
+    assessmentId,
+    email: email.trim().toLowerCase(),
+  })
+  return `${base}/assessment/start?${params.toString()}`
+}
+
+/** Retry link after rejection (same assessment id, opens form with retry flag). */
+export function buildAssessmentRetryLink(
+  assessmentId: string,
+  email: string,
+  assessmentType: AssessmentType,
+): string {
+  const base = (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.PAYLOAD_PUBLIC_SERVER_URL ||
+    'http://localhost:3000'
+  ).replace(/\/$/, '')
+  const params = new URLSearchParams({
+    assessmentId,
+    email: email.trim().toLowerCase(),
+    retry: 'true',
+  })
+  const path = assessmentType === 'SCOPE_1' ? '/scope1' : '/scope'
+  return `${base}${path}?${params.toString()}`
+}
+
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase()
+}

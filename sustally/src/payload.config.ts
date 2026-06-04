@@ -6,6 +6,9 @@ import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 import Applications from "./collections/Applications";
+import Assessments from "./collections/Assessments";
+import Scope1Applications from "./collections/Scope1Applications";
+import Scope1Assessments from "./collections/Scope1Assessments";
 import Scope2Applications from "./collections/Scope2Applications";
 import SlotBookings from "./collections/SlotBookings";
 import Feedback from "./collections/Feedback";
@@ -22,7 +25,17 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Applications, Scope2Applications, SlotBookings, Feedback],
+  collections: [
+    Users,
+    Media,
+    Applications,
+    Assessments,
+    Scope1Assessments,
+    Scope1Applications,
+    Scope2Applications,
+    SlotBookings,
+    Feedback,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

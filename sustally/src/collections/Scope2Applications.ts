@@ -5,6 +5,17 @@ const Scope2Applications: CollectionConfig = {
   slug: "scope2-applications",
   admin: {
     useAsTitle: "facilityName",
+    description:
+      "Scope 2 submissions. Filter status = PENDING for review. Approve syncs parent assessment to APPROVED.",
+    group: "Assessments",
+    defaultColumns: [
+      "facilityName",
+      "email",
+      "assessmentId",
+      "status",
+      "createdAt",
+    ],
+    listSearchableFields: ["email", "facilityName", "assessmentId"],
   },
   access: {
     create: () => true, // Allow anyone to create applications
@@ -61,8 +72,27 @@ const Scope2Applications: CollectionConfig = {
 
             if (doc.status === "APPROVED" && previousDoc.status !== "APPROVED") {
               console.log(`[Scope2] Approving submission ${doc.id}. Email: ${userEmail}`);
+              if (doc.assessmentId) {
+                const parent = await req.payload.find({
+                  collection: 'assessments',
+                  where: { assessmentId: { equals: doc.assessmentId } },
+                  limit: 1,
+                });
+                if (parent.totalDocs > 0) {
+                  await req.payload.update({
+                    collection: 'assessments',
+                    id: parent.docs[0].id,
+                    data: { status: 'APPROVED', approvedAt: new Date().toISOString() },
+                    req,
+                  });
+                }
+              }
               if (userEmail) {
-                await sendApprovalEmail(userEmail, submission);
+                await sendApprovalEmail(
+                  userEmail,
+                  submission,
+                  doc.assessmentId as string | undefined,
+                );
               } else {
                 console.error(`[Scope2] Cannot send approval email. No email found for submission ${doc.id}`);
               }
@@ -71,6 +101,22 @@ const Scope2Applications: CollectionConfig = {
             if (doc.status === "REJECTED" && previousDoc.status !== "REJECTED") {
               const reason = doc.rejectionReason;
               console.log(`[Scope2] Rejecting submission ${doc.id}. Email: ${userEmail}, Reason: ${reason}`);
+
+              if (doc.assessmentId) {
+                const parent = await req.payload.find({
+                  collection: 'assessments',
+                  where: { assessmentId: { equals: doc.assessmentId } },
+                  limit: 1,
+                });
+                if (parent.totalDocs > 0) {
+                  await req.payload.update({
+                    collection: 'assessments',
+                    id: parent.docs[0].id,
+                    data: { status: 'REJECTED', rejectionReason: reason || '' },
+                    req,
+                  });
+                }
+              }
 
               let newAssessmentLink = undefined;
 
@@ -146,6 +192,22 @@ const Scope2Applications: CollectionConfig = {
     ],
   },
   fields: [
+    {
+      name: "assessmentId",
+      type: "text",
+      index: true,
+      admin: {
+        description: "Public assessment reference from booking (assessments collection)",
+      },
+    },
+    {
+      name: "assessment",
+      type: "relationship",
+      relationTo: "assessments",
+      admin: {
+        description: "Parent unified assessment booking",
+      },
+    },
     {
       name: "userName",
       type: "text",

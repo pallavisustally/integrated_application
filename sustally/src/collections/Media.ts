@@ -37,6 +37,10 @@ export const Media: CollectionConfig = {
       },
     ],
     adminThumbnail: 'card',
-    mimeTypes: ['image/*', 'application/pdf'],
+    mimeTypes: [
+      'image/*',
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ],
   },
 }

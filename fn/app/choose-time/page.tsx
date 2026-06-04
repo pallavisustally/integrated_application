@@ -2,7 +2,14 @@
 
 import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Modal from "../../components/Modal"; // Adjust path as needed based on file structure
+import Modal from "../../components/Modal";
+import { bookAssessment, type AssessmentType } from "../../lib/assessment-api";
+import {
+    buildBookingDateSlots,
+    type BookingDateSlot,
+} from "../../lib/booking-date-slots";
+
+const CHOOSE_TIME_STORAGE_KEY = "chooseTimeData:v2";
 
 // Reusing Icons from Page 1
 const CalendarIcon = () => (
@@ -35,33 +42,12 @@ const MoonIcon = () => (
     </svg>
 );
 
-// We need Today, Next 1 Day (Tomorrow) and 2nd Date from present.
-const getFutureDate = (daysToAdd: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() + daysToAdd);
-    return date;
-};
-
 const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(date); // e.g. January 28, 2026
 };
 
 const getDayNumber = (date: Date) => new Intl.DateTimeFormat('en-US', { day: 'numeric' }).format(date);
 const getMonthName = (date: Date) => new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date);
-const getDayName = (date: Date) => {
-    const today = new Date();
-    // Reset time parts for accurate comparison
-    const d1 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const d2 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-    const diffDays = Math.round((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Tomorrow";
-
-    return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
-};
-
 type ShiftType = "Now" | "Morning" | "Afternoon" | "Evening";
 
 const timeSlotsByShift: Record<ShiftType, string[]> = {
@@ -113,12 +99,20 @@ function ChooseTimeContent() {
     const [countdown, setCountdown] = useState<number | null>(null);
     const [assessmentLinkToRedirect, setAssessmentLinkToRedirect] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
-    const [assessmentId] = useState(() => Math.random().toString(36).substring(2, 10).toUpperCase());
+    const [bookedAssessmentId, setBookedAssessmentId] = useState<string | null>(null);
+    const [bookedAssessmentLink, setBookedAssessmentLink] = useState<string | null>(null);
 
     const [isLoaded, setIsLoaded] = useState(false);
+    const [dates, setDates] = useState<BookingDateSlot[]>([]);
+
+    // Compute on the client so slots always match the user's current calendar day.
+    useEffect(() => {
+        sessionStorage.removeItem("chooseTimeData");
+        setDates(buildBookingDateSlots());
+    }, []);
 
     useEffect(() => {
-        const saved = sessionStorage.getItem("chooseTimeData");
+        const saved = sessionStorage.getItem(CHOOSE_TIME_STORAGE_KEY);
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
@@ -132,8 +126,17 @@ function ChooseTimeContent() {
     }, []);
 
     useEffect(() => {
+        if (!isLoaded || dates.length === 0) return;
+        if (selectedDateIndex !== null && selectedDateIndex >= dates.length) {
+            setSelectedDateIndex(null);
+            setSelectedShift(null);
+            setSelectedTime(null);
+        }
+    }, [isLoaded, dates, selectedDateIndex]);
+
+    useEffect(() => {
         if (isLoaded) {
-            sessionStorage.setItem("chooseTimeData", JSON.stringify({
+            sessionStorage.setItem(CHOOSE_TIME_STORAGE_KEY, JSON.stringify({
                 selectedDateIndex,
                 selectedShift,
                 selectedTime,
@@ -152,17 +155,8 @@ function ChooseTimeContent() {
     }, [countdown, assessmentLinkToRedirect, router]);
 
 
-    const date = new Date();
-    const currentYear = date.getFullYear();
-    const dates = [
-        { label: getDayName(new Date(currentYear, 3, 8)), date: new Date(currentYear, 3, 8), id: 0 },
-        { label: getDayName(new Date(currentYear, 3, 9)), date: new Date(currentYear, 3, 9), id: 1 },
-        { label: getDayName(new Date(currentYear, 3, 10)), date: new Date(currentYear, 3, 10), id: 2 },
-        { label: getDayName(new Date(currentYear, 3, 11)), date: new Date(currentYear, 3, 11), id: 3 },
-        { label: getDayName(new Date(currentYear, 3, 12)), date: new Date(currentYear, 3, 12), id: 4 }
-    ];
-
     const handleDateSelect = (index: number) => {
+        if (!dates[index]) return;
         setSelectedDateIndex(index);
         const now = new Date();
         const isTodaySelected = dates[index].date.getDate() === now.getDate() && dates[index].date.getMonth() === now.getMonth() && dates[index].date.getFullYear() === now.getFullYear();
@@ -185,48 +179,68 @@ function ChooseTimeContent() {
         setSelectedTime(time);
     };
 
-    const prepareBookingData = () => {
-        if (selectedDateIndex === null || !selectedTime) return null;
+    const getAssessmentType = (): AssessmentType => {
+        const t = searchParams.get("assessmentType");
+        return t === "SCOPE_1" ? "SCOPE_1" : "SCOPE_2";
+    };
 
-        const assignmentDate = formatDate(dates[selectedDateIndex].date);
-        const assignmentTime = selectedTime;
+    const assessmentType = getAssessmentType();
+    const isScope1 = assessmentType === "SCOPE_1";
 
+    const buildBookingQuery = () => {
+        const params = new URLSearchParams();
+        searchParams.forEach((value, key) => {
+            if (value) params.append(key, value);
+        });
+        return params.toString();
+    };
+
+    useEffect(() => {
+        if (!searchParams.get("assessmentType")) {
+            const qs = buildBookingQuery();
+            router.replace(qs ? `/choose-assessment?${qs}` : "/choose-assessment");
+        }
+    }, [router, searchParams]);
+
+    const getCountryLabel = () => {
+        const country = searchParams.get("country") || "India";
+        if (country === "Other") {
+            return searchParams.get("otherCountryName") || "Other";
+        }
+        return country;
+    };
+
+    const prepareEmailPayload = (
+        assessmentId: string,
+        assessmentLink: string,
+        assignmentDate: string,
+        assignmentTime: string,
+    ) => {
         const renewableEnergyStr = searchParams.get("renewableEnergy") || "0";
         const totalEnergyStr = searchParams.get("totalEnergy") || "0";
         const renewableEnergy = parseFloat(renewableEnergyStr.replace(/[^\d.]/g, "")) || 0;
         const totalEnergy = parseFloat(totalEnergyStr.replace(/[^\d.]/g, "")) || 0;
-        const renewablePercentage = totalEnergy > 0
-            ? parseFloat(((renewableEnergy / totalEnergy) * 100).toFixed(2))
-            : 0;
-
-        const currentParams = new URLSearchParams(searchParams.toString());
-        currentParams.append("assessmentId", assessmentId);
-        // Pass assignment details in URL for the countdown on the next page
-        currentParams.append("assignmentDate", assignmentDate);
-        currentParams.append("assignmentTime", assignmentTime);
-
-        const assessmentLink = `${window.location.origin}/scope?${currentParams.toString()}`;
-
-        // Validity is until the end of the event date (11:59 PM)
-        const expireTime = `${assignmentDate} at 11:59 PM`;
+        const renewablePercentage =
+            totalEnergy > 0
+                ? parseFloat(((renewableEnergy / totalEnergy) * 100).toFixed(2))
+                : 0;
 
         return {
             name: searchParams.get("name") || "-",
             mobile: searchParams.get("mobile") || "-",
             email: searchParams.get("email") || "-",
             company: searchParams.get("company") || "-",
-            sector: searchParams.get("sector") || "-",
-            natureOfBusiness: searchParams.get("natureOfBusiness") || "-",
-            country: searchParams.get("country") || "-",
+            country: getCountryLabel(),
+            assessmentType: getAssessmentType(),
             renewableEnergy: renewableEnergyStr || "-",
             totalEnergy: totalEnergyStr || "-",
-            renewablePercentage: renewablePercentage,
-            assignmentDate: assignmentDate,
+            renewablePercentage,
+            assignmentDate,
             assignmentSlot: selectedShift || "-",
-            assignmentTime: assignmentTime,
-            assessmentId: assessmentId,
-            assessmentLink: assessmentLink,
-            expireTime: expireTime
+            assignmentTime,
+            assessmentId,
+            assessmentLink,
+            expireTime: `${assignmentDate} at 11:59 PM`,
         };
     };
 
@@ -273,8 +287,62 @@ function ChooseTimeContent() {
         }
     };
 
+    const createBooking = async (forceNew = false) => {
+        if (selectedDateIndex === null || !selectedTime) return null;
+
+        const assignmentDate = formatDate(dates[selectedDateIndex].date);
+        const assignmentTime = selectedTime;
+
+        if (!forceNew && bookedAssessmentId && bookedAssessmentLink) {
+            return prepareEmailPayload(
+                bookedAssessmentId,
+                bookedAssessmentLink,
+                assignmentDate,
+                assignmentTime,
+            );
+        }
+
+        const email = searchParams.get("email")?.trim();
+        if (!email) {
+            setNotification({ message: "Email is required. Go back and complete Step 1.", type: "error" });
+            return null;
+        }
+
+        const result = await bookAssessment({
+            assessmentType: getAssessmentType(),
+            email,
+            name: searchParams.get("name") || undefined,
+            mobile: searchParams.get("mobile") || undefined,
+            company: searchParams.get("company") || undefined,
+            country: getCountryLabel(),
+            legalEntityId: searchParams.get("legalEntityId") || undefined,
+            siteCount: searchParams.get("siteCount") || undefined,
+            siteCountNumber: searchParams.get("siteCountNumber") || undefined,
+            conditionalApproach: searchParams.get("conditionalApproach") || undefined,
+            assignmentDate,
+            assignmentSlot: selectedShift || undefined,
+            assignmentTime: selectedTime,
+        });
+
+        if (!result.success) {
+            setNotification({ message: result.error, type: "error" });
+            return null;
+        }
+
+        setBookedAssessmentId(result.assessment.assessmentId);
+        setBookedAssessmentLink(result.assessment.assessmentLink);
+        return prepareEmailPayload(
+            result.assessment.assessmentId,
+            result.assessment.assessmentLink,
+            assignmentDate,
+            assignmentTime,
+        );
+    };
+
     const handleConfirmBooking = async () => {
-        const data = prepareBookingData();
+        if (selectedDateIndex === null || !selectedTime) return;
+
+        const data = await createBooking();
         if (!data) return;
 
         if (selectedShift === "Now") {
@@ -282,7 +350,6 @@ function ChooseTimeContent() {
             setAssessmentLinkToRedirect(url.pathname + url.search);
             setIsSuccess(true);
             setCountdown(10);
-            // Fire and forget email
             sendBookingEmail(data);
             return;
         }
@@ -294,7 +361,7 @@ function ChooseTimeContent() {
     };
 
     const handleResendEmail = async () => {
-        const data = prepareBookingData();
+        const data = await createBooking(false);
         if (!data) return;
 
         const success = await sendBookingEmail(data);
@@ -415,7 +482,7 @@ function ChooseTimeContent() {
                     </div>
 
                     <div className="text-base sm:text-lg font-normal text-gray-900 tracking-wide">
-                        Assessment Id: <span className="font-normal">{assessmentId}</span>
+                        Assessment Id: <span className="font-normal">{bookedAssessmentId || "—"}</span>
                     </div>
 
                     {/* Email Confirmation Banner */}
@@ -498,11 +565,13 @@ function ChooseTimeContent() {
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                             <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full tracking-wide">
-                                Scope 2 Assessment
+                                {isScope1 ? "Scope 1 Assessment" : "Scope 2 Assessment"}
                             </span>
                         </div>
                         <h1 className="text-xl font-bold text-gray-900">
-                            Book Your Scope 2 Self Assessment
+                            {isScope1
+                                ? "Book Your Scope 1 Self Assessment"
+                                : "Book Your Scope 2 Self Assessment"}
                         </h1>
                         <p className="text-gray-500 mt-1 text-xs">
                             Select A Convenient Time For Your Assessment.
@@ -512,13 +581,13 @@ function ChooseTimeContent() {
                     {/* Centered Progress Step */}
                     <div className="flex flex-col items-center justify-center">
                         <p className="text-xs font-semibold text-gray-400 tracking-widest mb-1">
-                            Step 2 Of 6 - Choose Time
+                            Step 3 Of 6 — Choose Time
                         </p>
                         <div className="flex items-center gap-3">
                             <div className="h-1 w-32 bg-gray-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-indigo-600 w-[33%]"></div>
+                                <div className="h-full bg-indigo-600 w-[50%]"></div>
                             </div>
-                            <span className="text-sm font-bold text-gray-400">33%</span>
+                            <span className="text-sm font-bold text-gray-400">50%</span>
                         </div>
                     </div>
 
@@ -560,7 +629,10 @@ function ChooseTimeContent() {
                                     Select A Date <span className="text-red-500">*</span>
                                 </label>
                                 <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Assessment Date</p>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                                    {dates.length === 0 && (
+                                        <p className="col-span-full text-xs text-gray-500">Loading available dates…</p>
+                                    )}
                                     {dates.map((d, index) => (
                                         <button
                                             key={index}
@@ -779,7 +851,10 @@ function ChooseTimeContent() {
                         {/* Action Bar */}
                         <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-100">
                             <button
-                                onClick={() => router.back()}
+                                onClick={() => {
+                                    const qs = buildBookingQuery();
+                                    router.push(qs ? `/choose-assessment?${qs}` : "/choose-assessment");
+                                }}
                                 className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
                             >
                                 &larr; Back

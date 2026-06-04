@@ -7,6 +7,13 @@ export interface Scope2Submission {
     data: Record<string, unknown>; // The form data
 }
 
+export interface Scope1Submission {
+    id: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    submittedAt: string;
+    data: Record<string, unknown>;
+}
+
 let testAccountPromise: Promise<TestAccount> | null = null;
 
 // Helper to get transporter - either from ENV or auto-generated Ethereal account
@@ -44,11 +51,47 @@ async function getTransporter() {
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@sustally.com';
 
+export async function sendScope1AdminNotification(submission: Scope1Submission) {
+    const transporter = await getTransporter();
+    const { buildAdminAssessmentReviewUrl } = await import('./admin-dashboard-url');
+    const reviewLink = buildAdminAssessmentReviewUrl(submission.id, 'SCOPE_1');
+    const facilityName = (submission.data.facilityName as string) || 'Unknown Facility';
+    const sectorCode = (submission.data.sectorCode as string) || '';
+
+    const mailOptions = {
+        from: '"Sustally System" <no-reply@sustally.com>',
+        to: ADMIN_EMAIL,
+        subject: `New Scope 1 Assessment Submission: ${facilityName}`,
+        html: `
+      <h1>New Scope 1 Submission Received</h1>
+      <p>A new Scope 1 inventory has been submitted for review.</p>
+      <ul>
+        <li><strong>Facility:</strong> ${facilityName}</li>
+        ${sectorCode ? `<li><strong>Sector:</strong> ${sectorCode}</li>` : ''}
+        <li><strong>Submitted At:</strong> ${new Date(submission.submittedAt).toLocaleString()}</li>
+      </ul>
+      <p>Please review the submission:</p>
+      <a href="${reviewLink}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Review Scope 1 Submission</a>
+    `,
+    };
+
+    try {
+        console.log(`[Email] Sending Scope 1 admin notification ${submission.id} to ${ADMIN_EMAIL}`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Scope 1 admin notification sent:', info.messageId);
+        if (!process.env.SMTP_HOST) {
+            const nodemailer = (await import('nodemailer')).default;
+            console.log('Preview URL: ' + nodemailer.getTestMessageUrl(info));
+        }
+    } catch (error) {
+        console.error('Error sending Scope 1 admin email:', error);
+    }
+}
+
 export async function sendAdminNotification(submission: Scope2Submission) {
     const transporter = await getTransporter();
-    const DASHBOARD_URL = process.env.ADMIN_DASHBOARD_URL || 'https://new-rho-plum.vercel.app';
-    // Update review link to point to the correct admin dashboard URL
-    const reviewLink = `${DASHBOARD_URL}`;
+    const { buildAdminAssessmentReviewUrl } = await import('./admin-dashboard-url');
+    const reviewLink = buildAdminAssessmentReviewUrl(submission.id, 'SCOPE_2');
     const facilityName = (submission.data.facilityName as string) || 'Unknown Facility';
 
     const mailOptions = {
@@ -63,7 +106,7 @@ export async function sendAdminNotification(submission: Scope2Submission) {
         <li><strong>Submitted At:</strong> ${new Date(submission.submittedAt).toLocaleString()}</li>
       </ul>
       <p>Please review the submission by clicking the link below:</p>
-      <a href="${reviewLink}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Review Submission</a>
+      <a href="${reviewLink}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Review Scope 2 Submission</a>
     `,
     };
 
@@ -80,15 +123,66 @@ export async function sendAdminNotification(submission: Scope2Submission) {
     }
 }
 
-export async function sendApprovalEmail(userEmail: string, submission: Scope2Submission) {
+export async function sendAssessmentApprovalEmail(
+    userEmail: string,
+    info: {
+        assessmentId: string
+        assessmentType: 'SCOPE_1' | 'SCOPE_2'
+        name?: string
+        company?: string
+    },
+) {
+    const transporter = await getTransporter()
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sustally.vercel.app'
+    const params = new URLSearchParams({
+        email: userEmail,
+        assessmentId: info.assessmentId,
+    })
+    const dashboardLink = `${baseUrl}/dashboard?${params.toString()}`
+    const label =
+        info.assessmentType === 'SCOPE_1' ? 'Scope 1 inventory' : 'Scope 2 assessment'
+    const display = info.company || info.name || 'your facility'
+
+    const mailOptions = {
+        from: '"Sustally Team" <no-reply@sustally.com>',
+        to: userEmail,
+        subject: `${label} approved — view your dashboard`,
+        html: `
+      <h1>Congratulations!</h1>
+      <p>Your ${label} for <strong>${display}</strong> has been approved.</p>
+      <p>Use the secure link below to verify your email and download your report:</p>
+      <br />
+      <a href="${dashboardLink}" style="padding: 12px 24px; background-color: #3D5F2B; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Open dashboard</a>
+      <br /><br />
+      <p>Best regards,<br/>Sustally Team</p>
+    `,
+    }
+
+    try {
+        const infoMsg = await transporter.sendMail(mailOptions)
+        console.log('[Email] Assessment approval sent:', userEmail, infoMsg.messageId)
+        if (!process.env.SMTP_HOST) {
+            const nodemailer = (await import('nodemailer')).default
+            console.log('Preview URL: ' + nodemailer.getTestMessageUrl(infoMsg))
+        }
+    } catch (error) {
+        console.error('Error sending assessment approval email:', error)
+    }
+}
+
+export async function sendApprovalEmail(
+    userEmail: string,
+    submission: Scope2Submission,
+    assessmentId?: string,
+) {
     console.log(`[Email] Preparing approval email for ${userEmail}`);
     const transporter = await getTransporter();
     const facilityName = (submission.data.facilityName as string) || 'Unknown Facility';
 
-    // Construct Dashboard URL with params
-    // Construct Dashboard URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sustally.vercel.app';
-    const dashboardLink = `${baseUrl}/dashboard?email=${encodeURIComponent(userEmail)}`;
+    const params = new URLSearchParams({ email: userEmail });
+    if (assessmentId) params.set('assessmentId', assessmentId);
+    const dashboardLink = `${baseUrl}/dashboard?${params.toString()}`;
 
     const mailOptions = {
         from: '"Sustally Team" <no-reply@sustally.com>',
@@ -115,6 +209,36 @@ export async function sendApprovalEmail(userEmail: string, submission: Scope2Sub
         }
     } catch (error) {
         console.error('Error sending approval email:', error);
+    }
+}
+
+export async function sendScope1RejectionEmail(
+    userEmail: string,
+    facilityLabel: string,
+    reason?: string,
+    assessmentLink?: string,
+) {
+    const transporter = await getTransporter()
+    const mailOptions = {
+        from: '"Sustally Team" <no-reply@sustally.com>',
+        to: userEmail,
+        subject: 'Action Required: Scope 1 Assessment Update',
+        html: `
+      <h1>Scope 1 assessment update required</h1>
+      <p>Your Scope 1 inventory for <strong>${facilityLabel}</strong> needs changes after review.</p>
+      ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+      ${
+          assessmentLink
+              ? `<p><a href="${assessmentLink}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Retry assessment</a></p>`
+              : '<p>Please contact support for a new assessment link.</p>'
+      }
+      <p>Best regards,<br/>Sustally Team</p>
+    `,
+    }
+    try {
+        await transporter.sendMail(mailOptions)
+    } catch (error) {
+        console.error('Error sending Scope 1 rejection email:', error)
     }
 }
 

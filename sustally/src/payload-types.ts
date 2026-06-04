@@ -70,6 +70,9 @@ export interface Config {
     users: User;
     media: Media;
     applications: Application;
+    assessments: Assessment;
+    'scope1-assessments': Scope1Assessment;
+    'scope1-applications': Scope1Application;
     'scope2-applications': Scope2Application;
     'slot-bookings': SlotBooking;
     feedback: Feedback;
@@ -83,6 +86,9 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     applications: ApplicationsSelect<false> | ApplicationsSelect<true>;
+    assessments: AssessmentsSelect<false> | AssessmentsSelect<true>;
+    'scope1-assessments': Scope1AssessmentsSelect<false> | Scope1AssessmentsSelect<true>;
+    'scope1-applications': Scope1ApplicationsSelect<false> | Scope1ApplicationsSelect<true>;
     'scope2-applications': Scope2ApplicationsSelect<false> | Scope2ApplicationsSelect<true>;
     'slot-bookings': SlotBookingsSelect<false> | SlotBookingsSelect<true>;
     feedback: FeedbackSelect<false> | FeedbackSelect<true>;
@@ -206,11 +212,195 @@ export interface Application {
   createdAt: string;
 }
 /**
+ * All bookings (Scope 1 and Scope 2). Filter status = SUBMITTED for pending review; APPROVED records can use dashboard OTP.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "assessments".
+ */
+export interface Assessment {
+  id: string;
+  /**
+   * Public reference sent in assessment invitation links
+   */
+  assessmentId: string;
+  assessmentType: 'SCOPE_1' | 'SCOPE_2';
+  status: 'BOOKED' | 'INVITED' | 'IN_PROGRESS' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+  name?: string | null;
+  email: string;
+  mobile?: string | null;
+  company?: string | null;
+  sector?: string | null;
+  natureOfBusiness?: string | null;
+  country?: string | null;
+  /**
+   * CIN, PAN, or other legal identifier from booking
+   */
+  legalEntityId?: string | null;
+  siteCount?: string | null;
+  siteCountNumber?: string | null;
+  conditionalApproach?: ('Operational Control' | 'Equity Share' | 'Financial Control') | null;
+  /**
+   * Booked slot date (display string)
+   */
+  assignmentDate?: string | null;
+  /**
+   * Shift label e.g. Morning
+   */
+  assignmentSlot?: string | null;
+  /**
+   * Specific time slot
+   */
+  assignmentTime?: string | null;
+  /**
+   * Magic link for the applicant to start the assessment
+   */
+  assessmentLink?: string | null;
+  invitedAt?: string | null;
+  submittedAt?: string | null;
+  approvedAt?: string | null;
+  rejectionReason?: string | null;
+  otp?: string | null;
+  otpExpiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Scope 1 inventories. Filter reviewStatus = pending for the review queue. Approve to generate PDF and email the applicant.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "scope1-assessments".
+ */
+export interface Scope1Assessment {
+  id: string;
+  /**
+   * Matches assessments.assessmentId
+   */
+  assessmentId: string;
+  /**
+   * Parent booking record
+   */
+  assessment?: (string | null) | Assessment;
+  /**
+   * Display label e.g. Facility FY2026
+   */
+  name: string;
+  sectorCode: 'CEMENT' | 'OIL_GAS' | 'PULP_PAPER' | 'POWER' | 'IRON_STEEL';
+  reportingYear: number;
+  reviewStatus: 'draft' | 'pending' | 'approved' | 'rejected';
+  /**
+   * Last engine run status
+   */
+  engineStatus?: ('draft' | 'calculated' | 'success_with_warnings' | 'blocked') | null;
+  gwpSet?: string | null;
+  grossScope1Tonnes?: number | null;
+  biomassMemoTonnes?: number | null;
+  supportingScope2Tonnes?: number | null;
+  supportingScope3Tonnes?: number | null;
+  inputPayload:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  result?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  calculationTrace?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  factorSnapshots?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  calculatedAt?: string | null;
+  submittedAt?: string | null;
+  rejectionReason?: string | null;
+  /**
+   * URL to approved PDF/workbook after generation
+   */
+  reportUrl?: string | null;
+  /**
+   * URL to approved dashboard view
+   */
+  dashboardUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Scope 1 submissions for admin review. Filter status = PENDING. Approve syncs scope1-assessments and parent assessment (same flow as Scope 2).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "scope1-applications".
+ */
+export interface Scope1Application {
+  id: string;
+  /**
+   * Public assessment reference from booking
+   */
+  assessmentId?: string | null;
+  /**
+   * Parent unified assessment booking
+   */
+  assessment?: (string | null) | Assessment;
+  /**
+   * Linked Scope 1 inventory calculation
+   */
+  scope1Assessment: string | Scope1Assessment;
+  email: string;
+  userName?: string | null;
+  userMobile?: string | null;
+  userCompany?: string | null;
+  facilityName: string;
+  /**
+   * Display label from scope1-assessments.name
+   */
+  inventoryName?: string | null;
+  sectorCode?: ('CEMENT' | 'OIL_GAS' | 'PULP_PAPER' | 'POWER' | 'IRON_STEEL') | null;
+  reportingYear?: number | null;
+  grossScope1Tonnes?: number | null;
+  status: 'PENDING' | 'IN_PROGRESS' | 'APPROVED' | 'REJECTED';
+  rejectionReason?: string | null;
+  otp?: string | null;
+  otpExpiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Scope 2 submissions. Filter status = PENDING for review. Approve syncs parent assessment to APPROVED.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "scope2-applications".
  */
 export interface Scope2Application {
   id: string;
+  /**
+   * Public assessment reference from booking (assessments collection)
+   */
+  assessmentId?: string | null;
+  /**
+   * Parent unified assessment booking
+   */
+  assessment?: (string | null) | Assessment;
   userName?: string | null;
   userMobile?: string | null;
   userCompany?: string | null;
@@ -383,6 +573,18 @@ export interface PayloadLockedDocument {
         value: string | Application;
       } | null)
     | ({
+        relationTo: 'assessments';
+        value: string | Assessment;
+      } | null)
+    | ({
+        relationTo: 'scope1-assessments';
+        value: string | Scope1Assessment;
+      } | null)
+    | ({
+        relationTo: 'scope1-applications';
+        value: string | Scope1Application;
+      } | null)
+    | ({
         relationTo: 'scope2-applications';
         value: string | Scope2Application;
       } | null)
@@ -521,9 +723,96 @@ export interface ApplicationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "assessments_select".
+ */
+export interface AssessmentsSelect<T extends boolean = true> {
+  assessmentId?: T;
+  assessmentType?: T;
+  status?: T;
+  name?: T;
+  email?: T;
+  mobile?: T;
+  company?: T;
+  sector?: T;
+  natureOfBusiness?: T;
+  country?: T;
+  legalEntityId?: T;
+  siteCount?: T;
+  siteCountNumber?: T;
+  conditionalApproach?: T;
+  assignmentDate?: T;
+  assignmentSlot?: T;
+  assignmentTime?: T;
+  assessmentLink?: T;
+  invitedAt?: T;
+  submittedAt?: T;
+  approvedAt?: T;
+  rejectionReason?: T;
+  otp?: T;
+  otpExpiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "scope1-assessments_select".
+ */
+export interface Scope1AssessmentsSelect<T extends boolean = true> {
+  assessmentId?: T;
+  assessment?: T;
+  name?: T;
+  sectorCode?: T;
+  reportingYear?: T;
+  reviewStatus?: T;
+  engineStatus?: T;
+  gwpSet?: T;
+  grossScope1Tonnes?: T;
+  biomassMemoTonnes?: T;
+  supportingScope2Tonnes?: T;
+  supportingScope3Tonnes?: T;
+  inputPayload?: T;
+  result?: T;
+  calculationTrace?: T;
+  factorSnapshots?: T;
+  calculatedAt?: T;
+  submittedAt?: T;
+  rejectionReason?: T;
+  reportUrl?: T;
+  dashboardUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "scope1-applications_select".
+ */
+export interface Scope1ApplicationsSelect<T extends boolean = true> {
+  assessmentId?: T;
+  assessment?: T;
+  scope1Assessment?: T;
+  email?: T;
+  userName?: T;
+  userMobile?: T;
+  userCompany?: T;
+  facilityName?: T;
+  inventoryName?: T;
+  sectorCode?: T;
+  reportingYear?: T;
+  grossScope1Tonnes?: T;
+  status?: T;
+  rejectionReason?: T;
+  otp?: T;
+  otpExpiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "scope2-applications_select".
  */
 export interface Scope2ApplicationsSelect<T extends boolean = true> {
+  assessmentId?: T;
+  assessment?: T;
   userName?: T;
   userMobile?: T;
   userCompany?: T;

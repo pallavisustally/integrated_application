@@ -1,0 +1,11 @@
+{
+  "_comment": "Cement activity data template - replace nulls with reporting-period quantities",
+  "production": {
+    "clinkerProducedTonnes": null,
+    "cementProducedTonnes": null
+  },
+  "kilnFuels": [],
+  "nonKilnFuels": [],
+  "mobile": [],
+  "fugitive": []
+}

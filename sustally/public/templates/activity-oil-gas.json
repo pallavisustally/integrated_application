@@ -1,0 +1,11 @@
+{
+  "_comment": "Oil & Gas activity data template",
+  "stationaryCombustion": [],
+  "mobileCombustion": [],
+  "flaring": [],
+  "venting": [],
+  "fugitiveComponents": [],
+  "refrigerants": [],
+  "process": [],
+  "reported": []
+}

@@ -123,8 +123,36 @@ export const POST = async (request: Request) => {
       renewableEvidenceId = await uploadFile(files.renewableSupportingEvidenceFile)
     }
 
+    const assessmentId =
+      typeof data.assessmentId === 'string' ? data.assessmentId.trim() : ''
+
+    let assessmentRelationId: string | undefined
+    if (assessmentId) {
+      const assessmentLookup = await payload.find({
+        collection: 'assessments',
+        where: { assessmentId: { equals: assessmentId } },
+        limit: 1,
+      })
+      if (assessmentLookup.totalDocs > 0) {
+        assessmentRelationId = String(assessmentLookup.docs[0].id)
+        await payload.update({
+          collection: 'assessments',
+          id: assessmentLookup.docs[0].id,
+          data: {
+            status: 'SUBMITTED',
+            submittedAt: new Date().toISOString(),
+            ...(data.sector ? { sector: data.sector } : {}),
+            ...(data.natureOfBusiness ? { natureOfBusiness: data.natureOfBusiness } : {}),
+            ...(data.conditionalApproach ? { conditionalApproach: data.conditionalApproach } : {}),
+          },
+        })
+      }
+    }
+
     // Prepare the data for Payload
     const scope2Data = {
+      assessmentId: assessmentId || undefined,
+      assessment: assessmentRelationId,
       userName: data.userName || '',
       userMobile: data.userMobile || '',
       userCompany: data.userCompany || '',

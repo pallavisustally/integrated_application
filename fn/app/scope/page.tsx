@@ -7,7 +7,14 @@ import "react-datepicker/dist/react-datepicker.css";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, Label } from "recharts";
 import { TARIFF_DATA, TariffRate } from "../lib/electricityTariffData";
 import Combobox from "./Combobox";
+import { SECTOR_OPTIONS } from "../data/sectorInitiatives";
 import { upload } from '@vercel/blob/client';
+import {
+  loadAssessmentSession,
+  scope2SearchParams,
+  validateAssessment,
+} from '../../lib/assessment-session'
+import { applyScope2Prefill, scope2PrefillFromSession } from '../../lib/assessment-mapper';
 
 const STATE_OPTIONS = [
   "Andaman and Nicobar Islands",
@@ -144,8 +151,8 @@ function TemplateContent() {
     userEmail: email || "",
     userMobile: searchParams.get("mobile") || "",
     userCompany: searchParams.get("company") || "",
-    sector: searchParams.get("sector") || "",
-    natureOfBusiness: searchParams.get("natureOfBusiness") || "",
+    sector: "",
+    natureOfBusiness: "",
 
     // Page 1
     state: "",
@@ -208,8 +215,83 @@ function TemplateContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isLoaded, setIsLoaded] = useState(false);
+  const [assessmentGate, setAssessmentGate] = useState<'loading' | 'ready' | 'blocked'>('loading');
+  const [assessmentGateMessage, setAssessmentGateMessage] = useState('');
 
   useEffect(() => {
+    const runGate = async () => {
+      const id = searchParams.get('assessmentId')?.trim();
+      const em = searchParams.get('email')?.trim();
+      if (!id || !em) {
+        setAssessmentGate('ready');
+        return;
+      }
+
+      const result = await validateAssessment(id, em);
+      if (!result.success) {
+        setAssessmentGate('blocked');
+        setAssessmentGateMessage(result.error);
+        return;
+      }
+
+      const a = result.assessment;
+
+      if (a.assessmentType === 'SCOPE_1') {
+        router.replace(`/scope1?${scope2SearchParams(a).toString()}`);
+        return;
+      }
+
+      if (a.status === 'APPROVED') {
+        router.replace(
+          `/dashboard?email=${encodeURIComponent(a.email)}&assessmentId=${encodeURIComponent(a.assessmentId)}`,
+        );
+        return;
+      }
+
+      if (a.status === 'SUBMITTED' && searchParams.get('retry') !== 'true') {
+        setAssessmentGate('blocked');
+        setAssessmentGateMessage(
+          'This assessment has already been submitted and is under review. You will receive an email when it is approved.',
+        );
+        return;
+      }
+
+      setFormData((prev) => {
+        const next = { ...prev }
+        applyScope2Prefill(next, {
+          assessmentId: a.assessmentId,
+          userEmail: a.email,
+          userName: a.name,
+          userMobile: a.mobile,
+          userCompany: a.company,
+          sector: a.sector,
+          natureOfBusiness: a.natureOfBusiness,
+          siteCount: a.siteCount,
+          conditionalApproach: a.conditionalApproach as FormDataType['conditionalApproach'],
+        })
+        return next
+      })
+
+      setAssessmentGate('ready');
+    };
+
+    runGate();
+  }, [router, searchParams]);
+
+  useEffect(() => {
+    if (assessmentGate !== 'ready') return
+    const sessionPrefill = scope2PrefillFromSession(loadAssessmentSession())
+    if (!sessionPrefill) return
+    setFormData((prev) => {
+      const next = { ...prev }
+      applyScope2Prefill(next, sessionPrefill)
+      return next
+    })
+  }, [assessmentGate])
+
+  useEffect(() => {
+    if (assessmentGate !== 'ready') return;
+
     // Check if assessment already completed for this user/slot
     const email = searchParams.get("email");
     const assessmentId = searchParams.get("assessmentId");
@@ -264,7 +346,7 @@ function TemplateContent() {
       setPage(Number(savedPage) as 1 | 2);
     }
     setIsLoaded(true);
-  }, [router, searchParams]);
+  }, [router, searchParams, assessmentGate]);
 
   useEffect(() => {
     if (isLoaded) {
@@ -291,8 +373,11 @@ function TemplateContent() {
 
   useEffect(() => {
     const checkTime = () => {
-      const assignmentDate = searchParams.get("assignmentDate");
-      const assignmentTime = searchParams.get("assignmentTime");
+      const session = loadAssessmentSession();
+      const assignmentDate =
+        searchParams.get("assignmentDate") || session?.assignmentDate || null;
+      const assignmentTime =
+        searchParams.get("assignmentTime") || session?.assignmentTime || null;
 
       if (!assignmentDate || !assignmentTime) {
         setIsCheckingTime(false);
@@ -343,11 +428,21 @@ function TemplateContent() {
     return () => clearInterval(timer);
   }, [searchParams]);
 
-  // If we are still checking or if there is time left, show the countdown screen
-  if (isCheckingTime) {
+  if (assessmentGate === 'loading' || isCheckingTime) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (assessmentGate === 'blocked') {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+          <h1 className="text-lg font-semibold text-gray-900 mb-2">Assessment unavailable</h1>
+          <p className="text-gray-600 text-sm">{assessmentGateMessage}</p>
+        </div>
       </div>
     );
   }
@@ -656,6 +751,13 @@ function TemplateContent() {
     }
   };
 
+  const handleSectorChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, sector: value }));
+    if (errors.sector) {
+      setErrors((prev) => ({ ...prev, sector: "" }));
+    }
+  };
+
   const handleFileUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
     fieldName: "energySupportingEvidenceFile" | "renewableSupportingEvidenceFile"
@@ -729,6 +831,15 @@ function TemplateContent() {
         missingFields.push("Facility Name (No Numbers)");
       }
 
+      if (!formData.sector?.trim()) {
+        newErrors.sector = "Sector is required";
+        missingFields.push("Sector");
+      }
+
+      if (!formData.natureOfBusiness?.trim()) {
+        newErrors.natureOfBusiness = "Nature of business is required";
+        missingFields.push("Nature Of Business Activity");
+      }
 
       if (!formData.reportingYear) {
         newErrors.reportingYear = "Reporting Year is required";
@@ -737,10 +848,6 @@ function TemplateContent() {
       if (!formData.reportingPeriod) {
         newErrors.reportingPeriod = "Reporting Period is required";
         missingFields.push("Reporting Period");
-      }
-      if (!formData.conditionalApproach) {
-        newErrors.conditionalApproach = "Conditional Approach is required";
-        missingFields.push("Consolidation Approach");
       }
     }
 
@@ -1496,6 +1603,37 @@ function TemplateContent() {
                     </p>
                   </div>
 
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                      Sector <span className="text-red-500">*</span>
+                    </label>
+                    <Combobox
+                      options={SECTOR_OPTIONS}
+                      value={formData.sector}
+                      onChange={handleSectorChange}
+                      placeholder="Select Sector..."
+                      error={!!errors.sector}
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1.5">
+                      Used for sector-specific recommendations and calculations
+                    </p>
+                    {errors.sector && <p className="text-red-500 text-xs mt-1">{errors.sector}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                      Nature Of Business Activity <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="natureOfBusiness"
+                      value={formData.natureOfBusiness || ""}
+                      onChange={handleChange}
+                      placeholder="E.G., Packaged Snacks, CNC Machining"
+                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.natureOfBusiness ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                    />
+                    {errors.natureOfBusiness && <p className="text-red-500 text-xs mt-1">{errors.natureOfBusiness}</p>}
+                  </div>
 
                 </div>
               </section>
@@ -1625,49 +1763,6 @@ function TemplateContent() {
                         ))}
                       </div>
                     </div>
-                  </div>
-
-
-                  {/* Consolidation Approach */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-3">
-                      Consolidation Approach <span className="text-gray-400 font-normal ml-1">(Fixed)</span>
-                    </label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 opacity-60 pointer-events-none grayscale">
-                      {[
-                        { id: "Operational Control", label: "Operational Control", sub: "Default Approach For Most Organizations", default: true },
-                        { id: "Equity Share", label: "Equity Share", sub: "Based On Ownership Percentage" },
-                        { id: "Financial Control", label: "Financial Control", sub: "Based On Financial Authority" }
-                      ].map((opt) => (
-                        <div
-                          key={opt.id}
-                          className={`relative border rounded-xl p-4 cursor-pointer transition-all hover:border-indigo-300 ${formData.conditionalApproach === opt.id
-                            ? "bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500"
-                            : errors.conditionalApproach ? "bg-red-50 border-red-300" : "bg-white border-gray-200"
-                            }`}
-                          onClick={() => setFormData(prev => ({ ...prev, conditionalApproach: opt.id as any }))}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${formData.conditionalApproach === opt.id ? "border-indigo-600" : "border-gray-300"
-                              }`}>
-                              {formData.conditionalApproach === opt.id && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
-                            </div>
-                            <div>
-                              <p className={`text-xs font-bold ${formData.conditionalApproach === opt.id ? "text-indigo-900" : "text-gray-700"}`}>
-                                {opt.label}  {opt.default && <span className="text-indigo-500 text-[10px] font-normal">(default)</span>}
-                              </p>
-                              <p className="text-[10px] text-gray-500 leading-tight mt-1">
-                                {opt.sub}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-blue-400 mt-3 font-medium cursor-help">
-                      This defines how emissions are attributed
-                    </p>
-                    {errors.conditionalApproach && <p className="text-red-500 text-xs mt-1">{errors.conditionalApproach}</p>}
                   </div>
                 </div>
               </section >

@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Combobox from "./scope/Combobox";
-import { SECTOR_OPTIONS } from "./data/sectorInitiatives";
-
 // Icons as components to avoid external dependencies
 const UserIcon = () => (
   <svg
@@ -45,44 +42,13 @@ const LocationIcon = () => (
   </svg>
 );
 
-const FactoryIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-  </svg>
-);
+type ConsolidationApproach = "Operational Control" | "Equity Share" | "Financial Control";
 
-const BriefcaseIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.67.38m-4.5-8.006c-1.572-.43-3.271-.629-4.97-.629H9c-1.7 0-3.398.198-4.97.629m0 0c-1.069.16-1.837 1.094-1.837 2.175v4.784c0 .593.237 1.144.629 1.558a2.158 2.158 0 0 0 .67-.38m0 0h14.25" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-  </svg>
-);
-
-const TrendingUpIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-  </svg>
-);
-
-// New Icons for FMCG, Auto/Engineering, Other
-const ShoppingBagIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-  </svg>
-);
-
-const CogIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-  </svg>
-);
-
-const DotsHorizontalIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-indigo-600">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-  </svg>
-);
+const CONSOLIDATION_OPTIONS: { id: ConsolidationApproach; label: string; sub: string; default?: boolean }[] = [
+  { id: "Operational Control", label: "Operational Control", sub: "Default approach for most organizations", default: true },
+  { id: "Equity Share", label: "Equity Share", sub: "Based on ownership percentage" },
+  { id: "Financial Control", label: "Financial Control", sub: "Based on financial authority" },
+];
 
 // Form Data Type
 type FormDataType = {
@@ -93,9 +59,9 @@ type FormDataType = {
 
   // About Business
   company: string;
-  sector: string;
-  // subSector removed
-  natureOfBusiness: string;
+
+  // Consolidation
+  conditionalApproach: ConsolidationApproach;
 
   // Operating Footprint
   siteCount: "Single site" | "Multiple sites";
@@ -115,8 +81,7 @@ export default function HomePage() {
     mobile: "",
     email: "",
     company: "",
-    sector: "", // Empty default
-    natureOfBusiness: "",
+    conditionalApproach: "Operational Control",
     siteCount: "Single site",
     siteCountNumber: "",
     country: "India",
@@ -144,13 +109,6 @@ export default function HomePage() {
     }
   }, [formData, isLoaded]);
 
-  // Helper to check if current sector is custom (not in predefined list)
-  const isCustomSector = !SECTOR_OPTIONS.includes(formData.sector) && formData.sector !== "";
-
-  // We need to know if "Other" button is active. 
-  // If sector is NOT in predefined list, "Other" is active.
-  const isOtherActive = !SECTOR_OPTIONS.includes(formData.sector);
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -158,13 +116,6 @@ export default function HomePage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  const handleSectorChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, sector: value }));
-    if (errors.sector) {
-      setErrors((prev) => ({ ...prev, sector: "" }));
     }
   };
 
@@ -192,12 +143,8 @@ export default function HomePage() {
 
     if (!formData.company.trim()) newErrors.company = "Company name is required";
 
-    if (!formData.sector.trim()) {
-      newErrors.sector = "Sector is required";
-    }
-
-    if (!formData.natureOfBusiness.trim()) {
-      newErrors.natureOfBusiness = "Nature of business is required";
+    if (!formData.conditionalApproach) {
+      newErrors.conditionalApproach = "Consolidation approach is required";
     }
 
     if (formData.siteCount === "Multiple sites") {
@@ -229,7 +176,7 @@ export default function HomePage() {
       Object.entries(formData).forEach(([key, value]) => {
         if (value) params.append(key, value);
       });
-      router.push(`/choose-time?${params.toString()}`);
+      router.push(`/choose-assessment?${params.toString()}`);
     }
   };
 
@@ -241,11 +188,11 @@ export default function HomePage() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full tracking-wide">
-                Scope 2 Assessment
+                Assessment Booking
               </span>
             </div>
             <h1 className="text-xl font-bold text-gray-900">
-              Book Your Scope 2 Self Assessment
+              Book Your Self Assessment
             </h1>
             <p className="text-gray-500 mt-1 text-xs">
               Share A Few Basic Details. Takes About 2 Minutes.
@@ -284,12 +231,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-3 min-h-0">
-          {/* Main Grid: About You, Business, Info */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 flex-1 min-h-0">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-4 min-h-0">
+          {/* 2×2 equal grid — all cards share the same size and shape */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[1fr_1fr] gap-4 flex-1 min-h-0 lg:min-h-[520px] items-stretch">
 
-            {/* Column 1: About You (Span 4) */}
-            <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative lg:overflow-hidden flex flex-col lg:h-full">
+            {/* Card 1: About You */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col h-full min-h-[280px] lg:min-h-0">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
                   <div className="w-4 h-4 rounded-full bg-indigo-500"></div>
@@ -297,7 +244,7 @@ export default function HomePage() {
                 <h2 className="text-[10px] font-bold text-gray-400 tracking-wider pt-1">About You</h2>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 flex-1 flex flex-col justify-start">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-0.5">
                     Your Name <span className="text-red-500">*</span>
@@ -347,9 +294,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Column 2: About Your Business (Span 5) */}
-            <div className="lg:col-span-5 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative flex flex-col lg:h-full">
-              <div className="flex items-center gap-3 mb-4">
+            {/* Card 2: About Your Business */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col h-full min-h-[280px] lg:min-h-0">
+              <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -358,7 +305,7 @@ export default function HomePage() {
                 <h2 className="text-[10px] font-bold text-gray-400 tracking-wider pt-1">About Your Business</h2>
               </div>
 
-              <div className="space-y-5">
+              <div className="flex-1 flex flex-col justify-start">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-0.5">
                     Company Name <span className="text-red-500">*</span>
@@ -373,107 +320,84 @@ export default function HomePage() {
                   />
                   {errors.company && <p className="text-red-500 text-[10px] mt-0.5">{errors.company}</p>}
                 </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Sector <span className="text-red-500">*</span>
-                  </label>
-
-                  {/* Sector Selection */}
-                  <div className="mb-2">
-                    <Combobox
-                      options={SECTOR_OPTIONS}
-                      value={formData.sector}
-                      onChange={handleSectorChange}
-                      placeholder="Select Sector..."
-                      error={!!errors.sector}
-                    />
-                  </div>
-                  {errors.sector && <p className="text-red-500 text-[10px] mt-0.5">{errors.sector}</p>}
-
-                </div>
-
-                <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                  Nature Of Business Activity <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="natureOfBusiness"
-                  value={formData.natureOfBusiness}
-                  onChange={handleChange}
-                  placeholder="E.G., Packaged Snacks, CNC Machining"
-                  className={`w-full h-10 px-3 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.natureOfBusiness ? "border-red-300 bg-red-50" : "border-gray-200"
-                    }`}
-                />
-                {errors.natureOfBusiness && <p className="text-red-500 text-[10px] mt-0.5">{errors.natureOfBusiness}</p>}
               </div>
 
             </div>
 
-            {/* Column 3: What you'll get (Span 3) */}
-            <div className="lg:col-span-3 flex flex-col justify-center">
-              <h3 className="text-base font-bold text-gray-400 mb-2 bg-gradient-to-r from-indigo-500 to-blue-500 bg-clip-text text-transparent opacity-80">
-                What You'll Get
-              </h3>
-
-              <div className="space-y-4">
-                <div className="bg-white p-3 rounded-xl border border-indigo-50 shadow-sm flex gap-3">
-                  <div className="mt-1 bg-indigo-50 p-2 rounded-lg h-fit text-indigo-600">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-700 text-sm">Scope 2 Estimate</h4>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Initial <span className="text-blue-500 underline decoration-dotted cursor-help">Carbon Footprint</span> calculation for your operations
-                    </p>
-                  </div>
+            {/* Card 3: Consolidation Approach */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col h-full min-h-[280px] lg:min-h-0">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
                 </div>
-
-                <div className="bg-white p-3 rounded-xl border border-indigo-50 shadow-sm flex gap-3">
-                  <div className="mt-1 bg-indigo-50 p-2 rounded-lg h-fit text-indigo-600">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">Key Insights</h4>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Actionable <span className="text-indigo-500 underline decoration-dotted cursor-help">Recommendations</span> for your business
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-white p-3 rounded-xl border border-gray-50 shadow-sm flex gap-3">
-                  <div className="mt-1 bg-gray-50 p-2 rounded-lg h-fit text-gray-600">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">Next Steps</h4>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Clear Roadmap For Emission Reduction
-                    </p>
-                  </div>
-                </div>
+                <h2 className="text-[10px] font-bold text-gray-400 tracking-wider pt-1">
+                  Consolidation Approach <span className="text-red-500">*</span>
+                </h2>
               </div>
-            </div>
-          </div>
 
-          {/* Operating Footprint Section */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative flex-shrink-0">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                <LocationIcon />
+              <div className="space-y-2 flex-1 flex flex-col justify-start min-h-0">
+                {CONSOLIDATION_OPTIONS.map((opt) => (
+                  <div
+                    key={opt.id}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        setFormData((prev) => ({ ...prev, conditionalApproach: opt.id }));
+                        if (errors.conditionalApproach) {
+                          setErrors((prev) => ({ ...prev, conditionalApproach: "" }));
+                        }
+                      }
+                    }}
+                    className={`relative border rounded-xl p-2.5 cursor-pointer transition-all hover:border-indigo-300 ${formData.conditionalApproach === opt.id
+                      ? "bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500"
+                      : errors.conditionalApproach ? "bg-red-50 border-red-300" : "bg-gray-50 border-gray-200"
+                      }`}
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, conditionalApproach: opt.id }));
+                      if (errors.conditionalApproach) {
+                        setErrors((prev) => ({ ...prev, conditionalApproach: "" }));
+                      }
+                    }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${formData.conditionalApproach === opt.id ? "border-indigo-600" : "border-gray-300"
+                        }`}>
+                        {formData.conditionalApproach === opt.id && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
+                      </div>
+                      <div>
+                        <p className={`text-xs font-bold ${formData.conditionalApproach === opt.id ? "text-indigo-900" : "text-gray-700"}`}>
+                          {opt.label}
+                          {opt.default && <span className="text-indigo-500 text-[10px] font-normal ml-1">(default)</span>}
+                        </p>
+                        <p className="text-[10px] text-gray-500 leading-tight mt-0.5">
+                          {opt.sub}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <h2 className="text-[10px] font-bold text-gray-400 tracking-wider pt-1">Operating Footprint</h2>
+              <p className="text-[10px] text-gray-400 mt-auto pt-2">
+                Defines how emissions are attributed across your organization
+              </p>
+              {errors.conditionalApproach && <p className="text-red-500 text-[10px] mt-1">{errors.conditionalApproach}</p>}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+            {/* Card 4: Operating Footprint */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col h-full min-h-[280px] lg:min-h-0">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                  <LocationIcon />
+                </div>
+                <h2 className="text-[10px] font-bold text-gray-400 tracking-wider pt-1">Operating Footprint</h2>
+              </div>
+
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-0">
               {/* Sites Toggle */}
-              <div>
+              <div className="flex flex-col">
                 <label className="block text-xs font-bold text-gray-700 mb-2">
                   How Many Sites Do You Have?
                 </label>
@@ -522,7 +446,7 @@ export default function HomePage() {
               </div>
 
               {/* Country and LEI */}
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 mb-1">
                     Country
@@ -585,23 +509,24 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-
-            {/* Action Bar inside the card bottom right */}
-            <div className="flex justify-end items-center gap-4 mt-2 pt-2 border-t border-gray-100">
-              <p className="text-[10px] text-gray-400">
-                You Can Review And Edit These Details Later.
-              </p>
-              <button
-                type="submit"
-                className="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold transition-all transform hover:scale-105 text-sm"
-              >
-                Next: Choose Time
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
             </div>
-          </div >
+          </div>
+
+          {/* Action bar — outside grid so all cards stay equal shape */}
+          <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-2 flex-shrink-0 border-t border-gray-200">
+            <p className="text-[10px] text-gray-400 sm:mr-auto">
+              You Can Review And Edit These Details Later.
+            </p>
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold transition-all transform hover:scale-105 text-sm"
+            >
+              Next: Choose Assessment
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </form >
       </div >
     </div >

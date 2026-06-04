@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import Image from 'next/image';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+
+import Scope1AssessmentReview from '@/components/Scope1AssessmentReview';
+import { resolveApplicationForReview } from '@/lib/resolve-application';
 
 // ------------- ICONS -------------
 
@@ -161,8 +163,14 @@ const MonthlyTable = ({ data, type, isEstimated = false }: { data: any; type: "G
 export default function AssessmentViewPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params?.id as string;
+  const scopeParam = searchParams?.get('scope');
+  const scopeHint =
+    scopeParam === '1' ? 'SCOPE_1' : scopeParam === '2' ? 'SCOPE_2' : null;
 
+  const [resolvedScope, setResolvedScope] = useState<'SCOPE_1' | 'SCOPE_2' | null>(null);
+  const [applicationId, setApplicationId] = useState<string>('');
   const [scope2Data, setScope2Data] = useState<any>(null);
   const [slotBooking, setSlotBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -175,24 +183,31 @@ export default function AssessmentViewPage() {
       if (!id) return;
       setLoading(true);
       setError(null);
+      setResolvedScope(null);
       try {
-        const res = await fetch(`${API_URL}/api/scope2-applications/${id}`);
-        if (!res.ok) {
-          setError('Assessment not found');
+        const resolved = await resolveApplicationForReview(id, scopeHint);
+        if (!resolved) {
+          setError(
+            'Assessment not found. Open this link from the admin dashboard (port 3002) or use the application id from scope1-applications.',
+          );
           setLoading(false);
           return;
         }
-        const data = await res.json();
-        setScope2Data(data);
 
-        const email = data.email;
-        if (email) {
-          const slotsRes = await fetch(
-            `${API_URL}/api/slot-bookings?where[email][equals]=${encodeURIComponent(email)}&limit=10`
-          );
-          const slotsJson = await slotsRes.json();
-          if (slotsJson?.docs?.length > 0) {
-            setSlotBooking(slotsJson.docs[0]);
+        setResolvedScope(resolved.scope);
+        setApplicationId(resolved.applicationId);
+        setScope2Data(resolved.doc);
+
+        if (resolved.scope === 'SCOPE_2') {
+          const email = resolved.doc.email as string | undefined;
+          if (email) {
+            const slotsRes = await fetch(
+              `${API_URL}/api/slot-bookings?where[email][equals]=${encodeURIComponent(email)}&limit=10`,
+            );
+            const slotsJson = await slotsRes.json();
+            if (slotsJson?.docs?.length > 0) {
+              setSlotBooking(slotsJson.docs[0]);
+            }
           }
         }
       } catch (err) {
@@ -203,7 +218,7 @@ export default function AssessmentViewPage() {
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, scopeHint]);
 
   const data = scope2Data;
   const status = data?.status || 'PENDING';
@@ -211,7 +226,9 @@ export default function AssessmentViewPage() {
   const handleApprove = async () => {
     if (!confirm('Approve this submission?')) return;
     try {
-      const res = await fetch(`${API_URL}/api/scope2-applications/${id}`, {
+      const collection =
+        resolvedScope === 'SCOPE_1' ? 'scope1-applications' : 'scope2-applications';
+      const res = await fetch(`${API_URL}/api/${collection}/${applicationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'APPROVED' }),
@@ -228,7 +245,9 @@ export default function AssessmentViewPage() {
     const reason = prompt('Reason for rejection:');
     if (reason === null) return;
     try {
-      const res = await fetch(`${API_URL}/api/scope2-applications/${id}`, {
+      const collection =
+        resolvedScope === 'SCOPE_1' ? 'scope1-applications' : 'scope2-applications';
+      const res = await fetch(`${API_URL}/api/${collection}/${applicationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'REJECTED', rejectionReason: reason }),
@@ -267,7 +286,17 @@ export default function AssessmentViewPage() {
     );
   }
 
-
+  if (resolvedScope === 'SCOPE_1') {
+    return (
+      <Scope1AssessmentReview
+        data={scope2Data}
+        applicationId={applicationId}
+        onStatusChange={(next) =>
+          setScope2Data((prev: Record<string, unknown>) => ({ ...prev, status: next }))
+        }
+      />
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#f8f9fa] p-4 font-sans text-gray-900 flex flex-col items-center pb-24">
@@ -282,10 +311,14 @@ export default function AssessmentViewPage() {
             <div>
               <div className="mb-1 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                <span className="text-[10px] font-bold text-indigo-500 tracking-widest">Scope 2 Assessment Review</span>
+                <span className="text-[10px] font-bold text-indigo-500 tracking-widest">
+                  Scope 2 Assessment Review
+                </span>
               </div>
               <h1 className="text-2xl font-bold text-gray-900">Assessment Review</h1>
-              <p className="text-gray-500 text-xs mt-0.5">Reviewing submission for {data.facilityName || 'N/A'}</p>
+              <p className="text-gray-500 text-xs mt-0.5">
+                Reviewing submission for {data.facilityName || 'N/A'}
+              </p>
             </div>
           </div>
 
