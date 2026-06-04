@@ -14,6 +14,7 @@ import SlotBookings from "./collections/SlotBookings";
 import Feedback from "./collections/Feedback";
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { getAllowedCorsOrigins } from './lib/app-urls'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -72,27 +73,7 @@ export default buildConfig({
     })
   })(),
   sharp,
-  cors: [
-    process.env.PAYLOAD_PUBLIC_SERVER_URL || '',
-    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    'http://localhost:3000', // Explicitly adding localhost:3000 for dev
-    'http://127.0.0.1:3000',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'https://sustally.vercel.app',
-    'https://new-rho-plum.vercel.app',
-    '*',
-  ].filter(Boolean),
-  csrf: [
-    process.env.PAYLOAD_PUBLIC_SERVER_URL || '',
-    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'https://sustally.vercel.app',
-    'https://new-rho-plum.vercel.app',
-    '*',
-  ].filter(Boolean),
+  cors: [...getAllowedCorsOrigins(), '*'],
+  csrf: [...getAllowedCorsOrigins(), '*'],
   plugins: [],
 })

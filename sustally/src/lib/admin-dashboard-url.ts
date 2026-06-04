@@ -1,3 +1,8 @@
+import {
+  getAdminDashboardUrl,
+  getFnAppUrl,
+} from './app-urls'
+
 export type AdminReviewScope = 'SCOPE_1' | 'SCOPE_2'
 
 /**
@@ -5,18 +10,14 @@ export type AdminReviewScope = 'SCOPE_1' | 'SCOPE_2'
  * Do not use the fn app URL with /admin_dashboard — that route is only a placeholder.
  */
 export function getAdminDashboardBaseUrl(): string {
-  const configured = process.env.ADMIN_DASHBOARD_URL?.trim()
-  if (configured) {
-    return configured.replace(/\/$/, '')
-  }
-  return 'http://localhost:3002'
+  return getAdminDashboardUrl()
 }
 
 /**
  * User-facing fn app — used for /admin/review when ADMIN_REVIEW_USE_FN=true.
  */
 export function getFnAppBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
+  return getFnAppUrl()
 }
 
 export function buildAdminAssessmentReviewUrl(

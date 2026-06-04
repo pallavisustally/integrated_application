@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { getFnAppUrl } from "../lib/app-urls";
 
 const Applications: CollectionConfig = {
   slug: "applications",
@@ -16,7 +17,7 @@ const Applications: CollectionConfig = {
       async ({ doc, previousDoc, operation, req }) => {
         if (operation === "update" && doc.status === "APPROVED" && previousDoc.status !== "APPROVED") {
           try {
-            const dashboardLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?email=${encodeURIComponent(doc.email)}`;
+            const dashboardLink = `${getFnAppUrl()}/dashboard?email=${encodeURIComponent(doc.email)}`;
 
             await req.payload.sendEmail({
               to: doc.email,

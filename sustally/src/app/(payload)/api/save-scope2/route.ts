@@ -2,24 +2,9 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { APIError } from 'payload'
 import { sendAdminNotification, Scope2Submission } from '../../../../lib/email'
+import { corsPreflightResponse, jsonResponse } from '../../../../lib/cors'
 
-export const OPTIONS = async (request: Request) => {
-  // Handle CORS preflight
-  const origin = request.headers.get('origin')
-  const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
-  const allowedOrigins = corsOriginsEnv.split(',').map(origin => origin.trim())
-
-  const headers = new Headers()
-  if (origin && allowedOrigins.includes(origin)) {
-    headers.set('Access-Control-Allow-Origin', origin)
-    headers.set('Access-Control-Allow-Credentials', 'true')
-  }
-  headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  headers.set('Access-Control-Max-Age', '86400')
-
-  return new Response(null, { status: 200, headers })
-}
+export const OPTIONS = async (request: Request) => corsPreflightResponse(request)
 
 export const POST = async (request: Request) => {
   try {
@@ -229,51 +214,16 @@ export const POST = async (request: Request) => {
     console.log(`[API] Triggering admin notification for submission ${created.id}`);
     await sendAdminNotification(submission)
 
-    // Get origin for CORS
-    const origin = request.headers.get('origin')
-    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
-    const allowedOrigins = corsOriginsEnv.split(',').map(origin => origin.trim())
-
-    const headers = new Headers({
-      'Content-Type': 'application/json',
-    })
-
-    // Add CORS headers
-    if (origin && allowedOrigins.includes(origin)) {
-      headers.set('Access-Control-Allow-Origin', origin)
-      headers.set('Access-Control-Allow-Credentials', 'true')
-    }
-    headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
-    return Response.json({
+    return jsonResponse(request, {
       success: true,
       message: 'Scope 2 application saved successfully',
       id: created.id,
-    }, { headers })
+    })
   } catch (error) {
     console.error('Error saving scope2 application:', error)
 
-    const origin = request.headers.get('origin')
-    const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
-    const allowedOrigins = corsOriginsEnv.split(',').map(origin => origin.trim())
-
-    const errorHeaders = new Headers({
-      'Content-Type': 'application/json',
-    })
-
-    if (origin && allowedOrigins.includes(origin)) {
-      errorHeaders.set('Access-Control-Allow-Origin', origin)
-      errorHeaders.set('Access-Control-Allow-Credentials', 'true')
-    }
-    errorHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-    errorHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
     if (error instanceof APIError) {
-      return Response.json(
-        { success: false, error: error.message },
-        { status: error.status, headers: errorHeaders }
-      )
+      return jsonResponse(request, { success: false, error: error.message }, error.status)
     }
 
     let errorMessage = 'Failed to save scope 2 application'
@@ -283,9 +233,6 @@ export const POST = async (request: Request) => {
       errorMessage = String(error.message) || errorMessage
     }
 
-    return Response.json(
-      { success: false, error: errorMessage },
-      { status: 500, headers: errorHeaders }
-    )
+    return jsonResponse(request, { success: false, error: errorMessage }, 500)
   }
 }

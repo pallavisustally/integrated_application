@@ -2,6 +2,8 @@
  * Shared helpers for unified assessment booking (Scope 1 + Scope 2).
  */
 
+import { getFnAppUrl } from './app-urls'
+
 export type AssessmentType = 'SCOPE_1' | 'SCOPE_2'
 
 export type AssessmentStatus =
@@ -17,11 +19,7 @@ export function generateAssessmentId(): string {
 }
 
 export function buildAssessmentStartLink(assessmentId: string, email: string): string {
-  const base = (
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.PAYLOAD_PUBLIC_SERVER_URL ||
-    'http://localhost:3000'
-  ).replace(/\/$/, '')
+  const base = getFnAppUrl()
   const params = new URLSearchParams({
     assessmentId,
     email: email.trim().toLowerCase(),
@@ -35,11 +33,7 @@ export function buildAssessmentRetryLink(
   email: string,
   assessmentType: AssessmentType,
 ): string {
-  const base = (
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.PAYLOAD_PUBLIC_SERVER_URL ||
-    'http://localhost:3000'
-  ).replace(/\/$/, '')
+  const base = getFnAppUrl()
   const params = new URLSearchParams({
     assessmentId,
     email: email.trim().toLowerCase(),

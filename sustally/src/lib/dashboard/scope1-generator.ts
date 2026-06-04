@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { getFnAppUrl, getServerUrl } from '@/lib/app-urls'
 
 import { calculate } from '@/lib/engine/calculate'
 import { calculateIronSteel } from '@/lib/engine/ironsteel'
@@ -51,9 +52,7 @@ async function uploadBuffer(
     })
     const url = (media as { url?: string }).url
     if (url) return url
-    const server =
-      process.env.PAYLOAD_PUBLIC_SERVER_URL?.replace(/\/$/, '') ||
-      'http://localhost:3001'
+    const server = getServerUrl()
     return `${server}/media/${filename}`
   } catch (err) {
     console.error('[scope1-generator] Media upload failed:', err)
@@ -73,10 +72,7 @@ export async function generateScope1Reports(
 ): Promise<{ reportUrl?: string; dashboardUrl?: string }> {
   const input = doc.inputPayload as Record<string, unknown>
   const sector = doc.sectorCode
-  const appBase = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(
-    /\/$/,
-    '',
-  )
+  const appBase = getFnAppUrl()
   const dashboardUrl = `${appBase}/dashboard?assessmentId=${encodeURIComponent(doc.assessmentId || '')}`
 
   let pdfBuf: Buffer

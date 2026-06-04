@@ -1,12 +1,10 @@
+import { isAllowedCorsOrigin } from './app-urls'
+
 export function corsHeaders(request: Request): Headers {
   const origin = request.headers.get('origin')
-  const corsOriginsEnv =
-    process.env.CORS_ORIGINS ||
-    'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,https://sustally.vercel.app'
-  const allowedOrigins = corsOriginsEnv.split(',').map((o) => o.trim())
 
   const headers = new Headers()
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin && isAllowedCorsOrigin(origin)) {
     headers.set('Access-Control-Allow-Origin', origin)
     headers.set('Access-Control-Allow-Credentials', 'true')
   }
@@ -24,4 +22,8 @@ export function jsonResponse(
   const headers = corsHeaders(request)
   headers.set('Content-Type', 'application/json')
   return Response.json(body, { status, headers })
+}
+
+export function corsPreflightResponse(request: Request): Response {
+  return new Response(null, { status: 200, headers: corsHeaders(request) })
 }

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { getFnAppUrl } from "../lib/app-urls";
 // import { afterChangeHook } from "./Scope2Hooks"; // Removed static import to prevent client-side issues
 
 const Scope2Applications: CollectionConfig = {
@@ -137,7 +138,7 @@ const Scope2Applications: CollectionConfig = {
                     const newAssessmentId = Math.random().toString(36).substring(2, 10).toUpperCase();
 
                     // Construct new assessment link with same details
-                    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sustally.vercel.app';
+                    const baseUrl = getFnAppUrl();
                     const params = new URLSearchParams();
                     params.append('name', oldBooking.name || '');
                     params.append('email', oldBooking.email || '');

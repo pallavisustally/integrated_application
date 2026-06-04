@@ -1,4 +1,5 @@
 import type { TestAccount } from 'nodemailer'; // Type only
+import { getFnAppUrl } from './app-urls'
 
 export interface Scope2Submission {
     id: string;
@@ -133,7 +134,7 @@ export async function sendAssessmentApprovalEmail(
     },
 ) {
     const transporter = await getTransporter()
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sustally.vercel.app'
+    const baseUrl = getFnAppUrl()
     const params = new URLSearchParams({
         email: userEmail,
         assessmentId: info.assessmentId,
@@ -179,7 +180,7 @@ export async function sendApprovalEmail(
     const transporter = await getTransporter();
     const facilityName = (submission.data.facilityName as string) || 'Unknown Facility';
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sustally.vercel.app';
+    const baseUrl = getFnAppUrl();
     const params = new URLSearchParams({ email: userEmail });
     if (assessmentId) params.set('assessmentId', assessmentId);
     const dashboardLink = `${baseUrl}/dashboard?${params.toString()}`;
