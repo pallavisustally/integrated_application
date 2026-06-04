@@ -120,7 +120,7 @@ export type Scope2FormPrefill = {
   sector?: string
   natureOfBusiness?: string
   siteCount?: string
-  conditionalApproach?: ConsolidationApproach
+  conditionalApproach?: ConsolidationApproach | ''
 }
 
 export function scope2PrefillFromSession(
