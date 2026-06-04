@@ -52,3 +52,25 @@ export function buildAssessmentRetryLink(
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }
+
+export type ConsolidationApproach =
+  | 'Operational Control'
+  | 'Equity Share'
+  | 'Financial Control'
+
+const CONSOLIDATION_APPROACHES: ConsolidationApproach[] = [
+  'Operational Control',
+  'Equity Share',
+  'Financial Control',
+]
+
+/** Coerce API/booking input to a valid assessments.conditionalApproach value. */
+export function parseConsolidationApproach(
+  value?: string | null,
+  fallback: ConsolidationApproach = 'Operational Control',
+): ConsolidationApproach {
+  if (value && CONSOLIDATION_APPROACHES.includes(value as ConsolidationApproach)) {
+    return value as ConsolidationApproach
+  }
+  return fallback
+}

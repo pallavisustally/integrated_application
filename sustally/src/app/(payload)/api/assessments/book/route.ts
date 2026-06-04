@@ -1,7 +1,11 @@
 import configPromise from '@payload-config'
 import { getPayload, APIError } from 'payload'
 import type { AssessmentType } from '../../../../../lib/assessment-utils'
-import { generateAssessmentId, normalizeEmail } from '../../../../../lib/assessment-utils'
+import {
+  generateAssessmentId,
+  normalizeEmail,
+  parseConsolidationApproach,
+} from '../../../../../lib/assessment-utils'
 import { corsHeaders, jsonResponse } from '../../../../../lib/cors'
 
 export const OPTIONS = async (request: Request) => {
@@ -56,7 +60,7 @@ export const POST = async (request: Request) => {
         legalEntityId: body.legalEntityId || '',
         siteCount: body.siteCount || '',
         siteCountNumber: body.siteCountNumber || '',
-        conditionalApproach: body.conditionalApproach || 'Operational Control',
+        conditionalApproach: parseConsolidationApproach(body.conditionalApproach),
         assignmentDate: body.assignmentDate || '',
         assignmentSlot: body.assignmentSlot || '',
         assignmentTime: body.assignmentTime || '',
