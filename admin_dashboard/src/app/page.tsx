@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { buildReviewUrl } from '@/lib/resolve-application';
+import { SUSTALLY_API_URL } from '@/lib/api-url';
 
 const users: any[] = [];
 
@@ -56,7 +57,7 @@ export default function AdminDashboard() {
   });
 
   const fetchData = React.useCallback(async () => {
-    const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
+    const API_URL = SUSTALLY_API_URL;
 
     try {
       setApiError(null);
@@ -65,6 +66,15 @@ export default function AdminDashboard() {
         fetch(`${API_URL}/api/scope1-applications?limit=1000`, { cache: 'no-store' }),
         fetch(`${API_URL}/api/slot-bookings?limit=0`, { cache: 'no-store' }),
       ]);
+
+      if (!scope2Res.ok || !scope1Res.ok || !slotsRes.ok) {
+        const failed = [
+          !scope2Res.ok && `scope2-applications (${scope2Res.status})`,
+          !scope1Res.ok && `scope1-applications (${scope1Res.status})`,
+          !slotsRes.ok && `slot-bookings (${slotsRes.status})`,
+        ].filter(Boolean).join(', ');
+        throw new Error(`Backend API error: ${failed}`);
+      }
 
       const [scope2Json, scope1Json, slotsJson] = await Promise.all([
         scope2Res.json(),
@@ -87,10 +97,13 @@ export default function AdminDashboard() {
       setSlotsBookedCount(slotsJson?.totalDocs ?? 0);
     } catch (err) {
       console.error('Failed to fetch applications:', err);
+      const message = err instanceof Error ? err.message : 'Unknown error';
       if (API_URL.includes('localhost')) {
         setApiError('Backend unreachable. Ensure Sustally is running locally on port 3001.');
+      } else if (message.startsWith('Backend API error:')) {
+        setApiError(`${message} at ${API_URL}. Check backend deployment and CORS_ORIGINS.`);
       } else {
-        setApiError(`Backend unreachable at ${API_URL}. Please verify the backend is deployed and running.`);
+        setApiError(`Backend unreachable at ${API_URL}. ${message}. If the URL ends with /, remove the trailing slash and redeploy.`);
       }
     }
   }, []);
@@ -165,8 +178,7 @@ export default function AdminDashboard() {
 
   const handleApprove = async (id: number | string, scope: 'SCOPE_1' | 'SCOPE_2' = 'SCOPE_2') => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
-      await fetch(`${API_URL}/api/${applicationCollection(scope)}/${id}`, {
+      await fetch(`${SUSTALLY_API_URL}/api/${applicationCollection(scope)}/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'APPROVED' })
@@ -185,8 +197,7 @@ export default function AdminDashboard() {
     const reason = window.prompt("Please enter the reason for rejection (feedback):");
     if (reason === null) return; // Action cancelled
     try {
-      const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
-      await fetch(`${API_URL}/api/${applicationCollection(scope)}/${id}`, {
+      await fetch(`${SUSTALLY_API_URL}/api/${applicationCollection(scope)}/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'REJECTED', rejectionReason: reason })
@@ -231,7 +242,7 @@ export default function AdminDashboard() {
               <p className="mt-2 text-amber-700">Start Sustally in a separate terminal: <code className="bg-amber-100 px-1.5 py-0.5 rounded">cd sustally && pnpm dev</code></p>
             )}
             {!apiError.includes('localhost') && (
-              <p className="mt-2 text-amber-700"><strong>Action required:</strong> Ensure <code className="bg-amber-100 px-1.5 py-0.5 rounded">NEXT_PUBLIC_SUSTALLY_API_URL</code> environment variable is set to your deployed backend URL in Vercel settings.</p>
+              <p className="mt-2 text-amber-700"><strong>Action required:</strong> In your <strong>admin dashboard</strong> Vercel project, set <code className="bg-amber-100 px-1.5 py-0.5 rounded">NEXT_PUBLIC_SUSTALLY_API_URL</code> to <code className="bg-amber-100 px-1.5 py-0.5 rounded">https://integrated-application-7zao.vercel.app</code> (no trailing slash), then redeploy. On the backend project, add your admin dashboard URL to <code className="bg-amber-100 px-1.5 py-0.5 rounded">CORS_ORIGINS</code>.</p>
             )}
           </div>
         </div>

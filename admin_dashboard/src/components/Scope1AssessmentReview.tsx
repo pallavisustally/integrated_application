@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001'
+import { SUSTALLY_API_URL as API_URL } from '@/lib/api-url'
 
 type Props = {
   data: Record<string, unknown>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import Scope1AssessmentReview from '@/components/Scope1AssessmentReview';
 import { resolveApplicationForReview } from '@/lib/resolve-application';
+import { SUSTALLY_API_URL } from '@/lib/api-url';
 
 // ------------- ICONS -------------
 
@@ -176,7 +177,7 @@ export default function AssessmentViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_SUSTALLY_API_URL || 'http://localhost:3001';
+  const API_URL = SUSTALLY_API_URL;
 
   useEffect(() => {
     const fetchData = async () => {
