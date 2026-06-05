@@ -124,10 +124,10 @@ function ChooseAssessmentContent() {
         </p>
 
         <div className="form-card booking-panel">
-          <h2 className="booking-field-label" style={{ fontSize: 14, textTransform: 'none', letterSpacing: 0 }}>
+          <h2 className="booking-field-label">
             Which assessment do you need? <span className="required-mark">*</span>
           </h2>
-          <p className="booking-field-hint" style={{ marginBottom: 20 }}>
+          <p className="booking-field-hint">
             Booking for <strong>{formData.company || 'your company'}</strong>
           </p>
 
@@ -142,27 +142,21 @@ function ChooseAssessmentContent() {
                 }}
                 className={`booking-option-card ${assessmentType === opt.id ? 'selected' : ''} ${error ? 'is-error' : ''}`}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2">
                   <div className="booking-radio">
                     {assessmentType === opt.id ? <div className="booking-radio-dot" /> : null}
                   </div>
                   <div>
-                    <p className="text-sm font-bold" style={{ color: assessmentType === opt.id ? 'var(--purple-deep)' : 'var(--ink)' }}>
-                      {opt.label}
-                    </p>
-                    <p className="text-xs font-semibold" style={{ color: 'var(--ink-soft)', marginTop: 2 }}>
-                      {opt.title}
-                    </p>
-                    <p className="booking-field-hint" style={{ marginTop: 8 }}>
-                      {opt.description}
-                    </p>
+                    <p className="option-title">{opt.label}</p>
+                    <p className="option-subtitle">{opt.title}</p>
+                    <p className="booking-field-hint">{opt.description}</p>
                   </div>
                 </div>
               </button>
             ))}
           </div>
 
-          {error ? <p className="field-error" style={{ marginTop: 16 }}>{error}</p> : null}
+          {error ? <p className="field-error">{error}</p> : null}
 
           <div className="booking-footer">
             <button type="button" className="btn ghost" onClick={handleBack}>

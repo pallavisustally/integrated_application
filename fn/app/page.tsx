@@ -170,10 +170,10 @@ export default function HomePage() {
         </p>
 
         <form onSubmit={handleSubmit} className="booking-page">
-          <div className="booking-grid-2 lg:min-h-[520px] items-stretch">
+          <div className="booking-grid-2 items-stretch">
 
             {/* Card 1: About You */}
-            <div className="form-card booking-panel flex flex-col h-full min-h-[280px] lg:min-h-0">
+            <div className="form-card booking-panel flex flex-col h-full">
               <div className="booking-panel-head">
                 <div className="booking-panel-icon">
                   <div className="booking-radio-dot" />
@@ -227,7 +227,7 @@ export default function HomePage() {
             </div>
 
             {/* Card 2: About Your Business */}
-            <div className="form-card booking-panel flex flex-col h-full min-h-[280px] lg:min-h-0">
+            <div className="form-card booking-panel flex flex-col h-full">
               <div className="booking-panel-head">
                 <div className="booking-panel-icon">
                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -256,7 +256,7 @@ export default function HomePage() {
             </div>
 
             {/* Card 3: Consolidation Approach */}
-            <div className="form-card booking-panel flex flex-col h-full min-h-[280px] lg:min-h-0">
+            <div className="form-card booking-panel flex flex-col h-full">
               <div className="booking-panel-head">
                 <div className="booking-panel-icon">
                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -286,13 +286,11 @@ export default function HomePage() {
                         {formData.conditionalApproach === opt.id ? <div className="booking-radio-dot" /> : null}
                       </div>
                       <div>
-                        <p className="text-xs font-bold" style={{ color: formData.conditionalApproach === opt.id ? "var(--purple-deep)" : "var(--ink-soft)" }}>
+                        <p className="option-title">
                           {opt.label}
-                          {opt.default ? <span style={{ color: "var(--purple)", fontWeight: 400, marginLeft: 4 }}>(default)</span> : null}
+                          {opt.default ? <span className="booking-field-hint"> (default)</span> : null}
                         </p>
-                        <p className="booking-field-hint" style={{ marginTop: 2 }}>
-                          {opt.sub}
-                        </p>
+                        <p className="booking-field-hint">{opt.sub}</p>
                       </div>
                     </div>
                   </button>
@@ -305,7 +303,7 @@ export default function HomePage() {
             </div>
 
             {/* Card 4: Operating Footprint */}
-            <div className="form-card booking-panel flex flex-col h-full min-h-[280px] lg:min-h-0">
+            <div className="form-card booking-panel flex flex-col h-full">
               <div className="booking-panel-head">
                 <div className="booking-panel-icon">
                   <LocationIcon />

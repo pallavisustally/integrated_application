@@ -385,7 +385,7 @@ function ChooseTimeContent() {
                                 <div className="booking-success-icon" style={{ position: "relative", width: 80, height: 80 }}>
                                     <span style={{ fontSize: 28, fontWeight: 800, color: "var(--purple)" }}>{countdown}</span>
                                 </div>
-                                <h1 className="step-title" style={{ fontSize: 28 }}>
+                                <h1 className="step-title">
                                     Preparing <em>assessment</em>
                                 </h1>
                                 <p className="step-sub" style={{ marginBottom: 24 }}>
@@ -421,7 +421,7 @@ function ChooseTimeContent() {
                                         <polyline points="22 4 12 14.01 9 11.01" />
                                     </svg>
                                 </div>
-                                <h1 className="step-title" style={{ fontSize: 28 }}>
+                                <h1 className="step-title">
                                     Slot <em>booked</em>
                                 </h1>
                                 <p className="step-sub">
@@ -431,7 +431,7 @@ function ChooseTimeContent() {
 
                             <div className="booking-success-slot-wrap">
                                 <div className="booking-slot-card">
-                                    <div className="booking-panel-icon" style={{ width: 48, height: 48 }}>
+                                    <div className="booking-panel-icon">
                                         <CalendarIcon />
                                     </div>
                                     <div className="booking-slot-details">
@@ -447,17 +447,17 @@ function ChooseTimeContent() {
                             </div>
 
                             <div className="booking-confirm-banner">
-                                <div className="booking-success-icon" style={{ width: 36, height: 36, margin: 0 }}>
+                                <div className="booking-success-icon booking-success-icon--sm">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                         <polyline points="22 4 12 14.01 9 11.01" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <p style={{ fontWeight: 700, fontSize: 13, margin: 0 }}>
+                                    <p className="booking-confirm-title">
                                         A confirmation and assessment link has been sent to your registered email.
                                     </p>
-                                    <p className="booking-field-hint" style={{ marginTop: 4 }}>
+                                    <p className="booking-field-hint">
                                         Check your inbox (and spam folder) for the access link.
                                     </p>
                                 </div>
@@ -531,15 +531,15 @@ function ChooseTimeContent() {
                         <h2>Select date &amp; time</h2>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <div>
                             <label className="booking-field-label">
                                 Select a date <span className="required-mark">*</span>
                             </label>
-                            <p className="booking-field-hint" style={{ marginBottom: 12 }}>
+                            <p className="booking-field-hint">
                                 Choose your preferred assessment date
                             </p>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                            <div className="booking-date-grid">
                                 {dates.length === 0 ? (
                                     <p className="col-span-full booking-field-hint">Loading available dates…</p>
                                 ) : null}
@@ -563,10 +563,10 @@ function ChooseTimeContent() {
                                 <label className="booking-field-label">
                                     Select time of day <span className="required-mark">*</span>
                                 </label>
-                                <p className="booking-field-hint" style={{ marginBottom: 12 }}>
+                                <p className="booking-field-hint">
                                     Choose your preferred time period
                                 </p>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                                <div className="booking-shift-grid">
                                     {(() => {
                                         const now = new Date();
                                         const isTodaySelected =
@@ -582,7 +582,7 @@ function ChooseTimeContent() {
                                                 className={`booking-shift-card ${selectedShift === "Now" ? "selected" : ""}`}
                                             >
                                                 <ClockIcon />
-                                                <span style={{ fontWeight: 800, fontSize: 14 }}>Now</span>
+                                                <span className="shift-label">Now</span>
                                                 <span className="shift-range">Immediately</span>
                                             </button>
                                         );
@@ -605,7 +605,7 @@ function ChooseTimeContent() {
                                                 className={`booking-shift-card ${selectedShift === shift.label ? "selected" : ""}`}
                                             >
                                                 {shift.icon}
-                                                <span style={{ fontWeight: 800, fontSize: 14 }}>{shift.label}</span>
+                                                <span className="shift-label">{shift.label}</span>
                                                 <span className="shift-range">{shift.range}</span>
                                             </button>
                                         );
@@ -615,7 +615,7 @@ function ChooseTimeContent() {
                         ) : null}
 
                         {selectedShift !== null ? (
-                            <div style={{ minHeight: 150 }}>
+                            <div>
                                 {selectedShift === "Now" ? (
                                     <div className="booking-callout">
                                         <div>
@@ -630,10 +630,10 @@ function ChooseTimeContent() {
                                         <label className="booking-field-label">
                                             Select specific time <span className="required-mark">*</span>
                                         </label>
-                                        <p className="booking-field-hint" style={{ marginBottom: 12 }}>
+                                        <p className="booking-field-hint">
                                             Pick your exact appointment time
                                         </p>
-                                        <div className="flex flex-wrap gap-3">
+                                        <div className="flex flex-wrap gap-2">
                                             {timeSlotsByShift[selectedShift]
                                                 .filter((time) => {
                                                     if (selectedDateIndex !== null) {
