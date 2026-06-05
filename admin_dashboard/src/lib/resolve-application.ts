@@ -6,6 +6,37 @@ export type ResolvedApplication = {
   applicationId: string
 }
 
+/** Payload may return scope1Assessment as id string or populated object. */
+export function scope1AssessmentIdFromDoc(doc: Record<string, unknown>): string | undefined {
+  const rel = doc.scope1Assessment
+  if (typeof rel === 'string' || typeof rel === 'number') return String(rel)
+  if (rel && typeof rel === 'object' && 'id' in rel) {
+    const id = (rel as { id: unknown }).id
+    if (typeof id === 'string' || typeof id === 'number') return String(id)
+  }
+  return undefined
+}
+
+async function enrichScope1ApplicationDoc(
+  app: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const assessmentId = scope1AssessmentIdFromDoc(app)
+  if (!assessmentId) return app
+
+  const assessment = await fetchJson(`/api/scope1-assessments/${assessmentId}`)
+  if (!assessment.ok || !assessment.data) return app
+
+  const a = assessment.data
+  return {
+    ...app,
+    inputPayload: a.inputPayload ?? app.inputPayload,
+    result: a.result ?? app.result,
+    sectorCode: app.sectorCode ?? a.sectorCode,
+    grossScope1Tonnes: app.grossScope1Tonnes ?? a.grossScope1Tonnes,
+    reportingYear: app.reportingYear ?? a.reportingYear,
+  }
+}
+
 async function fetchJson(path: string): Promise<{ ok: boolean; data: Record<string, unknown> | null }> {
   try {
     const res = await fetch(`${API_URL}${path}`, {
@@ -50,9 +81,10 @@ export async function resolveApplicationForReview(
   if (tryScope1) {
     const direct = await fetchJson(`/api/scope1-applications/${id}`)
     if (direct.ok && direct.data) {
+      const doc = await enrichScope1ApplicationDoc(direct.data)
       return {
         scope: 'SCOPE_1',
-        doc: direct.data,
+        doc,
         applicationId: String(direct.data.id ?? id),
       }
     }
@@ -61,9 +93,10 @@ export async function resolveApplicationForReview(
     if (assessment.ok && assessment.data) {
       const linked = await findScope1ApplicationByAssessmentId(id)
       if (linked) {
+        const doc = await enrichScope1ApplicationDoc(linked)
         return {
           scope: 'SCOPE_1',
-          doc: linked,
+          doc,
           applicationId: String(linked.id ?? id),
         }
       }

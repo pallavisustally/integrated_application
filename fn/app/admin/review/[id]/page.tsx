@@ -127,7 +127,35 @@ export default async function AdminReviewPage(props: {
         </div>
       )
     }
-    return <Scope1ReviewClient submission={application} />
+
+    const scope1AssessmentId =
+      typeof application.scope1Assessment === 'string' ||
+      typeof application.scope1Assessment === 'number'
+        ? String(application.scope1Assessment)
+        : null
+
+    let scope1Assessment = scope1AssessmentId
+      ? await getScope1Assessment(scope1AssessmentId)
+      : null
+
+    // Legacy admin links use scope1-assessments id directly
+    if (!scope1Assessment && (application.inputPayload || application.result)) {
+      scope1Assessment = application
+    } else if (!scope1Assessment && !scope1AssessmentId) {
+      scope1Assessment = await getScope1Assessment(params.id)
+    }
+
+    const reviewSubmission = {
+      ...application,
+      inputPayload: scope1Assessment?.inputPayload ?? application.inputPayload,
+      result: scope1Assessment?.result ?? application.result,
+      grossScope1Tonnes:
+        application.grossScope1Tonnes ?? scope1Assessment?.grossScope1Tonnes,
+      sectorCode: application.sectorCode ?? scope1Assessment?.sectorCode,
+      reportingYear: application.reportingYear ?? scope1Assessment?.reportingYear,
+    }
+
+    return <Scope1ReviewClient submission={reviewSubmission} />
   }
 
   const submissionData = await getScope2Submission(params.id)

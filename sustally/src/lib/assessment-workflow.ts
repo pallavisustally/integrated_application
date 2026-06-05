@@ -24,34 +24,61 @@ export async function onScope1Approved(
     company?: string | null
     assessmentId?: string
   },
+  options?: { applicantEmail?: string | null },
 ): Promise<void> {
   const publicId = scope1Doc.assessmentId || parent.assessmentId
-  if (!publicId) return
+  if (!publicId) {
+    console.error('[onScope1Approved] Missing public assessmentId')
+    return
+  }
 
-  const urls = await generateScope1Reports(cms, {
-    id: String(scope1Doc.id),
-    sectorCode: scope1Doc.sectorCode,
-    inputPayload: scope1Doc.inputPayload,
-    result: scope1Doc.result,
-    assessmentId: publicId,
-  })
+  const appBase = (await import('./app-urls')).getFnAppUrl()
+  const dashboardUrl = `${appBase}/dashboard?email=${encodeURIComponent(
+    (options?.applicantEmail || parent.email || '').trim().toLowerCase(),
+  )}&assessmentId=${encodeURIComponent(publicId)}`
 
-  await cms.update({
-    collection: 'scope1-assessments',
-    id: scope1Doc.id,
-    data: {
-      reportUrl: urls.reportUrl,
-      dashboardUrl: urls.dashboardUrl,
-    },
-  })
+  try {
+    const urls = await generateScope1Reports(cms, {
+      id: String(scope1Doc.id),
+      sectorCode: scope1Doc.sectorCode,
+      inputPayload: scope1Doc.inputPayload,
+      result: scope1Doc.result,
+      assessmentId: publicId,
+    })
 
-  if (parent.email) {
-    await sendAssessmentApprovalEmail(parent.email, {
+    await cms.update({
+      collection: 'scope1-assessments',
+      id: scope1Doc.id,
+      data: {
+        reportUrl: urls.reportUrl,
+        dashboardUrl: urls.dashboardUrl || dashboardUrl,
+      },
+      context: { skipHooks: true },
+    })
+  } catch (err) {
+    console.error('[onScope1Approved] Report generation failed (email will still be sent):', err)
+    try {
+      await cms.update({
+        collection: 'scope1-assessments',
+        id: scope1Doc.id,
+        data: { dashboardUrl },
+        context: { skipHooks: true },
+      })
+    } catch (updateErr) {
+      console.error('[onScope1Approved] Failed to save dashboardUrl:', updateErr)
+    }
+  }
+
+  const recipient = (options?.applicantEmail || parent.email || '').trim().toLowerCase()
+  if (recipient) {
+    await sendAssessmentApprovalEmail(recipient, {
       assessmentId: publicId,
       assessmentType: 'SCOPE_1',
       name: parent.name || scope1Doc.name || undefined,
       company: parent.company || undefined,
     })
+  } else {
+    console.error('[onScope1Approved] No applicant email — approval email not sent')
   }
 }
 

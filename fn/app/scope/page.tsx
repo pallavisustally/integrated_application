@@ -15,6 +15,8 @@ import {
   validateAssessment,
 } from '../../lib/assessment-session'
 import { applyScope2Prefill, scope2PrefillFromSession } from '../../lib/assessment-mapper';
+import { Scope2WizardShell } from '@/components/scope2-shell';
+import { useWizardTheme } from '@/lib/use-wizard-theme';
 
 const STATE_OPTIONS = [
   "Andaman and Nicobar Islands",
@@ -143,6 +145,7 @@ function TemplateContent() {
   const isRetry = searchParams.get("retry") === "true";
 
   const [page, setPage] = useState<1 | 2>(1);
+  const { theme, toggleTheme } = useWizardTheme();
 
   const [formData, setFormData] = useState<FormDataType>({
     // Identity - Initialize from Search Params
@@ -430,7 +433,7 @@ function TemplateContent() {
 
   if (assessmentGate === 'loading' || isCheckingTime) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
+      <div className="h-screen w-screen flex items-center justify-center bg-[var(--surface-2)]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -438,10 +441,10 @@ function TemplateContent() {
 
   if (assessmentGate === 'blocked') {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gray-50 p-6">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-          <h1 className="text-lg font-semibold text-gray-900 mb-2">Assessment unavailable</h1>
-          <p className="text-gray-600 text-sm">{assessmentGateMessage}</p>
+      <div className="h-screen w-screen flex items-center justify-center bg-[var(--surface-2)] p-6">
+        <div className="max-w-md w-full bg-[var(--surface)] rounded-2xl shadow-sm border border-[var(--rule)] p-8 text-center">
+          <h1 className="text-lg font-semibold text-[var(--ink)] mb-2">Assessment unavailable</h1>
+          <p className="text-[var(--ink-soft)] text-sm">{assessmentGateMessage}</p>
         </div>
       </div>
     );
@@ -449,10 +452,10 @@ function TemplateContent() {
 
   if (timeLeft && timeLeft.total > 0) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 text-gray-800 p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
-          <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-indigo-600">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[var(--surface-2)] text-[var(--ink)] p-4">
+        <div className="max-w-md w-full bg-[var(--surface)] rounded-2xl shadow-xl p-8 text-center border border-[var(--rule)]">
+          <div className="w-16 h-16 bg-[color-mix(in_srgb,var(--purple)_10%,transparent)] rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-[var(--purple)]">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -461,33 +464,33 @@ function TemplateContent() {
             Assessment Not Started
           </h1>
 
-          <p className="text-gray-500 mb-8 text-sm">
+          <p className="text-[var(--ink-mute)] mb-8 text-sm">
             Your assessment is scheduled to begin on <br />
-            <span className="font-semibold text-gray-800">
+            <span className="font-semibold text-[var(--ink)]">
               {searchParams.get("assignmentDate")} at {searchParams.get("assignmentTime")}
             </span>
           </p>
 
           <div className="grid grid-cols-4 gap-4 mb-8">
-            <div className="flex flex-col items-center p-3 bg-gray-50 rounded-xl">
-              <span className="text-2xl font-bold text-indigo-600">{timeLeft.days}</span>
-              <span className="text-[10px] tracking-wider text-gray-400 font-medium">Days</span>
+            <div className="flex flex-col items-center p-3 bg-[var(--surface-2)] rounded-xl">
+              <span className="text-2xl font-bold text-[var(--purple)]">{timeLeft.days}</span>
+              <span className="text-[10px] tracking-wider text-[var(--ink-mute)] font-medium">Days</span>
             </div>
-            <div className="flex flex-col items-center p-3 bg-gray-50 rounded-xl">
-              <span className="text-2xl font-bold text-indigo-600">{timeLeft.hours}</span>
-              <span className="text-[10px] tracking-wider text-gray-400 font-medium">Hours</span>
+            <div className="flex flex-col items-center p-3 bg-[var(--surface-2)] rounded-xl">
+              <span className="text-2xl font-bold text-[var(--purple)]">{timeLeft.hours}</span>
+              <span className="text-[10px] tracking-wider text-[var(--ink-mute)] font-medium">Hours</span>
             </div>
-            <div className="flex flex-col items-center p-3 bg-gray-50 rounded-xl">
-              <span className="text-2xl font-bold text-indigo-600">{timeLeft.minutes}</span>
-              <span className="text-[10px] tracking-wider text-gray-400 font-medium">Mins</span>
+            <div className="flex flex-col items-center p-3 bg-[var(--surface-2)] rounded-xl">
+              <span className="text-2xl font-bold text-[var(--purple)]">{timeLeft.minutes}</span>
+              <span className="text-[10px] tracking-wider text-[var(--ink-mute)] font-medium">Mins</span>
             </div>
-            <div className="flex flex-col items-center p-3 bg-gray-50 rounded-xl">
-              <span className="text-2xl font-bold text-indigo-600">{timeLeft.seconds}</span>
-              <span className="text-[10px] tracking-wider text-gray-400 font-medium">Secs</span>
+            <div className="flex flex-col items-center p-3 bg-[var(--surface-2)] rounded-xl">
+              <span className="text-2xl font-bold text-[var(--purple)]">{timeLeft.seconds}</span>
+              <span className="text-[10px] tracking-wider text-[var(--ink-mute)] font-medium">Secs</span>
             </div>
           </div>
 
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-[var(--ink-mute)]">
             The assessment will automatically load when the timer reaches zero.
           </p>
         </div>
@@ -1379,103 +1382,65 @@ function TemplateContent() {
   const derivedTotalGW = derivedGridGW + derivedRenewGW;
 
   const renderYesNo = (name: keyof FormDataType, value: YesNo) => (
-    <div className={`flex flex-col sm:flex-row h-auto sm:h-10 bg-gray-50 p-1 rounded-lg w-full border ${errors[name] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
-      <button
-        type="button"
-        onClick={() => handleRadioChange(name, "Yes")}
-        className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-medium transition-all ${value === "Yes"
-          ? "bg-[#4F46E5] text-white shadow-sm"
-          : "text-gray-500 hover:text-gray-900"
-          }`}
-      >
+    <div className={`scope2-yesno ${errors[name] ? 'is-error' : ''}`}>
+      <button type="button" className={value === 'Yes' ? 'active' : ''} onClick={() => handleRadioChange(name, 'Yes')}>
         Yes
       </button>
-
-      {/* Horizontal Divider for Mobile */}
-      <div className="w-full h-[1px] bg-gray-300 sm:hidden my-1"></div>
-
-      <button
-        type="button"
-        onClick={() => handleRadioChange(name, "No")}
-        className={`flex-1 h-full flex items-center justify-center rounded-md text-sm font-medium transition-all ${value === "No"
-          ? "bg-[#4F46E5] text-white shadow-sm"
-          : "text-gray-500 hover:text-gray-900"
-          }`}
-      >
+      <button type="button" className={value === 'No' ? 'active' : ''} onClick={() => handleRadioChange(name, 'No')}>
         No
       </button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-indigo-100 flex flex-col">
-      <div className="w-full max-w-[1400px] mx-auto p-4 flex flex-col flex-grow">
+    <Scope2WizardShell
+      step={page}
+      theme={theme}
+      onThemeToggle={toggleTheme}
+      canReachStep={(target) => target <= page}
+      onStepGo={(target) => {
+        if (target === 1) {
+          setPage(1);
+          window.scrollTo(0, 0);
+        } else if (target === 2 && page === 2) {
+          setPage(2);
+        }
+      }}
+    >
+      <section className="step-page active scope2-page">
+        <h1 className="step-title">
+          {page === 1 ? (
+            <>
+              Reporting <em>boundaries</em>
+            </>
+          ) : (
+            <>
+              Energy <em>inputs</em>
+            </>
+          )}
+        </h1>
+        <p className="scope2-page-sub">
+          {page === 1
+            ? 'Define your grid region, facility, and reporting period for this Scope 2 inventory.'
+            : 'Enter purchased grid electricity and renewable energy activity data for the reporting period.'}
+        </p>
 
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-2 gap-4 flex-shrink-0">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-                Scope 2 Assessment
-              </span>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900">
-              Book Your Scope 2 Self Assessment
-            </h1>
-            <p className="text-gray-500 mt-1 text-xs">
-              Share A Few Basic Details. Takes About 2 Minutes.
-            </p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="flex-1 max-w-md mx-4 hidden md:block">
-            <div className="flex justify-between items-end mb-2">
-              <span className="text-xs font-bold text-indigo-900 tracking-widest">
-                {page === 1 ? "2 Of 6 - Boundaries" : "3 Of 6 - Energy Inputs"}
-              </span>
-              <span className="text-sm font-bold text-gray-400">
-                {page === 1 ? "34%" : "51%"}
-              </span>
-            </div>
-            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-indigo-500 transition-all duration-500 ease-out rounded-full"
-                style={{ width: page === 1 ? "34%" : "51%" }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 opacity-90">
-            <img
-              src="/sustally-logo.png"
-              alt="sustally"
-              className="h-10 w-auto object-contain"
-            />
-            <div className="flex gap-1 h-12">
-              <div className="w-[1px] bg-gray-300 h-full"></div>
-            </div>
-            <span className="font-medium text-gray-400 text-sm max-w-[200px] leading-tight text-left">
-              Choose Sustally As Your Sustainability Ally
-            </span>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex-grow flex flex-col min-h-0">
+        <form onSubmit={handleSubmit} className="scope2-page">
 
           {/* ===================== PAGE 1 ===================== */}
           {page === 1 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-1 flex-grow overflow-hidden min-h-0">
+            <div className="scope2-grid-2 flex-grow overflow-hidden min-h-0">
 
               {/* Box 1: Define Reporting Boundary */}
-              <section className="bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col lg:h-full lg:overflow-y-auto">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
+              <section className="form-card scope2-panel flex flex-col lg:h-full lg:overflow-y-auto">
+                <div className="scope2-panel-head">
+                  <div className="scope2-panel-icon">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
-                  <h2 className="text-sm font-bold text-gray-900 border-b-2 border-transparent hover:border-indigo-100 transition-colors cursor-default">
+                  <h2>
                     Define Your Reporting Boundary
                   </h2>
                 </div>
@@ -1483,7 +1448,7 @@ function TemplateContent() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* State */}
                   <div className="col-span-1">
-                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                    <label className="scope2-field-label">
                       State / Grid Region <span className="text-red-500">*</span>
                     </label>
                     <Combobox
@@ -1493,39 +1458,39 @@ function TemplateContent() {
                       placeholder="Select grid region..."
                       error={!!errors.state}
                     />
-                    <p className="text-[10px] text-gray-400 mt-1.5">
+                    <p className="scope2-field-hint">
                       Select the grid region where this site operates
                     </p>
-                    {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
+                    {errors.state && <p className="field-error">{errors.state}</p>}
                   </div>
 
                   {/* Utility Provider (Conditional) */}
                   {formData.state && TARIFF_DATA[formData.state] && !("p" in TARIFF_DATA[formData.state]) && (
                     <div className="col-span-1 animate-in fade-in slide-in-from-top-2">
-                      <label className="block text-xs font-bold text-gray-700 mb-2">
+                      <label className="scope2-field-label">
                         Utility Provider <span className="text-red-500">*</span>
                       </label>
                       <select
                         name="utilityProvider"
                         value={formData.utilityProvider || ""}
                         onChange={handleChange}
-                        className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-600 ${errors.utilityProvider ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                        className={`w-full h-10 px-2 text-xs scope2-input focus:ring-2  outline-none transition-all appearance-none text-[var(--ink-soft)] ${errors.utilityProvider ? "is-error" : ""}`}
                       >
                         <option value="">Select utility...</option>
                         {Object.keys(TARIFF_DATA[formData.state]).map((utility) => (
                           <option key={utility} value={utility}>{utility}</option>
                         ))}
                       </select>
-                      <p className="text-[10px] text-gray-400 mt-1.5">
+                      <p className="scope2-field-hint">
                         Select the specific utility for accurate tariffs
                       </p>
-                      {errors.utilityProvider && <p className="text-red-500 text-xs mt-1">{errors.utilityProvider}</p>}
+                      {errors.utilityProvider && <p className="field-error">{errors.utilityProvider}</p>}
                     </div>
                   )}
 
                   {/* Site Count */}
                   <div className="col-span-1">
-                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                    <label className="scope2-field-label">
                       Site Count <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1534,17 +1499,17 @@ function TemplateContent() {
                       value={formData.siteCount || ""}
                       onChange={handleChange}
                       placeholder="Site 1"
-                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.siteCount ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                      className={`w-full h-10 px-2 text-xs scope2-input focus:ring-2  outline-none transition-all ${errors.siteCount ? "is-error" : ""}`}
                     />
-                    <p className="text-[10px] text-gray-400 mt-1.5">
+                    <p className="scope2-field-hint">
                       Based On Your Earlier Input
                     </p>
-                    {errors.siteCount && <p className="text-red-500 text-xs mt-1">{errors.siteCount}</p>}
+                    {errors.siteCount && <p className="field-error">{errors.siteCount}</p>}
                   </div>
 
                   {/* Facility Name */}
                   <div className="col-span-1 md:col-span-2">
-                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                    <label className="scope2-field-label">
                       Facility / Site Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1553,12 +1518,12 @@ function TemplateContent() {
                       value={formData.facilityName || ""}
                       onChange={handleChange}
                       placeholder="E.G., Pune Manufacturing Plant"
-                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.facilityName ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                      className={`w-full h-10 px-2 text-xs scope2-input focus:ring-2  outline-none transition-all ${errors.facilityName ? "is-error" : ""}`}
                     />
-                    <p className="text-[10px] text-gray-400 mt-1.5">
+                    <p className="scope2-field-hint">
                       Based On Your Earlier Input
                     </p>
-                    {errors.facilityName && <p className="text-red-500 text-xs mt-1">{errors.facilityName}</p>}
+                    {errors.facilityName && <p className="field-error">{errors.facilityName}</p>}
                   </div>
 
 
@@ -1566,9 +1531,9 @@ function TemplateContent() {
               </section>
 
               {/* Box 2: Operational Details */}
-              <section className="bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col lg:h-full lg:overflow-y-auto">
+              <section className="form-card scope2-panel flex flex-col lg:h-full lg:overflow-y-auto">
                 <div className="flex items-center gap-2 mb-2">
-                  <h2 className="text-sm font-bold text-gray-900 border-b-2 border-transparent hover:border-indigo-100 transition-colors cursor-default">
+                  <h2>
                     Operational Details
                   </h2>
                 </div>
@@ -1576,35 +1541,40 @@ function TemplateContent() {
                 <div className="space-y-2">
                   {/* Energy Intensity Per Rupee */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-2">
-                      Turnover Of Your Site <span className="text-gray-400 font-normal ml-1">Optional</span>
+                    <label className="scope2-field-label">
+                      Turnover Of Your Site <span className="text-[var(--ink-mute)] font-normal ml-1">Optional</span>
                     </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 text-xs font-semibold">Rs</span>
-                      </div>
+                    <div className="scope2-input-affix">
+                      <span className="scope2-input-affix-prefix">Rs</span>
                       <input
-                        type="number"
-                        min="0"
+                        type="text"
+                        inputMode="decimal"
                         name="energyIntensityPerRupee"
-                        value={formData.energyIntensityPerRupee || ""}
+                        value={formData.energyIntensityPerRupee}
                         onKeyDown={(e) => {
                           if (["e", "E", "+", "-"].includes(e.key)) {
                             e.preventDefault();
                           }
                         }}
-                        onChange={handleChange}
-                        placeholder=" e.g. 2000"
-                        className="w-full h-10 pl-8 pr-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        onChange={(e) => {
+                          const next = e.target.value.replace(/[^\d.]/g, "");
+                          handleChange({
+                            ...e,
+                            target: { ...e.target, name: "energyIntensityPerRupee", value: next },
+                          });
+                        }}
+                        placeholder={formData.energyIntensityPerRupee ? undefined : "e.g. 2000"}
+                        className="scope2-input"
+                        aria-label="Turnover of your site in rupees"
                       />
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-1.5">
+                    <p className="scope2-field-hint">
                       Optional Input
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                    <label className="scope2-field-label">
                       Sector <span className="text-red-500">*</span>
                     </label>
                     <Combobox
@@ -1614,14 +1584,14 @@ function TemplateContent() {
                       placeholder="Select Sector..."
                       error={!!errors.sector}
                     />
-                    <p className="text-[10px] text-gray-400 mt-1.5">
+                    <p className="scope2-field-hint">
                       Used for sector-specific recommendations and calculations
                     </p>
-                    {errors.sector && <p className="text-red-500 text-xs mt-1">{errors.sector}</p>}
+                    {errors.sector && <p className="field-error">{errors.sector}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                    <label className="scope2-field-label">
                       Nature Of Business Activity <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1630,23 +1600,23 @@ function TemplateContent() {
                       value={formData.natureOfBusiness || ""}
                       onChange={handleChange}
                       placeholder="E.G., Packaged Snacks, CNC Machining"
-                      className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.natureOfBusiness ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                      className={`w-full h-10 px-2 text-xs scope2-input focus:ring-2  outline-none transition-all ${errors.natureOfBusiness ? "is-error" : ""}`}
                     />
-                    {errors.natureOfBusiness && <p className="text-red-500 text-xs mt-1">{errors.natureOfBusiness}</p>}
+                    {errors.natureOfBusiness && <p className="field-error">{errors.natureOfBusiness}</p>}
                   </div>
 
                 </div>
               </section>
 
               {/* Box 3: Reporting Period */}
-              <section className="bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col lg:h-full lg:overflow-y-auto">
+              <section className="form-card scope2-panel flex flex-col lg:h-full lg:overflow-y-auto">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h2 className="text-sm font-bold text-gray-900">
+                  <h2 className="text-sm font-bold text-[var(--ink)]">
                     Reporting Period
                   </h2>
                 </div>
@@ -1655,7 +1625,7 @@ function TemplateContent() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                     {/* Year */}
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-2">
+                      <label className="scope2-field-label">
                         Financial Year <span className="text-red-500">*</span>
                       </label>
                       <select
@@ -1700,7 +1670,7 @@ function TemplateContent() {
                             return updates;
                           });
                         }}
-                        className={`w-full h-10 px-2 text-xs bg-white border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-700 ${errors.reportingYear ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                        className={`w-full h-10 px-2 text-xs bg-[var(--surface)] border rounded-lg focus:ring-2  outline-none transition-all appearance-none text-[var(--ink)] ${errors.reportingYear ? "is-error" : ""}`}
                       >
                         <option value="">Select Financial Year</option>
                         {(() => {
@@ -1717,14 +1687,14 @@ function TemplateContent() {
                           ));
                         })()}
                       </select>
-                      {errors.reportingYear && <p className="text-red-500 text-xs mt-1">{errors.reportingYear}</p>}
+                      {errors.reportingYear && <p className="field-error">{errors.reportingYear}</p>}
                     </div>
                     {/* Period */}
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-2">
+                      <label className="scope2-field-label">
                         Reporting Period <span className="text-red-500">*</span>
                       </label>
-                      <div className={`flex flex-col sm:flex-row h-auto sm:h-10 text-xs font-medium bg-gray-50 border rounded-lg p-1 ${errors.reportingPeriod ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                      <div className={`flex flex-col sm:flex-row h-auto sm:h-10 text-xs font-medium scope2-input p-1 ${errors.reportingPeriod ? "is-error" : ""}`}>
                         {["Annually"].map((p, index) => (
                           <div key={p} className="contents">
                             <button
@@ -1750,8 +1720,8 @@ function TemplateContent() {
                                 return updates;
                               })}
                               className={`flex-1 h-full min-h-[32px] flex items-center justify-center rounded text-center transition-all ${formData.reportingPeriod === p
-                                ? "bg-[#4F46E5] text-white shadow-sm"
-                                : "text-gray-500 hover:text-gray-900"
+                                ? "bg-[var(--purple)] text-white shadow-sm"
+                                : "text-[var(--ink-mute)] hover:text-[var(--ink)]"
                                 }`}
                             >
                               {p}
@@ -1768,20 +1738,20 @@ function TemplateContent() {
               </section >
 
               {/* Box 4: Boundary Notes */}
-              < section className="bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col lg:h-full lg:overflow-y-auto" >
+              < section className="form-card scope2-panel flex flex-col lg:h-full lg:overflow-y-auto" >
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
+                  <div className="scope2-panel-icon">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </div>
-                  <h2 className="text-sm font-bold text-gray-900">
-                    Boundary Notes <span className="text-gray-400 font-normal ml-1">Optional</span>
+                  <h2 className="text-sm font-bold text-[var(--ink)]">
+                    Boundary Notes <span className="text-[var(--ink-mute)] font-normal ml-1">Optional</span>
                   </h2>
                 </div>
 
                 <div className="flex-grow flex flex-col">
-                  <label className="block text-xs font-bold text-gray-700 mb-2">
+                  <label className="scope2-field-label">
                     Scope Boundary Notes
                   </label>
                   <textarea
@@ -1789,7 +1759,7 @@ function TemplateContent() {
                     value={formData.scopeBoundaryNotes}
                     onChange={handleChange}
                     placeholder="Any Special Considerations Or Exclusions?"
-                    className="w-full flex-grow px-2 py-1 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none min-h-[40px]"
+                    className="w-full flex-grow px-2 py-1 text-xs bg-[var(--surface-2)] border border-[var(--rule)] rounded-lg focus:ring-2  outline-none transition-all resize-none min-h-[40px]"
                   />
                 </div>
               </section >
@@ -1802,9 +1772,9 @@ function TemplateContent() {
             page === 2 && (
               <div className="flex-1 overflow-y-auto min-h-0 min-w-0 p-1 pb-4">
                 {/* Calculated Results Display */}
-                <div className="bg-white pt-2 pb-4 px-1">
-                  <section className="bg-white rounded-xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 flex flex-col">
-                    <h3 className="text-gray-500 text-xs font-medium mb-2 tracking-wider">Total Energy Consumption Breakdown</h3>
+                <div className="bg-[var(--surface)] pt-2 pb-4 px-1">
+                  <section className="bg-[var(--surface)] rounded-xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[var(--rule)] flex flex-col">
+                    <h3 className="text-[var(--ink-mute)] text-xs font-medium mb-2 tracking-wider">Total Energy Consumption Breakdown</h3>
 
                     <div className={`grid grid-cols-1 gap-4 flex-1 ${formData.energyActivityInput === "Monthly" && monthlyChartData.length > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
                       {/* Pie Chart Column */}
@@ -1843,8 +1813,8 @@ function TemplateContent() {
                           </ResponsiveContainer>
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <div className="text-center">
-                              <span className="text-lg font-bold text-gray-900 block">{derivedTotalGW.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                              <span className="text-[10px] text-gray-500">kWh Total</span>
+                              <span className="text-lg font-bold text-[var(--ink)] block">{derivedTotalGW.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              <span className="text-[10px] text-[var(--ink-mute)]">kWh Total</span>
                             </div>
                           </div>
                         </div>
@@ -1856,9 +1826,9 @@ function TemplateContent() {
                             <div key={i} className="flex justify-between items-center">
                               <div className="flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
-                                <span className="text-gray-600">{item.name}</span>
+                                <span className="text-[var(--ink-soft)]">{item.name}</span>
                               </div>
-                              <span className="font-semibold text-gray-900">{item.value}</span>
+                              <span className="font-semibold text-[var(--ink)]">{item.value}</span>
                             </div>
                           ))}
                         </div>
@@ -1973,14 +1943,14 @@ function TemplateContent() {
                 <div className="p-1">
                   <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 content-start">
                     {/* Box 1: Energy Activity */}
-                    <section className={`bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col ${formData.renewableProcurement === 'Yes' ? '' : 'lg:col-span-2'}`}>
+                    <section className={`bg-[var(--surface)] rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-[var(--rule)] flex flex-col ${formData.renewableProcurement === 'Yes' ? '' : 'lg:col-span-2'}`}>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
+                        <div className="scope2-panel-icon">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                         </div>
-                        <h2 className="text-sm font-bold text-gray-900">
+                        <h2 className="text-sm font-bold text-[var(--ink)]">
                           Energy Activity
                         </h2>
                       </div>
@@ -1989,47 +1959,47 @@ function TemplateContent() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {/* Activity Input */}
                           <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                            <label className="scope2-field-label">
                               Energy Activity Input <span className="text-red-500">*</span>
                             </label>
-                            <div className={`flex bg-gray-100 p-1 rounded-lg w-full md:w-fit ${errors.energyActivityInput ? "border-red-300 bg-red-50 ring-1 ring-red-300" : ""}`}>
+                            <div className={`flex bg-[var(--surface-2)] p-1 rounded-lg w-full md:w-fit ${errors.energyActivityInput ? "border-red-300 bg-red-50 ring-1 ring-red-300" : ""}`}>
                               {["Monthly", "Yearly"].map((m) => (
                                 <button
                                   key={m}
                                   type="button"
                                   onClick={() => handleRadioChange("energyActivityInput", m)}
                                   className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all ${formData.energyActivityInput === m
-                                    ? "bg-white text-indigo-600 shadow-sm"
-                                    : "text-gray-500 hover:text-gray-700"
+                                    ? "bg-[var(--surface)] text-[var(--purple)] shadow-sm"
+                                    : "text-[var(--ink-mute)] hover:text-[var(--ink)]"
                                     }`}
                                 >
                                   {m}
                                 </button>
                               ))}
                             </div>
-                            {errors.energyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.energyActivityInput}</p>}
+                            {errors.energyActivityInput && <p className="field-error">{errors.energyActivityInput}</p>}
                           </div>
 
                           {/* Category */}
                           <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                            <label className="scope2-field-label">
                               Energy Category <span className="text-red-500">*</span>
                             </label>
                             <select
                               name="energyCategory"
                               value={formData.energyCategory}
                               onChange={handleChange}
-                              className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-gray-600 ${errors.energyCategory ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                              className={`w-full h-10 px-2 text-xs scope2-input focus:ring-2  outline-none transition-all appearance-none text-[var(--ink-soft)] ${errors.energyCategory ? "is-error" : ""}`}
                             >
                               <option value="Grid Energy">Grid Energy</option>
                             </select>
-                            {errors.energyCategory && <p className="text-red-500 text-xs mt-1">{errors.energyCategory}</p>}
+                            {errors.energyCategory && <p className="field-error">{errors.energyCategory}</p>}
                           </div>
                         </div>
 
                         {/* Tracking Type */}
                         <div>
-                          <label className="block text-xs font-bold text-gray-700 mb-2">
+                          <label className="scope2-field-label">
                             Are You Tracking <span className="text-red-500">*</span>
                           </label>
                           <div className="flex gap-4 items-center flex-wrap">
@@ -2044,8 +2014,8 @@ function TemplateContent() {
                                   type="button"
                                   onClick={() => handleRadioChange("trackingType", t.id)}
                                   className={`px-4 h-10 flex items-center justify-center rounded-lg text-xs font-bold tracking-wider transition-all border ${formData.trackingType === t.id
-                                    ? "bg-[#4F46E5] text-white border-[#4F46E5]"
-                                    : errors.trackingType ? "bg-red-50 text-red-500 border-red-300" : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                                    ? "bg-[var(--purple)] text-white border-[var(--purple)]"
+                                    : errors.trackingType ? "bg-red-50 text-red-500 border-red-300" : "bg-[var(--surface)] text-[var(--ink-mute)] border-[var(--rule)] hover:border-[var(--rule)]"
                                     }`}
                                 >
                                   {t.label}
@@ -2063,13 +2033,13 @@ function TemplateContent() {
                                 <table className="ml-auto text-left">
                                   <tbody>
                                     <tr>
-                                      <td className="pr-2 text-right py-0.5"><span className="text-xs font-bold text-gray-700">State:</span></td>
-                                      <td className="py-0.5"><span className="text-sm font-bold text-gray-800">{formData.state}</span></td>
+                                      <td className="pr-2 text-right py-0.5"><span className="text-xs font-bold text-[var(--ink)]">State:</span></td>
+                                      <td className="py-0.5"><span className="text-sm font-bold text-[var(--ink)]">{formData.state}</span></td>
                                     </tr>
                                     {price !== null && (
                                       <tr>
-                                        <td className="pr-2 text-right py-0.5"><span className="text-xs font-bold text-gray-700">Tariff:</span></td>
-                                        <td className="py-0.5"><span className="text-sm font-bold text-gray-800">₹{price}/kWh</span></td>
+                                        <td className="pr-2 text-right py-0.5"><span className="text-xs font-bold text-[var(--ink)]">Tariff:</span></td>
+                                        <td className="py-0.5"><span className="text-sm font-bold text-[var(--ink)]">₹{price}/kWh</span></td>
                                       </tr>
                                     )}
                                   </tbody>
@@ -2077,16 +2047,16 @@ function TemplateContent() {
                               );
                             })()}
                           </div>
-                          {errors.trackingType && <p className="text-red-500 text-xs mt-1">{errors.trackingType}</p>}
+                          {errors.trackingType && <p className="field-error">{errors.trackingType}</p>}
                         </div>
 
                         {/* Dynamic Inputs based on Energy Activity Input */}
                         <div className="mt-4">
                           {formData.energyActivityInput === "Monthly" ? (
                             <>
-                              <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                                <table className="w-full text-xs text-left text-gray-700">
-                                  <thead className="text-xs text-gray-500 bg-gray-50 border-b border-gray-200">
+                              <div className="overflow-x-auto border border-[var(--rule)] rounded-lg">
+                                <table className="w-full text-xs text-left text-[var(--ink)]">
+                                  <thead className="text-xs text-[var(--ink-mute)] bg-[var(--surface-2)] border-b border-[var(--rule)]">
                                     <tr>
                                       <th className="px-3 py-2 font-bold min-w-[130px]">Month</th>
                                       {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
@@ -2109,7 +2079,7 @@ function TemplateContent() {
                                                   Estimated
                                                 </span>
                                                 <div className="group relative flex items-center">
-                                                  <svg className="w-3.5 h-3.5 text-gray-400 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                  <svg className="w-3.5 h-3.5 text-[var(--ink-mute)] cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                   </svg>
                                                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-2 bg-gray-900 text-white text-[10px] font-normal leading-tight rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 shadow-lg pointer-events-none">
@@ -2131,16 +2101,16 @@ function TemplateContent() {
                                   </thead>
                                   <tbody>
                                     {formData.monthlyData.map((row, index) => (
-                                      <tr key={row.id} className="border-b border-gray-100 last:border-none group hover:bg-gray-50/50">
+                                      <tr key={row.id} className="border-b border-[var(--rule)] last:border-none group hover:bg-[var(--surface-2)]/50">
                                         <td className="px-3 py-2">
-                                          <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
+                                          <div className="scope2-month-cell">
                                             {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
                                           </div>
                                         </td>
                                         {(formData.trackingType === "Unit consumption" || formData.trackingType === "Both") && (
                                           <>
                                             <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_electricityPurchased`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors[`monthly_${row.id}_electricityPurchased`] ? "is-error" : ""}`}>
                                                 <input
                                                   type="number"
                                                   value={row.electricityPurchased}
@@ -2150,18 +2120,18 @@ function TemplateContent() {
                                                     }
                                                   }}
                                                   onChange={(e) => handleRowChange(row.id, "electricityPurchased", e.target.value)}
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
+                                                  className="scope2-table-cell-input"
                                                   placeholder="0"
                                                 />
                                               </div>
                                             </td>
 
                                             <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors[`monthly_${row.id}_dataSourceType`] ? "is-error" : ""}`}>
                                                 <select
                                                   value={row.dataSourceType}
                                                   onChange={(e) => handleRowChange(row.id, "dataSourceType", e.target.value)}
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                                  className="scope2-table-cell-input"
                                                 >
                                                   <option value="">Select...</option>
                                                   <option value="Invoice">Invoice</option>
@@ -2175,7 +2145,7 @@ function TemplateContent() {
                                         )}
                                         {(formData.trackingType === "Spend amount" || formData.trackingType === "Both") && (
                                           <td className="px-3 py-2">
-                                            <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_spend`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                            <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors[`monthly_${row.id}_spend`] ? "is-error" : ""}`}>
                                               <input
                                                 type="number"
                                                 value={row.spend}
@@ -2185,7 +2155,7 @@ function TemplateContent() {
                                                   }
                                                 }}
                                                 onChange={(e) => handleRowChange(row.id, "spend", e.target.value)}
-                                                className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
+                                                className="scope2-table-cell-input"
                                                 placeholder="0"
                                               />
                                             </div>
@@ -2194,23 +2164,23 @@ function TemplateContent() {
                                         {formData.trackingType === "Spend amount" && (
                                           <>
                                             <td className="px-3 py-2">
-                                              <div className="border rounded-lg h-10 px-2 flex items-center bg-gray-100 border-gray-200">
+                                              <div className="border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] border-[var(--rule)]">
                                                 <input
                                                   type="text"
                                                   value={row.electricityPurchased ? parseFloat(row.electricityPurchased).toFixed(2) : ""}
                                                   readOnly
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
+                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-[var(--ink-mute)] cursor-not-allowed"
                                                   placeholder="0"
                                                 />
                                               </div>
                                             </td>
 
                                             <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`monthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors[`monthly_${row.id}_dataSourceType`] ? "is-error" : ""}`}>
                                                 <select
                                                   value={row.dataSourceType}
                                                   onChange={(e) => handleRowChange(row.id, "dataSourceType", e.target.value)}
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                                  className="scope2-table-cell-input"
                                                 >
                                                   <option value="">Select...</option>
                                                   <option value="Invoice">Invoice</option>
@@ -2224,12 +2194,12 @@ function TemplateContent() {
                                         )}
 
                                         <td className="px-3 py-2">
-                                          <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-100 ${errors[`monthly_${row.id}_energyConsumption`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                          <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors[`monthly_${row.id}_energyConsumption`] ? "is-error" : ""}`}>
                                             <input
                                               type="number"
                                               value={row.energyConsumption ? parseFloat(row.energyConsumption).toFixed(2) : ""}
                                               readOnly
-                                              className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
+                                              className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-[var(--ink-mute)] cursor-not-allowed"
                                               placeholder="0"
                                             />
                                           </div>
@@ -2252,7 +2222,7 @@ function TemplateContent() {
                                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                   {/* Electricity Purchased */}
                                   <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                    <label className="scope2-field-label">
                                       Electricity Purchased <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
@@ -2267,24 +2237,24 @@ function TemplateContent() {
                                         }}
                                         onChange={handleChange}
                                         placeholder="Enter value"
-                                        className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.electricityPurchased ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                                        className={`w-full h-10 px-2 text-xs scope2-input focus:ring-2  outline-none ${errors.electricityPurchased ? "is-error" : ""}`}
                                       />
-                                      <span className="absolute right-3 top-3 text-[10px] text-gray-400">kWh</span>
+                                      <span className="absolute right-3 top-3 text-[10px] text-[var(--ink-mute)]">kWh</span>
                                     </div>
-                                    {errors.electricityPurchased && <p className="text-red-500 text-xs mt-1">{errors.electricityPurchased}</p>}
+                                    {errors.electricityPurchased && <p className="field-error">{errors.electricityPurchased}</p>}
                                   </div>
 
                                   {/* Data Source Type */}
                                   <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                    <label className="scope2-field-label">
                                       Data Source Type <span className="text-red-500">*</span>
                                     </label>
-                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors.dataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors.dataSourceType ? "is-error" : ""}`}>
                                       <select
                                         name="dataSourceType"
                                         value={formData.dataSourceType}
                                         onChange={handleChange}
-                                        className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                        className="scope2-table-cell-input"
                                       >
                                         <option value="">Select...</option>
                                         <option value="Invoice">Invoice</option>
@@ -2293,12 +2263,12 @@ function TemplateContent() {
                                         <option value="Other">Other</option>
                                       </select>
                                     </div>
-                                    {errors.dataSourceType && <p className="text-red-500 text-xs mt-1">{errors.dataSourceType}</p>}
+                                    {errors.dataSourceType && <p className="field-error">{errors.dataSourceType}</p>}
                                   </div>
 
                                   {/* Energy Consumption */}
                                   <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                    <label className="scope2-field-label">
                                       Energy Consumption
                                     </label>
                                     <div className="relative">
@@ -2308,20 +2278,20 @@ function TemplateContent() {
                                         value={formData.energyConsumption ? parseFloat(formData.energyConsumption).toFixed(2) : ""}
                                         readOnly
                                         placeholder="Auto-calculated"
-                                        className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
+                                        className="w-full h-10 px-2 text-xs bg-[var(--surface-2)] border border-[var(--rule)] rounded-lg text-[var(--ink-mute)] cursor-not-allowed"
                                       />
-                                      <span className="absolute right-3 top-3 text-[10px] text-gray-400">GJ</span>
+                                      <span className="absolute right-3 top-3 text-[10px] text-[var(--ink-mute)]">GJ</span>
                                     </div>
-                                    {errors.energyConsumption && <p className="text-red-500 text-xs mt-1">{errors.energyConsumption}</p>}
+                                    {errors.energyConsumption && <p className="field-error">{errors.energyConsumption}</p>}
                                   </div>
                                 </div>
                               )}
-                              {errors.energyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.energyActivityInput}</p>}
+                              {errors.energyActivityInput && <p className="field-error">{errors.energyActivityInput}</p>}
 
                               {(formData.trackingType === "Spend amount" || formData.trackingType === "Both") && (
                                 <div className={`col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4`}>
                                   <div className="col-span-1 flex flex-col justify-end">
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                    <label className="scope2-field-label">
                                       Spend Amount <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -2335,21 +2305,21 @@ function TemplateContent() {
                                       }}
                                       onChange={handleChange}
                                       placeholder="Enter amount"
-                                      className="w-full h-10 px-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                      className="w-full h-10 px-2 text-xs bg-[var(--surface-2)] border border-[var(--rule)] rounded-lg focus:ring-2  outline-none"
                                     />
-                                    {errors.spendAmount && <p className="text-red-500 text-xs mt-1">{errors.spendAmount}</p>}
+                                    {errors.spendAmount && <p className="field-error">{errors.spendAmount}</p>}
                                   </div>
 
                                   {/* Read-only Electricity Purchased for Spend Amount Users */}
                                   {formData.trackingType === "Spend amount" && (
                                     <div className="col-span-1 flex flex-col justify-end">
-                                      <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-2">
+                                      <label className="flex items-center gap-2 text-xs font-bold text-[var(--ink)] mb-2">
                                         Electricity Purchased
                                         <span className="bg-yellow-100 text-yellow-800 text-[10px] font-medium px-1.5 py-0.5 rounded border border-yellow-200">
                                           Estimated
                                         </span>
                                         <div className="group relative flex items-center">
-                                          <svg className="w-3.5 h-3.5 text-gray-400 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <svg className="w-3.5 h-3.5 text-[var(--ink-mute)] cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                           </svg>
                                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-900 text-white text-[10px] leading-tight rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 shadow-lg pointer-events-none">
@@ -2363,9 +2333,9 @@ function TemplateContent() {
                                           type="text"
                                           value={formData.electricityPurchased || ""}
                                           disabled
-                                          className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
+                                          className="w-full h-10 px-2 text-xs bg-[var(--surface-2)] border border-[var(--rule)] rounded-lg text-[var(--ink-mute)] cursor-not-allowed"
                                         />
-                                        <span className="absolute right-3 top-3 text-[10px] text-gray-400">kWh</span>
+                                        <span className="absolute right-3 top-3 text-[10px] text-[var(--ink-mute)]">kWh</span>
                                       </div>
                                     </div>
                                   )}
@@ -2374,15 +2344,15 @@ function TemplateContent() {
 
                                   {/* Data Source Type for Spend-based */}
                                   <div className="col-span-1 flex flex-col justify-end">
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                    <label className="scope2-field-label">
                                       Data Source Type <span className="text-red-500">*</span>
                                     </label>
-                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors.dataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors.dataSourceType ? "is-error" : ""}`}>
                                       <select
                                         name="dataSourceType"
                                         value={formData.dataSourceType}
                                         onChange={handleChange}
-                                        className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                        className="scope2-table-cell-input"
                                       >
                                         <option value="">Select...</option>
                                         <option value="Invoice">Invoice</option>
@@ -2391,12 +2361,12 @@ function TemplateContent() {
                                         <option value="Other">Other</option>
                                       </select>
                                     </div>
-                                    {errors.dataSourceType && <p className="text-red-500 text-xs mt-1">{errors.dataSourceType}</p>}
+                                    {errors.dataSourceType && <p className="field-error">{errors.dataSourceType}</p>}
                                   </div>
 
                                   {formData.trackingType === "Spend amount" && (
                                     <div className="col-span-1 flex flex-col justify-end">
-                                      <label className="block text-xs font-bold text-gray-700 mb-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                                      <label className="block text-xs font-bold text-[var(--ink)] mb-2 overflow-hidden text-ellipsis whitespace-nowrap">
                                         Energy Consumption
                                       </label>
                                       <div className="relative">
@@ -2406,9 +2376,9 @@ function TemplateContent() {
                                           value={formData.energyConsumption ? parseFloat(formData.energyConsumption).toFixed(2) : ""}
                                           readOnly
                                           placeholder="Auto-calculated"
-                                          className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
+                                          className="w-full h-10 px-2 text-xs bg-[var(--surface-2)] border border-[var(--rule)] rounded-lg text-[var(--ink-mute)] cursor-not-allowed"
                                         />
-                                        <span className="absolute right-3 top-3 text-[10px] text-gray-400">GJ</span>
+                                        <span className="absolute right-3 top-3 text-[10px] text-[var(--ink-mute)]">GJ</span>
                                       </div>
                                     </div>
                                   )}
@@ -2446,14 +2416,14 @@ function TemplateContent() {
 
                         {/* Supporting Evidence Upload */}
                         <div>
-                          <label className="block text-xs font-bold text-gray-700 mb-2">
+                          <label className="scope2-field-label">
                             Supporting Evidence
                           </label>
-                          <div className={`border border-dashed rounded-xl ${errors.energySupportingEvidenceFile ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50/50"} p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group relative h-28`}>
+                          <div className={`border border-dashed rounded-xl ${errors.energySupportingEvidenceFile ? "border-red-300 bg-red-50" : "border-[var(--rule)] bg-[var(--surface-2)]/50"} p-4 flex flex-col items-center justify-center text-center hover:bg-[var(--surface-2)] transition-colors group relative h-28`}>
                             {formData.energySupportingEvidenceFile ? (
                               <div className="flex flex-col items-center w-full z-10">
-                                <div className="flex items-center justify-between w-full bg-white p-2 rounded border border-gray-100 shadow-sm mb-2">
-                                  <span className="text-xs text-gray-700 truncate max-w-[80%]">{formData.energySupportingEvidenceFile.name}</span>
+                                <div className="flex items-center justify-between w-full bg-[var(--surface)] p-2 rounded border border-[var(--rule)] shadow-sm mb-2">
+                                  <span className="text-xs text-[var(--ink)] truncate max-w-[80%]">{formData.energySupportingEvidenceFile.name}</span>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -2465,7 +2435,7 @@ function TemplateContent() {
                                     Cancel
                                   </button>
                                 </div>
-                                <label className="text-xs text-indigo-600 font-semibold cursor-pointer hover:underline">
+                                <label className="text-xs text-[var(--purple)] font-semibold cursor-pointer hover:underline">
                                   Upload A Different File
                                   <input
                                     type="file"
@@ -2477,21 +2447,21 @@ function TemplateContent() {
                               </div>
                             ) : (
                               <>
-                                <label className="bg-indigo-100 p-2.5 rounded-full mb-3 hover:scale-110 transition-transform cursor-pointer">
+                                <label className="bg-[color-mix(in_srgb,var(--purple)_12%,transparent)] p-2.5 rounded-full mb-3 hover:scale-110 transition-transform cursor-pointer">
                                   <input
                                     type="file"
                                     className="hidden"
                                     accept=".pdf,.png,.jpeg,.jpg"
                                     onChange={(e) => handleFileUpload(e, "energySupportingEvidenceFile")}
                                   />
-                                  <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg className="w-5 h-5 text-[var(--purple)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                                   </svg>
                                 </label>
-                                <p className="text-sm font-semibold text-gray-600">
+                                <p className="text-sm font-semibold text-[var(--ink-soft)]">
                                   Click Icon To Upload
                                 </p>
-                                <p className="text-[10px] text-gray-400 mt-1">
+                                <p className="text-[10px] text-[var(--ink-mute)] mt-1">
                                   PDF, JPG, PNG Up To 10MB
                                 </p>
                               </>
@@ -2502,14 +2472,14 @@ function TemplateContent() {
                               {errors.energySupportingEvidenceFile}
                             </p>
                           )}
-                          <p className="text-[10px] text-gray-400 mt-2">
+                          <p className="text-[10px] text-[var(--ink-mute)] mt-2">
                             Uploading Bills Improves Data Confidence.
                           </p>
                         </div>
 
                         {/* Description */}
                         <div>
-                          <label className="block text-xs font-bold text-gray-700 mb-2">
+                          <label className="scope2-field-label">
                             Energy Source Description
                           </label>
                           <textarea
@@ -2518,7 +2488,7 @@ function TemplateContent() {
                             onChange={handleChange}
                             maxLength={200}
                             placeholder="Describe The Energy Source Or Any Relevant Details..."
-                            className="w-full px-2 py-1 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none min-h-[40px]"
+                            className="w-full px-2 py-1 text-xs bg-[var(--surface-2)] border border-[var(--rule)] rounded-lg focus:ring-2  outline-none transition-all resize-none min-h-[40px]"
                           />
                         </div>
                       </div>
@@ -2526,14 +2496,14 @@ function TemplateContent() {
 
                     {/* Box 2: Renewable Electricity */}
                     {formData.renewableProcurement === "Yes" && (
-                      <section className="bg-white rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col">
+                      <section className="bg-[var(--surface)] rounded-xl p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-[var(--rule)] flex flex-col">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="p-1.5 bg-green-50 rounded-lg text-green-600">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                           </div>
-                          <h2 className="text-sm font-bold text-gray-900">
+                          <h2 className="text-sm font-bold text-[var(--ink)]">
                             Renewable Electricity
                           </h2>
                         </div>
@@ -2541,31 +2511,31 @@ function TemplateContent() {
                         <div className="space-y-4">
                           {/* Net metering */}
                           <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                            <label className="scope2-field-label">
                               Net Metering Applicable? <span className="text-red-500">*</span>
                             </label>
                             {renderYesNo("netMeteringApplicable", formData.netMeteringApplicable)}
-                            {errors.netMeteringApplicable && <p className="text-red-500 text-xs mt-1">{errors.netMeteringApplicable}</p>}
+                            {errors.netMeteringApplicable && <p className="field-error">{errors.netMeteringApplicable}</p>}
                           </div>
 
                           <div>
                             <div className="flex justify-between items-center mb-2">
-                              <label className="block text-xs font-bold text-gray-700">
+                              <label className="block text-xs font-bold text-[var(--ink)]">
                                 Do You Have Renewable Electricity? <span className="text-red-500">*</span>
                               </label>
                             </div>
                             {renderYesNo("hasRenewableElectricity", formData.hasRenewableElectricity)}
-                            {errors.hasRenewableElectricity && <p className="text-red-500 text-xs mt-1">{errors.hasRenewableElectricity}</p>}
+                            {errors.hasRenewableElectricity && <p className="field-error">{errors.hasRenewableElectricity}</p>}
                           </div>
 
                           {formData.hasRenewableElectricity === "Yes" && (
                             <div className="animate-in fade-in slide-in-from-top-2 space-y-4">
                               {/* Renewable Input Type Toggle */}
                               <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-2">
+                                <label className="scope2-field-label">
                                   Renewable Activity Input <span className="text-red-500">*</span>
                                 </label>
-                                <div className={`flex bg-gray-100 p-1 rounded-lg w-full md:w-fit ${errors.renewableEnergyActivityInput ? "border-red-300 bg-red-50 ring-1 ring-red-300" : ""}`}>
+                                <div className={`flex bg-[var(--surface-2)] p-1 rounded-lg w-full md:w-fit ${errors.renewableEnergyActivityInput ? "border-red-300 bg-red-50 ring-1 ring-red-300" : ""}`}>
                                   {["Monthly", "Yearly"].map((type) => (
                                     <button
                                       key={type}
@@ -2584,22 +2554,22 @@ function TemplateContent() {
                                         })
                                       }}
                                       className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all ${formData.renewableEnergyActivityInput === type
-                                        ? "bg-white text-indigo-600 shadow-sm"
-                                        : "text-gray-500 hover:text-gray-700"
+                                        ? "bg-[var(--surface)] text-[var(--purple)] shadow-sm"
+                                        : "text-[var(--ink-mute)] hover:text-[var(--ink)]"
                                         }`}
                                     >
                                       {type}
                                     </button>
                                   ))}
                                 </div>
-                                {errors.renewableEnergyActivityInput && <p className="text-red-500 text-xs mt-1">{errors.renewableEnergyActivityInput}</p>}
+                                {errors.renewableEnergyActivityInput && <p className="field-error">{errors.renewableEnergyActivityInput}</p>}
                               </div>
 
                               {formData.renewableEnergyActivityInput === "Monthly" ? (
                                 <>
-                                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                                    <table className="w-full text-xs text-left text-gray-700">
-                                      <thead className="text-xs text-gray-500 bg-gray-50 border-b border-gray-200">
+                                  <div className="overflow-x-auto border border-[var(--rule)] rounded-lg">
+                                    <table className="w-full text-xs text-left text-[var(--ink)]">
+                                      <thead className="text-xs text-[var(--ink-mute)] bg-[var(--surface-2)] border-b border-[var(--rule)]">
                                         <tr>
                                           <th className="px-3 py-2 font-bold w-1/4">Month</th>
                                           <th className="px-3 py-2 font-bold min-w-[120px]">Renewable Electricity<br />(<span className="normal-case">kWh</span>) <span className="text-red-500">*</span></th>
@@ -2610,14 +2580,14 @@ function TemplateContent() {
                                       </thead>
                                       <tbody>
                                         {formData.renewableMonthlyData.map((row) => (
-                                          <tr key={row.id} className="border-b border-gray-100 last:border-none group hover:bg-gray-50/50">
+                                          <tr key={row.id} className="border-b border-[var(--rule)] last:border-none group hover:bg-[var(--surface-2)]/50">
                                             <td className="px-3 py-2">
-                                              <div className="w-full h-10 px-2 flex items-center bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
+                                              <div className="scope2-month-cell">
                                                 {row.month && !row.month.startsWith("Q") ? new Date(row.month + "-01").toLocaleDateString('default', { month: 'short', year: 'numeric' }) : row.month}
                                               </div>
                                             </td>
                                             <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`renewableMonthly_${row.id}_electricityPurchased`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors[`renewableMonthly_${row.id}_electricityPurchased`] ? "is-error" : ""}`}>
                                                 <input
                                                   type="number"
                                                   value={row.electricityPurchased}
@@ -2627,18 +2597,18 @@ function TemplateContent() {
                                                     }
                                                   }}
                                                   onChange={(e) => handleRenewableRowChange(row.id, "electricityPurchased", e.target.value)}
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400"
+                                                  className="scope2-table-cell-input"
                                                   placeholder="0"
                                                 />
                                               </div>
                                             </td>
 
                                             <td className="px-3 py-2">
-                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors[`renewableMonthly_${row.id}_dataSourceType`] ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                              <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors[`renewableMonthly_${row.id}_dataSourceType`] ? "is-error" : ""}`}>
                                                 <select
                                                   value={row.dataSourceType}
                                                   onChange={(e) => handleRenewableRowChange(row.id, "dataSourceType", e.target.value)}
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                                  className="scope2-table-cell-input"
                                                 >
                                                   <option value="">Select...</option>
                                                   <option value="Invoice">Invoice</option>
@@ -2649,12 +2619,12 @@ function TemplateContent() {
                                               </div>
                                             </td>
                                             <td className="px-3 py-2">
-                                              <div className="border rounded-lg h-10 px-2 flex items-center bg-gray-100 border-gray-200">
+                                              <div className="border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] border-[var(--rule)]">
                                                 <input
                                                   type="number"
                                                   value={row.energyConsumption ? parseFloat(row.energyConsumption).toFixed(2) : ""}
                                                   readOnly
-                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-500 cursor-not-allowed"
+                                                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-[var(--ink-mute)] cursor-not-allowed"
                                                   placeholder="0"
                                                 />
                                               </div>
@@ -2674,7 +2644,7 @@ function TemplateContent() {
                                 // YEARLY VIEW
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                   <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                    <label className="scope2-field-label">
                                       Renewable Electricity <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
@@ -2689,23 +2659,23 @@ function TemplateContent() {
                                         }}
                                         onChange={handleChange}
                                         placeholder="Enter value"
-                                        className={`w-full h-10 px-2 text-xs bg-gray-50 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${errors.renewableElectricity ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                                        className={`w-full h-10 px-2 text-xs scope2-input focus:ring-2  outline-none ${errors.renewableElectricity ? "is-error" : ""}`}
                                       />
-                                      <span className="absolute right-3 top-3 text-[10px] text-gray-400">kWh</span>
+                                      <span className="absolute right-3 top-3 text-[10px] text-[var(--ink-mute)]">kWh</span>
                                     </div>
-                                    {errors.renewableElectricity && <p className="text-red-500 text-xs mt-1">{errors.renewableElectricity}</p>}
+                                    {errors.renewableElectricity && <p className="field-error">{errors.renewableElectricity}</p>}
                                   </div>
 
                                   <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                    <label className="scope2-field-label">
                                       Data Source Type <span className="text-red-500">*</span>
                                     </label>
-                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-gray-50 ${errors.renewableDataSourceType ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                                    <div className={`border rounded-lg h-10 px-2 flex items-center bg-[var(--surface-2)] ${errors.renewableDataSourceType ? "is-error" : ""}`}>
                                       <select
                                         name="renewableDataSourceType"
                                         value={formData.renewableDataSourceType}
                                         onChange={handleChange}
-                                        className="w-full bg-transparent border-none focus:ring-0 p-0 text-xs text-gray-700 placeholder-gray-400 appearance-none"
+                                        className="scope2-table-cell-input"
                                       >
                                         <option value="">Select...</option>
                                         <option value="Invoice">Invoice</option>
@@ -2714,11 +2684,11 @@ function TemplateContent() {
                                         <option value="Other">Other</option>
                                       </select>
                                     </div>
-                                    {errors.renewableDataSourceType && <p className="text-red-500 text-xs mt-1">{errors.renewableDataSourceType}</p>}
+                                    {errors.renewableDataSourceType && <p className="field-error">{errors.renewableDataSourceType}</p>}
                                   </div>
 
                                   <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-2">
+                                    <label className="scope2-field-label">
                                       Energy Consumption
                                     </label>
                                     <div className="relative">
@@ -2728,11 +2698,11 @@ function TemplateContent() {
                                         value={formData.renewableEnergyConsumption ? parseFloat(formData.renewableEnergyConsumption).toFixed(2) : ""}
                                         readOnly
                                         placeholder="Auto-calculated"
-                                        className="w-full h-10 px-2 text-xs bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
+                                        className="w-full h-10 px-2 text-xs bg-[var(--surface-2)] border border-[var(--rule)] rounded-lg text-[var(--ink-mute)] cursor-not-allowed"
                                       />
-                                      <span className="absolute right-3 top-3 text-[10px] text-gray-400">GJ</span>
+                                      <span className="absolute right-3 top-3 text-[10px] text-[var(--ink-mute)]">GJ</span>
                                     </div>
-                                    {errors.renewableEnergyConsumption && <p className="text-red-500 text-xs mt-1">{errors.renewableEnergyConsumption}</p>}
+                                    {errors.renewableEnergyConsumption && <p className="field-error">{errors.renewableEnergyConsumption}</p>}
                                   </div>
                                 </div>
                               )}
@@ -2766,14 +2736,14 @@ function TemplateContent() {
 
                           {/* Supporting Evidence Upload */}
                           <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                            <label className="scope2-field-label">
                               Supporting Evidence
                             </label>
-                            <div className={`border border-dashed rounded-xl ${errors.renewableSupportingEvidenceFile ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50/50"} p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group relative h-28`}>
+                            <div className={`border border-dashed rounded-xl ${errors.renewableSupportingEvidenceFile ? "border-red-300 bg-red-50" : "border-[var(--rule)] bg-[var(--surface-2)]/50"} p-4 flex flex-col items-center justify-center text-center hover:bg-[var(--surface-2)] transition-colors group relative h-28`}>
                               {formData.renewableSupportingEvidenceFile ? (
                                 <div className="flex flex-col items-center w-full z-10">
-                                  <div className="flex items-center justify-between w-full bg-white p-2 rounded border border-gray-100 shadow-sm mb-2">
-                                    <span className="text-xs text-gray-700 truncate max-w-[80%]">{formData.renewableSupportingEvidenceFile.name}</span>
+                                  <div className="flex items-center justify-between w-full bg-[var(--surface)] p-2 rounded border border-[var(--rule)] shadow-sm mb-2">
+                                    <span className="text-xs text-[var(--ink)] truncate max-w-[80%]">{formData.renewableSupportingEvidenceFile.name}</span>
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -2808,10 +2778,10 @@ function TemplateContent() {
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                                     </svg>
                                   </label>
-                                  <p className="text-xs font-semibold text-gray-600">
+                                  <p className="text-xs font-semibold text-[var(--ink-soft)]">
                                     Click Icon To Upload
                                   </p>
-                                  <p className="text-[10px] text-gray-400 mt-0.5">
+                                  <p className="text-[10px] text-[var(--ink-mute)] mt-0.5">
                                     Pdf, Jpg, Png Up To 10Mb
                                   </p>
                                 </>
@@ -2826,7 +2796,7 @@ function TemplateContent() {
 
                           {/* Description */}
                           <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                            <label className="scope2-field-label">
                               Energy Source Description
                             </label>
                             <textarea
@@ -2835,7 +2805,7 @@ function TemplateContent() {
                               onChange={handleChange}
                               maxLength={200}
                               placeholder="Describe Renewable Energy Source..."
-                              className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none min-h-[40px]"
+                              className="w-full px-3 py-2 text-sm bg-[var(--surface-2)] border border-[var(--rule)] rounded-lg focus:ring-2  outline-none transition-all resize-none min-h-[40px]"
                             />
                           </div>
                         </div>
@@ -2850,62 +2820,40 @@ function TemplateContent() {
 
           {/* Footer Actions */}
           {/* Footer Actions */}
-          <div className="pt-1 pb-1 mt-auto flex justify-end items-center border-t border-gray-100 flex-shrink-0 bg-white gap-4">
-            {page === 1 ? (
-              <p className="text-[10px] text-gray-400">
-                You Can Edit These Details Later
-              </p>
-            ) : (
-              <p className="text-[10px] text-gray-400 hover:underline cursor-pointer">
-                You Can Edit This Later.
-              </p>
-            )}
-
+          <div className="scope2-footer">
+            <p className="scope2-footer-note">You can edit these details later.</p>
             <div className="flex flex-col items-end gap-1">
               {Object.keys(errors).length > 0 && (
-                <p className="text-[10px] font-bold text-red-500 animate-pulse transition-all">
-                  * Please Fill All Required Fields To Proceed
-                </p>
+                <p className="field-error">Please fill all required fields to proceed.</p>
               )}
-              <div className="flex gap-4">
+              <div className="step-footer" style={{ marginTop: 0, width: '100%', justifyContent: 'flex-end' }}>
                 {page === 2 && (
                   <button
                     type="button"
+                    className="btn ghost"
                     onClick={() => {
                       setErrors({});
                       setPage(1);
                       window.scrollTo(0, 0);
                     }}
-                    className="px-6 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm"
                   >
                     Back
                   </button>
                 )}
-
                 <button
                   type="button"
+                  className="btn primary"
                   onClick={page === 1 ? handleNext : (e) => handleSubmit(e as any)}
                   disabled={isSubmitting}
-                  className="px-8 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {page === 1 ? (
-                    <>
-                      Next: Electricity Data
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </>
-                  ) : (
-                    isSubmitting ? "Submitting..." : "Next: Review & Submit"
-                  )}
+                  {page === 1 ? 'Continue to energy inputs' : isSubmitting ? 'Submitting…' : 'Continue to review'}
                 </button>
               </div>
             </div>
           </div>
-
-        </form >
-      </div >
-    </div >
+        </form>
+      </section>
+    </Scope2WizardShell>
   );
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 import { OPERATING_COUNTRIES } from '@/lib/ui/countries'
 import { NUM_FIELD_PLACEHOLDER, numFieldStatusHint } from '@/lib/ui/labels'
@@ -186,6 +186,89 @@ function toNum(v: string): Num {
   if (v.trim() === '') return null
   const n = Number(v)
   return Number.isFinite(n) ? n : null
+}
+
+/** Shows library default prominently; one click to override or reset. */
+export function DefaultValueField({
+  label,
+  value,
+  onChange,
+  libraryDefault,
+  librarySource,
+  unit,
+  step = 'any',
+  hint,
+  required,
+  span,
+}: {
+  label: string
+  value: Num
+  onChange: (v: Num) => void
+  libraryDefault?: number | null
+  librarySource?: string
+  unit?: string
+  step?: string
+  hint?: string
+  required?: boolean
+  span?: number
+}) {
+  const [editing, setEditing] = useState(false)
+  const usingDefault = value === null && libraryDefault != null && !editing
+
+  if (usingDefault) {
+    return (
+      <div className="field default-value-field" style={span ? { gridColumn: `span ${span}` } : undefined}>
+        <span className="field-title">
+          {label}
+          {required ? <span className="required-mark">*</span> : null}
+        </span>
+        <div className="default-value-read">
+          <div className="default-value-main">
+            <strong>{libraryDefault}</strong>
+            {unit ? <span className="default-value-unit">{unit}</span> : null}
+          </div>
+          <div className="default-value-meta">
+            <span className="default-value-source">
+              From library{librarySource ? ` · ${librarySource}` : ''}
+            </span>
+            <button type="button" className="default-value-edit" onClick={() => setEditing(true)}>
+              Edit
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="default-value-edit-wrap" style={span ? { gridColumn: `span ${span}` } : undefined}>
+      <AccessibleNumField
+        label={label}
+        value={value}
+        onChange={onChange}
+        unit={unit}
+        step={step}
+        hint={hint ?? (libraryDefault != null ? `Library default: ${libraryDefault}${unit ? ` ${unit}` : ''}` : undefined)}
+        required={required}
+      />
+      {libraryDefault != null && value !== null ? (
+        <button
+          type="button"
+          className="default-value-reset"
+          onClick={() => {
+            onChange(null)
+            setEditing(false)
+          }}
+        >
+          Reset to library default
+        </button>
+      ) : editing && libraryDefault != null ? (
+        <button type="button" className="default-value-reset" onClick={() => setEditing(false)}>
+          Cancel
+        </button>
+      ) : null}
+    </div>
+  )
 }
 
 function getFocusable(root: HTMLElement): HTMLElement[] {

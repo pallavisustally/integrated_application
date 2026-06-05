@@ -3,7 +3,9 @@
 import { scope1Fetch, scope1SaveQuery } from '@/lib/scope1-api'
 import { useScope1OrganizationPrefill } from '@/lib/use-scope1-organization-prefill'
 import { useScope1BoundaryPrefill } from '@/lib/use-scope1-boundary-prefill'
-import { lockScope1Calculation } from '@/lib/scope1-lock'
+import { Scope1ReviewContent, Scope1ReviewSubmittedContent } from '@/components/review/scope1-review-page'
+import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
+import { submitScope1ForReview } from '@/lib/scope1-submit-for-review'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Factory,
@@ -39,8 +41,12 @@ import { FactorOverridePanel } from '@/components/factor-override-panel'
 import { CementMethodologyGuide } from '@/components/methodology-guide'
 import { SourceApplicabilityPanel } from '@/components/source-applicability-panel'
 import { WizardProgressNav } from '@/components/wizard-progress-nav'
+import { useWizardTheme } from '@/lib/use-wizard-theme'
 import { ReportSignoffPanel } from '@/components/report-signoff-panel'
-import { AccessibleNumField, AccessibleSelect, AccessibleTextField } from '@/lib/ui/form-fields'
+import { AccessibleNumField, AccessibleSelect, AccessibleTextField, DefaultValueField } from '@/lib/ui/form-fields'
+import { EntryLabelField } from '@/lib/ui/entry-label-field'
+import { GwpSectorCards, GWP_OPTIONS_TWO } from '@/lib/ui/gwp-switch'
+import { labelSuggestionsFor } from '@/lib/ui/label-suggestions'
 import {
   applicabilityFlags,
   CEMENT_INVENTORY_SOURCES,
@@ -57,6 +63,7 @@ import {
   LiveTotalsStrip,
   ResultsViewTabs,
   ActivityDataTools,
+  WizardStickyChrome,
   listInventoryVersions,
   ReconciliationPanel,
   StickyExportBar,
@@ -74,7 +81,7 @@ import { formatNumber } from '@/lib/ui/locale'
 type Num = number | null
 type Cat = 'process' | 'stationary' | 'mobile' | 'fugitive'
 
-const STEPS = ['Sector', 'Facility & methods', 'Activity data', 'Review & report']
+const STEPS = ['Sector', 'Facility & methods', 'Activity data', 'Review & submit']
 
 const FUEL_CODES = [
   'coal_bituminous',
@@ -348,7 +355,7 @@ function fugitiveRowCO2(trace: TraceEntry[] | undefined, label: string) {
 /* --------------------------------- Wizard --------------------------------- */
 
 export function Scope1Wizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement' | 'oil_gas' | 'pulp_paper' | 'iron_steel' | 'power') => void }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const { theme, toggleTheme } = useWizardTheme()
   const [step, setStep] = useState(1)
   const [cat, setCat] = useState<Cat>('process')
   const [p, setP] = useState<InputPayload>(emptyPayload())
@@ -360,6 +367,7 @@ export function Scope1Wizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
   const [importError, setImportError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [factors, setFactors] = useState<{
     constants: { factorCode: string; factorName: string; value: number; unit: string; source: string }[]
     gases: { gasCode: string; name: string; gwpAR5: number; gwpAR6: number }[]
@@ -416,22 +424,19 @@ export function Scope1Wizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
   useScope1BoundaryPrefill(patch)
 
   async function lockInventory() {
-    if (!result?.calculationId) {
-      alert('Save to database first, then submit for review.')
-      return
-    }
+    setSubmitError(null)
     setBusy(true)
     try {
-      const out = await lockScope1Calculation(
-        result.calculationId,
+      const out = await submitScope1ForReview(
+        '/api/v1/calculations/cement/calculate',
+        p,
         p.organization.contactName || 'system',
       )
       if (!out.ok) {
-        alert(`Submit failed: ${out.message}`)
+        setSubmitError(out.message)
         return
       }
       setSubmitted(true)
-      alert('Inventory submitted for admin review.')
     } finally {
       setBusy(false)
     }
@@ -689,110 +694,67 @@ export function Scope1Wizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
 
   return (
     <main className={theme === 'dark' ? 'wizard-app dark' : 'wizard-app'}>
-      <header className="wizard-header">
-        <div className="wizard-header-inner">
-          <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
-            <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
-            <span className="brand-divider" />
-            <span className="brand-label">
-              <span className="brand-eyebrow">Scope 1 Calculator</span>
-              <span className="brand-product">Cement</span>
-            </span>
-          </button>
-          <div className="wizard-actions">
-            <div className="gwp-switch">
-              <span>GWP</span>
-              {(['AR5', 'AR6'] as const).map((g) => (
-                <button
-                  key={g}
-                  className={p.calculationContext.gwpSet === g ? 'active' : ''}
-                  onClick={() => {
-                    if (p.calculationContext.gwpSet === g) return
-                    if (
-                      (step >= 3 || result || live) &&
-                      typeof window !== 'undefined' &&
-                      !window.confirm(
-                        'Changing the GWP set recalculates all CO2e values (especially fugitive emissions). Continue?',
-                      )
-                    ) {
-                      return
-                    }
-                    patch((d) => (d.calculationContext.gwpSet = g))
-                  }}
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
-            <button className="theme-switch" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+      <WizardStickyChrome>
+        <header className="wizard-header">
+          <div className="wizard-header-inner">
+            <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
+              <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
+              <span className="brand-divider" />
+              <span className="brand-label">
+                <span className="brand-eyebrow">Scope 1 Calculator</span>
+                <span className="brand-product">Cement</span>
+              </span>
             </button>
+            <div className="wizard-actions">
+              <button className="theme-switch" onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <WizardProgressNav
-        steps={STEPS}
-        step={step}
-        canReach={canReach}
-        onGo={tryGoTo}
-        gate={{
-          orgValid,
-          facilityValid,
-          hasResult: !!result,
-          facilityLockHint: 'Add a facility name on Facility & methods first.',
-        }}
-      />
+        <WizardProgressNav
+          steps={STEPS}
+          step={step}
+          canReach={canReach}
+          onGo={tryGoTo}
+          gate={{
+            orgValid,
+            facilityValid,
+            hasResult: !!result,
+            facilityLockHint: 'Add a facility name on Facility & methods first.',
+          }}
+        />
+      </WizardStickyChrome>
 
       <section className="wizard-main">
         {step === 1 && (
-          <section className="step-page active">
-            <h1 className="step-title">
-              What <em>sector</em> are you in?
-            </h1>
-            <p className="step-sub">
-              Cement is the first active methodology pack (CSI Cement CO2 Protocol). Gross Scope 1 covers all four canonical source types — <b>process emissions</b> (clinker calcination), <b>stationary combustion</b>, <b>mobile combustion</b>, and <b>fugitive emissions</b> — as full CO2e. The engine is sector-extensible.
-            </p>
-            {hasDraft && (
-              <div className="callout callout-success">
-                <div>
-                  <b>Draft restored.</b>{' '}
-                  <span>Your previous entry was autosaved in this browser and reloaded.</span>
+          <section className="step-page active sector-step-page">
+            <div className="sector-step-intro">
+              <h1 className="step-title">
+                What sector are you <em>in?</em>
+              </h1>
+              <p className="step-sub">
+                Cement is the first active methodology pack (CSI Cement CO2 Protocol). Gross Scope 1 covers all four canonical source types — <b>process emissions</b> (clinker calcination), <b>stationary combustion</b>, <b>mobile combustion</b>, and <b>fugitive emissions</b> — as full CO2e. The engine is sector-extensible.
+              </p>
+              {hasDraft && (
+                <div className="callout callout-success">
+                  <div>
+                    <b>Draft restored.</b>{' '}
+                    <span>Your previous entry was autosaved in this browser and reloaded.</span>
+                  </div>
+                  <button type="button" className="btn ghost" onClick={startFresh}>
+                    Start fresh
+                  </button>
                 </div>
-                <button type="button" className="btn ghost" onClick={startFresh}>
-                  Start fresh
-                </button>
-              </div>
-            )}
-            <div className="callout callout-info">
-              <div>
-                <b>First time here?</b>{' '}
-                <span>Skip data entry and walk through the calculator with a sample cement plant.</span>
-              </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="application/json,.json"
-                  style={{ display: 'none' }}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) importJson(f)
-                    e.currentTarget.value = ''
-                  }}
-                />
-                <button className="btn ghost" onClick={() => fileRef.current?.click()}>
-                  Load JSON
-                </button>
-                <button className="add-entry-btn" onClick={loadSample} disabled={busy}>
-                  {busy ? 'Loading…' : 'Try with sample data →'}
-                </button>
-              </div>
+              )}
+              {importError && (
+                <p className="field-error" style={{ marginTop: 12 }}>{importError}</p>
+              )}
             </div>
-            {importError && (
-              <p className="field-error" style={{ marginTop: -6, marginBottom: 12 }}>{importError}</p>
-            )}
-            <div className="sector-grid">
+            <div className="sector-step-body">
+              <div className="sector-step-grid-wrap">
+                <div className="sector-grid">
               <button className="sector-card selected">
                 <span className="icon"><Factory size={22} strokeWidth={1.75} /></span>
                 <strong>Cement</strong>
@@ -831,9 +793,54 @@ export function Scope1Wizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
                   <span className="tags">Planned</span>
                 </button>
               ))}
+              <GwpSectorCards
+                value={p.calculationContext.gwpSet}
+                options={GWP_OPTIONS_TWO}
+                beforeChange={() => {
+                  if (
+                    (step >= 3 || result || live) &&
+                    typeof window !== 'undefined' &&
+                    !window.confirm(
+                      'Changing the GWP set recalculates all CO2e values (especially fugitive emissions). Continue?',
+                    )
+                  ) {
+                    return false
+                  }
+                  return true
+                }}
+                onChange={(g) => patch((d) => (d.calculationContext.gwpSet = g as 'AR5' | 'AR6'))}
+              />
+                </div>
+              </div>
+              <aside className="sector-step-onboarding-col" aria-label="Get started">
+                <div className="callout callout-info sector-step-onboarding">
+                  <div>
+                    <b>First time here?</b>{' '}
+                    <span>Skip data entry and walk through the calculator with a sample cement plant.</span>
+                  </div>
+                  <div className="sector-step-onboarding-actions">
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="application/json,.json"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) importJson(f)
+                        e.currentTarget.value = ''
+                      }}
+                    />
+                    <button className="btn ghost" onClick={() => fileRef.current?.click()}>
+                      Load JSON
+                    </button>
+                    <button className="add-entry-btn" onClick={loadSample} disabled={busy}>
+                      {busy ? 'Loading…' : 'Try with sample data →'}
+                    </button>
+                  </div>
+                </div>
+              </aside>
             </div>
-            <div className="step-footer">
-              <div />
+            <div className="sector-step-footer">
               <button className="btn primary" onClick={() => setStep(2)}>
                 Continue
               </button>
@@ -1231,46 +1238,23 @@ export function Scope1Wizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
         )}
 
         {step === 4 && result && (
-          <ResultsPage
-            result={result}
-            payload={p}
-            busy={busy}
-            onBack={() => setStep(3)}
-            onReset={() => {
-              setResult(null)
-              setP(emptyPayload())
-              setStep(1)
-            }}
-            onSave={() => runCalculate(true)}
-            onLock={lockInventory}
-            locked={submitted}
-            onDownload={download}
-            versions={listInventoryVersions('cement')}
-            onRestore={(snap) => {
-              if (snap.payload) {
-                setP(snap.payload as InputPayload)
-                saveCementDraft(snap.payload as InputPayload)
-                setResult(null)
-                setLive(null)
-                setStep(3)
-              }
-            }}
-            onSignoffPatch={(fields) =>
-              patch((d) => {
-                if (fields.contactName !== undefined) {
-                  d.organization.contactName = fields.contactName
-                  d.auditMetadata = { ...d.auditMetadata, preparedBy: fields.contactName }
-                }
-                if (fields.contactEmail !== undefined) d.organization.contactEmail = fields.contactEmail
-                if (fields.contactPhone !== undefined) d.organization.contactPhone = fields.contactPhone
-                if (fields.contactRole !== undefined) d.organization.contactRole = fields.contactRole
-                if (fields.notes !== undefined) {
-                  d.auditMetadata = { ...d.auditMetadata, notes: fields.notes }
-                }
-              })
-            }
-          />
+          submitted ? (
+            <Scope1ReviewSubmittedContent sectorLabel="Scope 1 · Cement" />
+          ) : (
+            <Scope1ReviewContent
+              quadrants={buildScope1ReviewQuadrants(
+                p as unknown as Record<string, unknown>,
+                result as unknown as Record<string, unknown>,
+                'CEMENT',
+              )}
+              busy={busy}
+              onBack={() => setStep(3)}
+              onSubmit={lockInventory}
+              submitError={submitError}
+            />
+          )
         )}
+
       </section>
     </main>
   )
@@ -1412,10 +1396,11 @@ function FuelTable({
             <div className="entry-card-section">
               <div className="entry-card-section-label">Basics</div>
               <div className="field-row">
-                <label className="field">
-                  Label
-                  <input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} />
-                </label>
+                <EntryLabelField
+                  value={e.label}
+                  onChange={(v) => upd(e.id, (f) => (f.label = v))}
+                  suggestions={labelSuggestionsFor('cement', title === 'Kiln fuels' ? 'kilnFuels' : 'nonKilnFuels')}
+                />
                 <EntryLabeledSelect
                   label="Fuel"
                   value={e.fuelCode}
@@ -1616,10 +1601,11 @@ function MobileTable({
             <div className="entry-card-section">
               <div className="entry-card-section-label">Basics</div>
               <div className="field-row">
-                <label className="field">
-                  Label
-                  <input value={e.label} onChange={(ev) => upd(e.id, (m) => (m.label = ev.target.value))} />
-                </label>
+                <EntryLabelField
+                  value={e.label}
+                  onChange={(v) => upd(e.id, (m) => (m.label = v))}
+                  suggestions={labelSuggestionsFor('cement', 'mobile')}
+                />
                 <EntryLabeledSelect
                   label="Ownership"
                   value={e.ownership}
@@ -1722,7 +1708,10 @@ function MobileTable({
 
             {isOpen && (
               <div className="entry-card-section">
-                <div className="entry-card-section-label">Factor overrides (blank = library default)</div>
+                <div className="entry-card-section-label">Custom emission factors</div>
+                <p className="form-sub" style={{ marginTop: 0 }}>
+                  Values below replace library defaults for this row. Leave blank to keep the factor library value.
+                </p>
                 <div className="field-row">
                   <NumField label="LHV override" unit={`GJ/${e.quantityUnit}`} step="0.0001" value={e.lhvGjPerUnit ?? null} onChange={(v) => upd(e.id, (m) => (m.lhvGjPerUnit = v))} hint="blank = library default" />
                   <NumField label="CO2 EF override" unit="kg/GJ" step="0.01" value={e.co2EfKgPerGj ?? null} onChange={(v) => upd(e.id, (m) => (m.co2EfKgPerGj = v))} hint="blank = library default" />
@@ -1839,10 +1828,11 @@ function FugitiveTable({
             <div className="entry-card-section">
               <div className="entry-card-section-label">Basics</div>
               <div className="field-row">
-                <label className="field">
-                  Label
-                  <input value={e.label} onChange={(ev) => upd(e.id, (g) => (g.label = ev.target.value))} />
-                </label>
+                <EntryLabelField
+                  value={e.label}
+                  onChange={(v) => upd(e.id, (g) => (g.label = v))}
+                  suggestions={labelSuggestionsFor('cement', 'fugitive')}
+                />
                 <div className="field">
                   <EntryLabeledSelect
                     label="Gas"
@@ -1850,12 +1840,17 @@ function FugitiveTable({
                     onChange={(v) => upd(e.id, (g) => (g.gasCode = v))}
                     options={codesToOptions(GAS_CODES, gasLabel)}
                   />
-                  <small className="form-sub">
-                    Library GWP ({gwpSet}): <b>{libGwp ? fmt(libGwp) : 'n/a'}</b>
-                  </small>
                 </div>
                 <NumField label="Quantity leaked / top-up" unit="kg" value={e.leakedKg} onChange={(v) => upd(e.id, (g) => (g.leakedKg = v))} />
-                <NumField label="GWP override" step="1" value={e.gwpOverride ?? null} onChange={(v) => upd(e.id, (g) => (g.gwpOverride = v))} hint="Blank = library GWP" />
+                <DefaultValueField
+                  label="GWP"
+                  step="1"
+                  value={e.gwpOverride ?? null}
+                  onChange={(v) => upd(e.id, (g) => (g.gwpOverride = v))}
+                  libraryDefault={libGwp ?? undefined}
+                  librarySource={`IPCC ${gwpSet}`}
+                  hint="Override only when supplier blend GWP differs"
+                />
               </div>
             </div>
 
@@ -1883,8 +1878,8 @@ function FugitiveTable({
 
             {mismatch && (
               <div className="inline-warn">
-                ⚠ Label mentions <b>{mismatch.toUpperCase()}</b> but the selected gas is{' '}
-                <b>{e.gasCode.toUpperCase()}</b>. This can cause a major GWP error — please confirm.
+                ⚠ Label mentions <b>{mismatch}</b> but the selected gas is{' '}
+                <b>{gasLabel(e.gasCode)}</b>. This can cause a major GWP error — please confirm.
               </div>
             )}
 

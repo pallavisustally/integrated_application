@@ -29,31 +29,125 @@ const Scope1Applications: CollectionConfig = {
       async ({ doc, previousDoc, operation, req }) => {
         if (typeof window !== 'undefined' || operation !== 'update' || !doc) return doc
 
+        const rel = doc.scope1Assessment
         const scope1AssessmentId =
-          typeof doc.scope1Assessment === 'string' || typeof doc.scope1Assessment === 'number'
-            ? String(doc.scope1Assessment)
-            : undefined
-        if (!scope1AssessmentId) return doc
+          typeof rel === 'string' || typeof rel === 'number'
+            ? String(rel)
+            : rel && typeof rel === 'object' && 'id' in rel
+              ? String((rel as { id: string | number }).id)
+              : undefined
 
-        if (doc.status === 'APPROVED' && previousDoc?.status !== 'APPROVED') {
-          await req.payload.update({
-            collection: 'scope1-assessments',
-            id: scope1AssessmentId,
-            data: { reviewStatus: 'approved' },
-            req,
-          })
+        if (!scope1AssessmentId) {
+          console.error(
+            `[Scope1Applications] Missing scope1Assessment on application ${doc.id}; cannot sync review or email.`,
+          )
+          return doc
         }
 
-        if (doc.status === 'REJECTED' && previousDoc?.status !== 'REJECTED') {
-          await req.payload.update({
-            collection: 'scope1-assessments',
-            id: scope1AssessmentId,
-            data: {
-              reviewStatus: 'rejected',
-              rejectionReason: (doc.rejectionReason as string) || '',
-            },
-            req,
-          })
+        try {
+          if (doc.status === 'APPROVED' && previousDoc?.status !== 'APPROVED') {
+            const scope1Doc = await req.payload.findByID({
+              collection: 'scope1-assessments',
+              id: scope1AssessmentId,
+              depth: 0,
+            })
+            const wasApproved = scope1Doc.reviewStatus === 'approved'
+
+            if (!wasApproved) {
+              await req.payload.update({
+                collection: 'scope1-assessments',
+                id: scope1AssessmentId,
+                data: { reviewStatus: 'approved' },
+                context: { skipHooks: true },
+                req,
+              })
+            }
+
+            const publicId = (doc.assessmentId as string) || (scope1Doc.assessmentId as string)
+            if (publicId) {
+              const parents = await req.payload.find({
+                collection: 'assessments',
+                where: { assessmentId: { equals: publicId } },
+                limit: 1,
+              })
+              if (parents.totalDocs > 0) {
+                const parent = parents.docs[0]
+                if (parent.status !== 'APPROVED') {
+                  await req.payload.update({
+                    collection: 'assessments',
+                    id: parent.id,
+                    data: {
+                      status: 'APPROVED',
+                      approvedAt: new Date().toISOString(),
+                    },
+                    context: { skipHooks: true },
+                    req,
+                  })
+                }
+                const { onScope1Approved } = await import('../lib/assessment-workflow')
+                await onScope1Approved(req.payload, scope1Doc as never, parent as never, {
+                  applicantEmail: (doc.email as string) || parent.email,
+                })
+              } else {
+                console.error(
+                  `[Scope1Applications] No parent assessment for ${publicId}; cannot email dashboard link`,
+                )
+              }
+            }
+          }
+
+          if (doc.status === 'REJECTED' && previousDoc?.status !== 'REJECTED') {
+            await req.payload.update({
+              collection: 'scope1-assessments',
+              id: scope1AssessmentId,
+              data: {
+                reviewStatus: 'rejected',
+                rejectionReason: (doc.rejectionReason as string) || '',
+              },
+              context: { skipHooks: true },
+              req,
+            })
+
+            const scope1Doc = await req.payload.findByID({
+              collection: 'scope1-assessments',
+              id: scope1AssessmentId,
+              depth: 0,
+            })
+            const publicId = (doc.assessmentId as string) || (scope1Doc.assessmentId as string)
+            if (publicId) {
+              const parents = await req.payload.find({
+                collection: 'assessments',
+                where: { assessmentId: { equals: publicId } },
+                limit: 1,
+              })
+              if (parents.totalDocs > 0) {
+                const parent = parents.docs[0]
+                await req.payload.update({
+                  collection: 'assessments',
+                  id: parent.id,
+                  data: {
+                    status: 'REJECTED',
+                    rejectionReason: (doc.rejectionReason as string) || '',
+                  },
+                  context: { skipHooks: true },
+                  req,
+                })
+                const { onScope1Rejected } = await import('../lib/assessment-workflow')
+                await onScope1Rejected(
+                  req.payload,
+                  scope1Doc as never,
+                  {
+                    email: parent.email,
+                    assessmentType: parent.assessmentType,
+                    assessmentId: publicId,
+                  },
+                  (doc.rejectionReason as string) || '',
+                )
+              }
+            }
+          }
+        } catch (err) {
+          console.error('[Scope1Applications] afterChange sync failed:', err)
         }
 
         return doc

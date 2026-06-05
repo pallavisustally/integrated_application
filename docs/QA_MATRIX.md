@@ -7,8 +7,9 @@ Run with `sustally` on **3001** and `fn` on **3000**. See `docs/ENVIRONMENT.md`.
 | 1 | Book **Scope 2** ? email ? `/assessment/start` ? complete `/scope` ? submit | `assessments` = SUBMITTED, `scope2-applications` = PENDING |
 | 2 | Payload: approve Scope 2 | Parent APPROVED, email with `assessmentId`, dashboard OTP ? certificate |
 | 3 | Book **Scope 1** ? `/scope1` wizard | Org fields prefilled from booking |
-| 4 | Scope 1: Save ? **Submit for review** | `scope1-assessments` pending, parent SUBMITTED |
-| 5 | Approve Scope 1 in Payload or `/admin/review/{id}?type=scope1` | PDF in Media, approval email, dashboard OTP ? `/scope1/report` |
+| 4 | Scope 1: finish wizard ? **Review & submit** (2×2 grid, no PDF/Excel on review) ? **Submit for review** | Auto-save + lock; `scope1-assessments` pending, parent SUBMITTED |
+| 5 | Approve Scope 1 in Payload or `/admin/review/{id}?type=scope1` | Admin sees same 2×2 grid; PDF in Media, approval email, dashboard OTP ? `/scope1/dashboard` |
+| 11 | Scope 2: `/scope/review` before submit | Input cards + **Emissions & methodology** + **Energy calculations** cards (no downloads on review) |
 | 6 | Reject Scope 1 with reason | Parent REJECTED, retry email with `/scope1?...&retry=true` |
 | 7 | Open Scope 2 link for Scope 1 booking | Redirect to `/scope1` |
 | 8 | Open approved assessment before OTP | Dashboard sends OTP; verify branches by type |

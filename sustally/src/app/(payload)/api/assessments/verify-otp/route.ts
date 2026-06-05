@@ -123,11 +123,13 @@ export const POST = async (request: Request) => {
       application = byEmail.docs[0]
     }
 
+    const rel = application.scope1Assessment
     const scope1AssessmentId =
-      typeof application.scope1Assessment === 'string' ||
-      typeof application.scope1Assessment === 'number'
-        ? String(application.scope1Assessment)
-        : null
+      typeof rel === 'string' || typeof rel === 'number'
+        ? String(rel)
+        : rel && typeof rel === 'object' && 'id' in rel
+          ? String((rel as { id: string | number }).id)
+          : null
 
     let scope1Doc = null
     if (scope1AssessmentId) {

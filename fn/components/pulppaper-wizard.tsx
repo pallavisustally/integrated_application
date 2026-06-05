@@ -38,15 +38,21 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { scope1Fetch, scope1SaveQuery } from '@/lib/scope1-api'
-import { lockScope1Calculation } from '@/lib/scope1-lock'
+import { Scope1ReviewContent, Scope1ReviewSubmittedContent } from '@/components/review/scope1-review-page'
+import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
+import { submitScope1ForReview } from '@/lib/scope1-submit-for-review'
 import { useScope1OrganizationPrefill } from '@/lib/use-scope1-organization-prefill'
 import { useScope1BoundaryPrefill } from '@/lib/use-scope1-boundary-prefill'
 import { FactorOverridePanel } from '@/components/factor-override-panel'
 import { PulpPaperMethodologyGuide } from '@/components/methodology-guide'
 import { SourceApplicabilityPanel } from '@/components/source-applicability-panel'
 import { WizardProgressNav } from '@/components/wizard-progress-nav'
+import { useWizardTheme } from '@/lib/use-wizard-theme'
 import { ReportSignoffPanel } from '@/components/report-signoff-panel'
 import { AccessibleNumField, AccessibleSelect, AccessibleTextField } from '@/lib/ui/form-fields'
+import { EntryLabelField } from '@/lib/ui/entry-label-field'
+import { GwpSectorCards, GWP_OPTIONS_THREE } from '@/lib/ui/gwp-switch'
+import { labelSuggestionsFor } from '@/lib/ui/label-suggestions'
 import { uploadActivityExcel } from '@/lib/activity-import/client'
 import { mergeImportedActivity } from '@/lib/activity-import/parse-excel'
 import { formatNumber } from '@/lib/ui/locale'
@@ -74,6 +80,7 @@ import {
   InventoryStatusBanner,
   LiveTotalsStrip,
   ActivityDataTools,
+  WizardStickyChrome,
   listInventoryVersions,
   ReconciliationPanel,
   ResultsViewTabs,
@@ -138,7 +145,7 @@ type Cat =
   | 'transfer'
   | 'reported'
 
-const STEPS = ['Sector', 'Facility & methods', 'Activity data', 'Review & report']
+const STEPS = ['Sector', 'Facility & methods', 'Activity data', 'Review & submit']
 
 const CATEGORIES: {
   key: Cat
@@ -377,7 +384,7 @@ function StationaryTable({ entries, trace, onChange }: { entries: FuelEntry[]; t
           formula={<>quantity × NCV ÷ 1000 × CO2 EF = tCO2 · CH4/N2O = energy × EF_tech / 1000 · fossil → Scope 1</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Fuel"
                 value={e.fuelCode}
@@ -430,7 +437,7 @@ function BiomassTable({ entries, trace, onChange }: { entries: BiomassEntry[]; t
           formula={<>biogenic CO2 (memo) = E × EFco2 / 1000 · CH4 + N2O (Scope 1) = E × EF_tech / 1000</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Biomass fuel"
                 value={e.fuelCode}
@@ -475,7 +482,7 @@ function LimeKilnTable({ entries, trace, onChange }: { entries: LimeKilnEntry[];
           formula={<>fossil CO2 = E × EFco2 / 1000 · CH4 = E × 0.0027 / 1000 · N2O kiln=0 / calciner=0.1–0.3</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Type"
                 value={e.kilnType}
@@ -523,7 +530,7 @@ function MakeupTable({ entries, trace, onChange }: { entries: MakeupCarbonateEnt
           formula={<>CO2 = quantity × stoichiometric factor (CaCO3 0.440 · Na2CO3 0.415 · Dolomite 0.477)</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Chemical"
                 value={e.chemicalCode}
@@ -572,7 +579,7 @@ function MobileTable({ entries, trace, onChange }: { entries: MobileEntry[]; tra
           formula={<>E = qty × NCV × EF / 1000 (CO2/CH4/N2O). N2O is the dominant non-CO2 GHG for diesel off-road.</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Ownership"
                 value={e.ownership}
@@ -618,7 +625,7 @@ function LandfillTable({ entries, trace, onChange }: { entries: LandfillEntry[];
             : <>CH4 generated = R · L0 · (e^(−kC) − e^(−kT)); released = (gen−recov)(1−OX) + recov(1−FRBURN)</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Method"
                 value={e.method}
@@ -670,7 +677,7 @@ function WwtTable({ entries, trace, onChange }: { entries: AnaerobicWwtEntry[]; 
           formula={e.method === 'GAS_CAPTURE' ? <>CH4 m3 = (Q/FRCOLL)·(1−FRCOLL)·FRMETH + Q·FRMETH·(1−FRBURN); ×0.72/1000 → t</> : <>CH4 kg = OC × EF − B (COD: 0.25; BOD: 0.6)</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Method"
                 value={e.method}
@@ -720,7 +727,7 @@ function RefrigerantTable({ entries, trace, onChange }: { entries: RefrigerantEn
           formula={e.method === 'MASS_BALANCE' ? <>E = inv_start + purchased − sold − inv_end − recovered; CO2e = E × GWP / 1000</> : <>E = charge × annual_leak_rate; CO2e = E × GWP / 1000</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Gas"
                 value={e.gasCode}
@@ -783,7 +790,7 @@ function ChpTable({ entries, trace, onChange }: { entries: ChpAllocationEntry[];
           formula={<>Reff = eH / eP; EH = H / (H + P·Reff) × ET; EP = ET − EH</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <NumField label="Total emissions" unit="tCO2e" value={e.totalEmissionsCo2eTonnes} onChange={(v) => upd(e.id, (f) => (f.totalEmissionsCo2eTonnes = v))} />
               <NumField label="Heat output (H)" unit="GJ" value={e.heatOutputGj} onChange={(v) => upd(e.id, (f) => (f.heatOutputGj = v))} />
               <NumField label="Power output (P)" unit="GJ" value={e.powerOutputGj} onChange={(v) => upd(e.id, (f) => (f.powerOutputGj = v))} />
@@ -818,7 +825,7 @@ function TransferTable({ entries, trace, onChange }: { entries: Co2TransferEntry
           formula={<>Net E_CO2 = combustion − exports + imports (fossil); biogenic transfers adjust memo line.</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'combustion')} />
               <EntryLabeledSelect
                 label="Direction"
                 value={e.direction}
@@ -863,7 +870,7 @@ function ReportedTable({ entries, trace, onChange }: { entries: ReportedEntry[];
           formula={<>direct disclosed CO2e, or CO2 + CH4·GWP + N2O·GWP from reported gas masses</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('pulp_paper', 'fugitive')} />
               <label className="field">Source / category tag<input value={e.categoryTag ?? ''} placeholder="e.g. corporate disclosure" onChange={(ev) => upd(e.id, (r) => (r.categoryTag = ev.target.value))} /></label>
               <EntryLabeledSelect
                 label="Basis"
@@ -1203,10 +1210,11 @@ export function PulpPaperWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<PulpPaperCalculationResult | null>(null)
   const [live, setLive] = useState<PulpPaperCalculationResult | null>(null)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const { theme, toggleTheme } = useWizardTheme()
   const [importError, setImportError] = useState<string | null>(null)
   const [hasDraft, setHasDraft] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [step3Tried, setStep3Tried] = useState(false)
   const fileRef = useRef<HTMLInputElement | null>(null)
   const [factors, setFactors] = useState<{
@@ -1419,22 +1427,19 @@ export function PulpPaperWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
   }
 
   async function lockInventory() {
-    if (!result?.calculationId) {
-      alert('Save to database first, then submit for review.')
-      return
-    }
+    setSubmitError(null)
     setBusy(true)
     try {
-      const out = await lockScope1Calculation(
-        result.calculationId,
+      const out = await submitScope1ForReview(
+        '/api/v1/calculations/pulp-paper/calculate',
+        p,
         p.organization.contactName || 'system',
       )
       if (!out.ok) {
-        alert(`Submit failed: ${out.message}`)
+        setSubmitError(out.message)
         return
       }
       setSubmitted(true)
-      alert('Inventory submitted for admin review.')
     } finally {
       setBusy(false)
     }
@@ -1506,90 +1511,61 @@ export function PulpPaperWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
 
   return (
     <main className={theme === 'dark' ? 'wizard-app dark' : 'wizard-app'}>
-      <header className="wizard-header">
-        <div className="wizard-header-inner">
-          <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
-            <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
-            <span className="brand-divider" />
-            <span className="brand-label">
-              <span className="brand-eyebrow">Scope 1 Calculator</span>
-              <span className="brand-product">Pulp &amp; Paper</span>
-            </span>
-          </button>
-          <div className="wizard-actions">
-            <div className="gwp-switch">
-              <span>GWP</span>
-              {(['AR5_100', 'AR6_100', 'AR6_20'] as const).map((g) => (
-                <button
-                  key={g}
-                  className={p.calculationContext.gwpSet === g ? 'active' : ''}
-                  onClick={() => {
-                    if (p.calculationContext.gwpSet === g) return
-                    if (
-                      (step >= 3 || result || live) &&
-                      typeof window !== 'undefined' &&
-                      !window.confirm(
-                        'Changing the GWP set recalculates all CO2e values. Continue?',
-                      )
-                    ) {
-                      return
-                    }
-                    patch((d) => (d.calculationContext.gwpSet = g))
-                  }}
-                >
-                  {g.replace('_', ' ')}
-                </button>
-              ))}
-            </div>
-            <button className="theme-switch" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle theme" aria-label="Toggle theme">
-              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+      <WizardStickyChrome>
+        <header className="wizard-header">
+          <div className="wizard-header-inner">
+            <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
+              <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
+              <span className="brand-divider" />
+              <span className="brand-label">
+                <span className="brand-eyebrow">Scope 1 Calculator</span>
+                <span className="brand-product">Pulp &amp; Paper</span>
+              </span>
             </button>
+            <div className="wizard-actions">
+              <button className="theme-switch" onClick={toggleTheme} title="Toggle theme" aria-label="Toggle theme">
+                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <WizardProgressNav
-        steps={STEPS}
-        step={step}
-        canReach={canReach}
-        onGo={tryGoTo}
-        gate={{
-          orgValid,
-          facilityValid,
-          hasResult: !!result,
-          facilityLockHint: 'Add mill name and mill type on Facility & methods first.',
-        }}
-      />
+        <WizardProgressNav
+          steps={STEPS}
+          step={step}
+          canReach={canReach}
+          onGo={tryGoTo}
+          gate={{
+            orgValid,
+            facilityValid,
+            hasResult: !!result,
+            facilityLockHint: 'Add mill name and mill type on Facility & methods first.',
+          }}
+        />
+      </WizardStickyChrome>
 
       <section className="wizard-main">
         {step === 1 && (
-          <section className="step-page active">
-            <h1 className="step-title">What <em>sector</em> are you in?</h1>
-            <p className="step-sub">Pulp &amp; Paper uses the ICFPA/NCASI v1.4 ten-category taxonomy. Gross Scope 1 covers all four canonical source types — <b>stationary combustion</b> (fossil + biomass), <b>mobile combustion</b>, <b>process emissions</b> (lime kiln + make-up carbonates), and <b>fugitive emissions</b> (landfill CH4, anaerobic WWT, refrigerants) — as full CO2e. Biogenic CO2 is a separate memo line.</p>
-            {hasDraft && (
-              <div className="callout callout-success">
-                <div>
-                  <b>Draft restored.</b>{' '}
-                  <span>Your previous entry was autosaved in this browser and reloaded.</span>
+          <section className="step-page active sector-step-page">
+            <div className="sector-step-intro">
+              <h1 className="step-title">What sector are you <em>in?</em></h1>
+              <p className="step-sub">Pulp &amp; Paper uses the ICFPA/NCASI v1.4 ten-category taxonomy. Gross Scope 1 covers all four canonical source types — <b>stationary combustion</b> (fossil + biomass), <b>mobile combustion</b>, <b>process emissions</b> (lime kiln + make-up carbonates), and <b>fugitive emissions</b> (landfill CH4, anaerobic WWT, refrigerants) — as full CO2e. Biogenic CO2 is a separate memo line.</p>
+              {hasDraft && (
+                <div className="callout callout-success">
+                  <div>
+                    <b>Draft restored.</b>{' '}
+                    <span>Your previous entry was autosaved in this browser and reloaded.</span>
+                  </div>
+                  <button type="button" className="btn ghost" onClick={startFresh}>
+                    Start fresh
+                  </button>
                 </div>
-                <button type="button" className="btn ghost" onClick={startFresh}>
-                  Start fresh
-                </button>
-              </div>
-            )}
-            <div className="callout callout-info">
-              <div>
-                <b>First time here?</b>{' '}
-                <span>See the calculator end-to-end with a sample kraft mill.</span>
-              </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <input ref={fileRef} type="file" accept="application/json,.json" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); e.currentTarget.value = '' }} />
-                <button type="button" className="btn ghost" onClick={() => fileRef.current?.click()}>Load JSON</button>
-                <button type="button" className="add-entry-btn" onClick={loadSample} disabled={busy}>{busy ? 'Loading…' : 'Try with sample data →'}</button>
-              </div>
+              )}
+              {importError && <p className="field-error" style={{ marginTop: 12 }}>{importError}</p>}
             </div>
-            {importError && <p className="field-error" style={{ marginTop: -6, marginBottom: 12 }}>{importError}</p>}
-            <div className="sector-grid">
+            <div className="sector-step-body">
+              <div className="sector-step-grid-wrap">
+                <div className="sector-grid">
               <button className="sector-card" onClick={() => onSwitchSector?.('cement')}>
                 <span className="icon"><Factory size={22} strokeWidth={1.75} /></span>
                 <strong>Cement</strong>
@@ -1628,9 +1604,38 @@ export function PulpPaperWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
                   <span className="tags">Planned</span>
                 </button>
               ))}
+              <GwpSectorCards
+                value={p.calculationContext.gwpSet}
+                options={GWP_OPTIONS_THREE}
+                beforeChange={() => {
+                  if (
+                    (step >= 3 || result || live) &&
+                    typeof window !== 'undefined' &&
+                    !window.confirm('Changing the GWP set recalculates all CO2e values. Continue?')
+                  ) {
+                    return false
+                  }
+                  return true
+                }}
+                onChange={(g) => patch((d) => (d.calculationContext.gwpSet = g as typeof d.calculationContext.gwpSet))}
+              />
+                </div>
+              </div>
+              <aside className="sector-step-onboarding-col" aria-label="Get started">
+                <div className="callout callout-info sector-step-onboarding">
+                  <div>
+                    <b>First time here?</b>{' '}
+                    <span>See the calculator end-to-end with a sample kraft mill.</span>
+                  </div>
+                  <div className="sector-step-onboarding-actions">
+                    <input ref={fileRef} type="file" accept="application/json,.json" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); e.currentTarget.value = '' }} />
+                    <button type="button" className="btn ghost" onClick={() => fileRef.current?.click()}>Load JSON</button>
+                    <button type="button" className="add-entry-btn" onClick={loadSample} disabled={busy}>{busy ? 'Loading…' : 'Try with sample data →'}</button>
+                  </div>
+                </div>
+              </aside>
             </div>
-            <div className="step-footer">
-              <div />
+            <div className="sector-step-footer">
               <button className="btn primary" onClick={() => setStep(2)}>Continue</button>
             </div>
           </section>
@@ -1789,41 +1794,23 @@ export function PulpPaperWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
         )}
 
         {step === 4 && result && (
-          <PulpPaperResultsPage
-            result={result}
-            payload={p}
-            busy={busy}
-            onBack={() => setStep(3)}
-            onSave={() => runCalculate(true)}
-            onLock={lockInventory}
-            locked={submitted}
-            versions={listInventoryVersions('pulp_paper')}
-            onRestore={(snap) => {
-              if (snap.payload) {
-                setP(snap.payload as PulpPaperInputPayload)
-                saveDraft(snap.payload as PulpPaperInputPayload)
-                setResult(null)
-                setLive(null)
-                setStep(3)
-              }
-            }}
-            onDownload={download}
-            onSignoffPatch={(fields) =>
-              patch((d) => {
-                if (fields.contactName !== undefined) {
-                  d.organization.contactName = fields.contactName
-                  d.auditMetadata = { ...d.auditMetadata, preparedBy: fields.contactName }
-                }
-                if (fields.contactEmail !== undefined) d.organization.contactEmail = fields.contactEmail
-                if (fields.contactPhone !== undefined) d.organization.contactPhone = fields.contactPhone
-                if (fields.contactRole !== undefined) d.organization.contactRole = fields.contactRole
-                if (fields.notes !== undefined) {
-                  d.auditMetadata = { ...d.auditMetadata, notes: fields.notes }
-                }
-              })
-            }
-          />
+          submitted ? (
+            <Scope1ReviewSubmittedContent sectorLabel="Scope 1 · Pulp & Paper" />
+          ) : (
+            <Scope1ReviewContent
+              quadrants={buildScope1ReviewQuadrants(
+                p as unknown as Record<string, unknown>,
+                result as unknown as Record<string, unknown>,
+                'PULP_PAPER',
+              )}
+              busy={busy}
+              onBack={() => setStep(3)}
+              onSubmit={lockInventory}
+              submitError={submitError}
+            />
+          )
         )}
+
       </section>
     </main>
   )

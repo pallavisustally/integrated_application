@@ -1,8 +1,13 @@
 'use client'
 
 import { scope1Api } from '@/lib/scope1-api'
-import type { ComponentType } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
+
+/** Sticky top chrome: logo row + progress stepper stay visible while scrolling. */
+export function WizardStickyChrome({ children }: { children: ReactNode }) {
+  return <div className="wizard-sticky-chrome">{children}</div>
+}
 
 import type { FactorSnapshot, TraceEntry } from '@/lib/engine/types'
 import { categoryLabel, cementComponentLabel } from '@/lib/ui/labels'
@@ -650,14 +655,6 @@ export function ActivityDataShell({
 
   return (
     <section className="step-page active activity-data-page">
-      <h1 className="step-title">
-        Activity <em>data</em>
-      </h1>
-      <p className="step-sub">
-        Enter reporting-period quantities by emission category. Leave a field blank if unknown; enter{' '}
-        <b>0</b> only for a verified actual zero.
-      </p>
-
       {methodology ? (
         <MethodologyContextStrip
           profileTitle={methodology.profileTitle}
@@ -668,7 +665,18 @@ export function ActivityDataShell({
 
       {liveTotals}
 
-      {tools ? <div className="activity-data-tools-wrap">{tools}</div> : null}
+      <div className="activity-data-page-header">
+        <div className="activity-data-title-row">
+          <h1 className="step-title">
+            Enter your activity <em>data</em>
+          </h1>
+          {tools ? <div className="activity-data-tools-wrap">{tools}</div> : null}
+        </div>
+        <p className="step-sub">
+          Enter reporting-period quantities by emission category. Leave a field blank if unknown; enter{' '}
+          <b>0</b> only for a verified actual zero.
+        </p>
+      </div>
 
       {validation ? (
         <LiveValidationBanner

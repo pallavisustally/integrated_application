@@ -96,7 +96,9 @@ export async function generateScope1Reports(
     }
     case 'OIL_GAS': {
       const payload = input as unknown as OilGasInputPayload
-      const result = calculateOilGas(payload)
+      const result = doc.result
+        ? (doc.result as ReturnType<typeof calculateOilGas>)
+        : calculateOilGas(payload)
       base = safeBaseName(payload.facility?.name ?? 'facility', 'scope1-oilgas', result.reportingPeriod.year)
       pdfBuf = Buffer.from(await buildOilGasPdf(payload, result))
       xlsxBuf = Buffer.from(await buildOilGasWorkbook(payload, result))

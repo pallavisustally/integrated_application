@@ -34,7 +34,15 @@ import {
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { scope1Fetch, scope1SaveQuery } from '@/lib/scope1-api'
-import { lockScope1Calculation } from '@/lib/scope1-lock'
+import { Scope1ReviewContent, Scope1ReviewSubmittedContent } from '@/components/review/scope1-review-page'
+import { WizardProgressNav } from '@/components/wizard-progress-nav'
+import { WizardStickyChrome } from '@/components/wizard-shared'
+import { useWizardTheme } from '@/lib/use-wizard-theme'
+import { EntryLabelField } from '@/lib/ui/entry-label-field'
+import { GwpSectorCards, GWP_OPTIONS_THREE } from '@/lib/ui/gwp-switch'
+import { labelSuggestionsFor } from '@/lib/ui/label-suggestions'
+import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
+import { submitScope1ForReview } from '@/lib/scope1-submit-for-review'
 import { mapScope1CountryToPower } from '@/lib/assessment-mapper'
 import { useScope1OrganizationPrefill } from '@/lib/use-scope1-organization-prefill'
 import { useScope1BoundaryPrefill } from '@/lib/use-scope1-boundary-prefill'
@@ -280,7 +288,9 @@ function FuelTable<T extends FuelEntry>({ kind, entries, onChange }: {
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || `(unnamed ${kind})`} badge={kind === 'biomass' ? MEMO_BADGE : S1_BADGE} onRemove={() => rem(e.id)} formula={<>energy = qty &times; NCV &middot; CO2 = energy &times; EF &middot; CH4/N2O via tech defaults</>}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder={`e.g. ${kind === 'main' ? 'Boiler-1 PC' : kind === 'aux' ? 'Emergency DG' : 'Wood-chip cofiring'}`} onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'combustion')} />
+            </div>
             <label className="field">Fuel
               <select value={e.fuelCode} onChange={(ev) => upd(e.id, (r) => (r.fuelCode = ev.target.value))}>{fuels.map((c) => <option key={c} value={c}>{c.replace(/_/g, ' ')}</option>)}</select>
             </label>
@@ -322,7 +332,9 @@ function MobileTable({ entries, onChange }: { entries: MobileEntry[]; onChange: 
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || '(unnamed mobile)'} badge={e.ownership === 'THIRD_PARTY' ? <span className="entry-badge entry-badge-s3">Supporting Scope 3</span> : S1_BADGE} onRemove={() => rem(e.id)}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder="e.g. Coal haul fleet" onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'combustion')} />
+            </div>
             <label className="field">Ownership
               <select value={e.ownership} onChange={(ev) => upd(e.id, (r) => (r.ownership = ev.target.value as MobileEntry['ownership']))}>
                 <option value="OWNED_CONTROLLED">Owned / controlled (Scope 1)</option>
@@ -356,7 +368,9 @@ function FgdTable({ entries, onChange }: { entries: FgdEntry[]; onChange: (rows:
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || '(unnamed FGD unit)'} badge={S1_BADGE} onRemove={() => rem(e.id)} formula={<>CO2 = limestone &times; purity &times; 0.4396</>}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder="e.g. Wet FGD scrubber" onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'combustion')} />
+            </div>
             <NumField label="Limestone consumed" unit="t" value={e.limestoneTonnes} onChange={(v) => upd(e.id, (r) => (r.limestoneTonnes = v))} />
             <NumField label="Purity override" unit="0-1" step="0.01" value={e.purity ?? null} onChange={(v) => upd(e.id, (r) => (r.purity = v))} hint="default 0.92" />
           </div>
@@ -379,7 +393,9 @@ function ScrTable({ entries, onChange }: { entries: ScrSncrEntry[]; onChange: (r
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || '(unnamed SCR unit)'} badge={S1_BADGE} onRemove={() => rem(e.id)} formula={<>CO2 = urea &times; purity &times; 0.733</>}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder="e.g. SCR unit" onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'combustion')} />
+            </div>
             <NumField label="Urea consumed" unit="t" value={e.ureaTonnes} onChange={(v) => upd(e.id, (r) => (r.ureaTonnes = v))} />
             <NumField label="Purity override" unit="0-1" step="0.01" value={e.purity ?? null} onChange={(v) => upd(e.id, (r) => (r.purity = v))} hint="default 0.99" />
             <NumField label="N2O slip (optional)" unit="kg N2O/yr" value={e.scrN2oSlipKg ?? null} onChange={(v) => upd(e.id, (r) => (r.scrN2oSlipKg = v))} hint="measured if known" />
@@ -403,7 +419,9 @@ function Sf6Table({ entries, onChange }: { entries: Sf6Entry[]; onChange: (rows:
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || '(unnamed SF6)'} badge={S1_BADGE} onRemove={() => rem(e.id)} formula={<>SF6 (kg) &times; 25,200 / 1000 = tCO2e</>}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder="e.g. GIS substation" onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'fugitive')} />
+            </div>
             <label className="field">Equipment class
               <select value={e.equipmentClass} onChange={(ev) => upd(e.id, (r) => (r.equipmentClass = ev.target.value as Sf6Entry['equipmentClass']))}>{SF6_CLASSES.map((c) => <option key={c} value={c}>{c.toLowerCase().replace(/_/g, ' ')}</option>)}</select>
             </label>
@@ -446,7 +464,9 @@ function HfcTable({ entries, onChange }: { entries: HfcEntry[]; onChange: (rows:
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || '(unnamed chiller)'} badge={S1_BADGE} onRemove={() => rem(e.id)} formula={<>kg leaked &times; GWP / 1000 = tCO2e</>}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder="e.g. Plant chiller" onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'fugitive')} />
+            </div>
             <label className="field">Gas code
               <select value={e.gasCode} onChange={(ev) => upd(e.id, (r) => (r.gasCode = ev.target.value))}>{HFC_GASES.map((c) => <option key={c} value={c}>{c.toUpperCase()}</option>)}</select>
             </label>
@@ -490,7 +510,9 @@ function OtherCh4Table({ entries, onChange }: { entries: OtherFugitiveCh4Entry[]
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || '(unnamed CH4)'} badge={S1_BADGE} onRemove={() => rem(e.id)} formula={<>activity &times; EF (kg CH4/unit)</>}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder="e.g. Coal stockpile" onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'fugitive')} />
+            </div>
             <label className="field">Source
               <select value={e.source} onChange={(ev) => upd(e.id, (r) => (r.source = ev.target.value as OtherFugitiveCh4Entry['source']))}>
                 <option value="COAL_STORAGE">Coal storage pile</option>
@@ -524,7 +546,9 @@ function CcusTable({ entries, onChange }: { entries: CcusEntry[]; onChange: (row
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || '(unnamed capture)'} badge={<span className="entry-badge entry-badge-mixed">Net off gross</span>} onRemove={() => rem(e.id)} formula={<>gross -= capturedAndStored</>}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder="e.g. Post-combustion amine" onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'combustion')} />
+            </div>
             <NumField label="Captured &amp; stored" unit="tCO2" value={e.capturedAndStoredTonnes} onChange={(v) => upd(e.id, (r) => (r.capturedAndStoredTonnes = v))} />
             <NumField label="Captured &amp; utilised" unit="tCO2 (not deducted)" value={e.capturedAndUtilisedTonnes ?? null} onChange={(v) => upd(e.id, (r) => (r.capturedAndUtilisedTonnes = v))} hint="short-cycle re-release" />
             <NumField label="Process vent (start-up/regen)" unit="tCO2 (memo)" value={e.processVentTonnes ?? null} onChange={(v) => upd(e.id, (r) => (r.processVentTonnes = v))} />
@@ -557,7 +581,9 @@ function ReportedTable({ entries, onChange }: { entries: ReportedEntry[]; onChan
       {entries.map((e, i) => (
         <EntryShell key={e.id} index={i} title={e.label || '(unnamed reported)'} badge={S1_BADGE} onRemove={() => rem(e.id)}>
           <div className="field-row">
-            <label className="field" style={{ gridColumn: 'span 2' }}>Label<input value={e.label} placeholder="e.g. BRSR Section A.III Scope 1" onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+            <div style={{ gridColumn: 'span 2' }}>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('power', 'combustion')} />
+            </div>
             <label className="field">Source / category tag<input value={e.source ?? ''} placeholder="e.g. annual report, CDP, BRSR" onChange={(ev) => upd(e.id, (r) => (r.source = ev.target.value))} /></label>
             <label className="field">Basis
               <select value={e.basis} onChange={(ev) => upd(e.id, (r) => (r.basis = ev.target.value as ReportedEntry['basis']))}>
@@ -608,11 +634,13 @@ function LiveTotals({ live }: { live: PowerCalculationResult | null }) {
 const COL_GRID = '1.6fr 1fr 1fr 1fr 1fr'
 
 export default function PowerWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement' | 'oil_gas' | 'pulp_paper' | 'iron_steel' | 'power') => void }) {
+  const { theme, toggleTheme } = useWizardTheme()
   const [step, setStep] = useState(1)
   const [cat, setCat] = useState<Cat>('stationaryMain')
   const [p, setP] = useState<PowerInputPayload>(emptyPayload)
   const [hasDraft, setHasDraft] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [result, setResult] = useState<PowerCalculationResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [step3Tried, setStep3Tried] = useState(false)
@@ -637,22 +665,19 @@ export default function PowerWizard({ onSwitchSector }: { onSwitchSector?: (s: '
   useScope1BoundaryPrefill(patch)
 
   async function lockInventory() {
-    if (!result?.calculationId) {
-      alert('Save to database first, then submit for review.')
-      return
-    }
+    setSubmitError(null)
     setBusy(true)
     try {
-      const out = await lockScope1Calculation(
-        result.calculationId,
+      const out = await submitScope1ForReview(
+        '/api/v1/calculations/power/calculate',
+        p,
         p.organization.contactName || 'system',
       )
       if (!out.ok) {
-        alert(`Submit failed: ${out.message}`)
+        setSubmitError(out.message)
         return
       }
       setSubmitted(true)
-      alert('Inventory submitted for admin review.')
     } finally {
       setBusy(false)
     }
@@ -678,7 +703,30 @@ export default function PowerWizard({ onSwitchSector }: { onSwitchSector?: (s: '
     } catch (err) { console.error(err) } finally { setBusy(false) }
   }
 
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const orgValid =
+    !!p.organization.name.trim() &&
+    !!(p.organization.contactName ?? '').trim() &&
+    emailRe.test((p.organization.contactEmail ?? '').trim())
   const facilityValid = !!p.facility.name?.trim() && !!p.facility.technology
+  const canReach = (target: number): boolean => {
+    if (target <= 1) return true
+    if (target === 2) return orgValid
+    if (target === 3) return orgValid && facilityValid
+    if (target === 4) return orgValid && facilityValid && !!result
+    return false
+  }
+  function tryGoTo(target: number) {
+    if (target === step) return
+    if (target < step) return setStep(target)
+    if (target > 1 && !orgValid) return setStep(1)
+    if (target > 2 && !facilityValid) {
+      setStep3Tried(true)
+      return setStep(2)
+    }
+    if (target === 4 && !result) return setStep(3)
+    setStep(target)
+  }
   const ad = p.activityData
   const ms = p.methodSelections
   const counts: Record<Cat, number> = {
@@ -697,44 +745,56 @@ export default function PowerWizard({ onSwitchSector }: { onSwitchSector?: (s: '
   }
 
   return (
-    <div className="wizard-app">
-      <header className="wizard-header">
-        <div className="brand-row">
-          <button className="brand-btn" onClick={() => onSwitchSector?.('cement')}>
-            <span className="brand-mark">⚡</span>
-            <span className="brand-text"><b>SCOPE 1 CALCULATOR</b><br /><span className="brand-sector">Power</span></span>
-          </button>
-          <div className="gwp-strip">
-            <span>GWP</span>
-            {(['AR5_100', 'AR6_100', 'AR6_20'] as PowerGwpSet[]).map((g) => (
-              <button key={g} className={p.calculationContext.gwpSet === g ? 'gwp-pill active' : 'gwp-pill'} onClick={() => patch((d) => (d.calculationContext.gwpSet = g))}>
-                {g.replace('_', ' · ')}
+    <main className={theme === 'dark' ? 'wizard-app dark' : 'wizard-app'}>
+      <WizardStickyChrome>
+        <header className="wizard-header">
+          <div className="wizard-header-inner">
+            <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
+              <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
+              <span className="brand-divider" />
+              <span className="brand-label">
+                <span className="brand-eyebrow">Scope 1 Calculator</span>
+                <span className="brand-product">Power</span>
+              </span>
+            </button>
+            <div className="wizard-actions">
+              <button className="theme-switch" onClick={toggleTheme} title="Toggle theme" aria-label="Toggle theme">
+                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
               </button>
-            ))}
+            </div>
           </div>
-        </div>
-        <div className="stepper">
-          {['Sector', 'Plant & methods', 'Activity data', 'Review & report'].map((lbl, i) => (
-            <button key={lbl} className={step === i + 1 ? 'stepper-step active' : step > i + 1 ? 'stepper-step complete' : 'stepper-step'} onClick={() => setStep(i + 1)}>{i + 1}<span>{lbl}</span></button>
-          ))}
-        </div>
-      </header>
+        </header>
+
+        <WizardProgressNav
+          steps={['Sector', 'Plant & methods', 'Activity data', 'Review & submit']}
+          step={step}
+          canReach={canReach}
+          onGo={tryGoTo}
+          gate={{
+            orgValid,
+            facilityValid,
+            hasResult: !!result,
+            facilityLockHint: 'Add a plant name and technology on Plant & methods first.',
+          }}
+        />
+      </WizardStickyChrome>
 
       <section className="wizard-main">
         {step === 1 && (
-          <section className="step-page active">
-            <h1 className="step-title">What <em>sector</em> are you in?</h1>
-            <p className="step-sub">Power uses the GHG Protocol + IPCC 2006 + EU ETS MRR + US EPA Subparts A/C/D/DD stack with India CEA v21 / NATCOM overrides for Indian operations. Gross Scope 1 covers <b>stationary combustion</b> (main + auxiliary + biomass), <b>mobile</b>, <b>process</b> (wet FGD + SCR/SNCR), <b>fugitive</b> (SF6 + HFCs + CH4 leaks), with optional CCUS netting. Biogenic CO2 is a memo line.</p>
-            {hasDraft && (
-              <div className="form-card" style={{ background: 'color-mix(in srgb, #2f6b4f 10%, transparent)', borderColor: 'color-mix(in srgb, #2f6b4f 32%, transparent)' }}>
-                <div><b>Draft restored.</b> Your previous entry was autosaved and reloaded. <button className="btn ghost" onClick={startFresh}>Start fresh</button></div>
-              </div>
-            )}
-            <div className="form-card">
-              <p className="form-sub"><b>First time here?</b> See the calculator end-to-end with a sample 660 MW supercritical PC plant.</p>
-              <button className="btn primary" onClick={trySample}>Try with sample data →</button>
+          <section className="step-page active sector-step-page">
+            <div className="sector-step-intro">
+              <h1 className="step-title">What sector are you <em>in?</em></h1>
+              <p className="step-sub">Power uses the GHG Protocol + IPCC 2006 + EU ETS MRR + US EPA Subparts A/C/D/DD stack with India CEA v21 / NATCOM overrides for Indian operations. Gross Scope 1 covers <b>stationary combustion</b> (main + auxiliary + biomass), <b>mobile</b>, <b>process</b> (wet FGD + SCR/SNCR), <b>fugitive</b> (SF6 + HFCs + CH4 leaks), with optional CCUS netting. Biogenic CO2 is a memo line.</p>
+              {hasDraft && (
+                <div className="callout callout-success">
+                  <div><b>Draft restored.</b> <span>Your previous entry was autosaved and reloaded.</span></div>
+                  <button className="btn ghost" onClick={startFresh}>Start fresh</button>
+                </div>
+              )}
             </div>
-            <div className="sector-grid">
+            <div className="sector-step-body">
+              <div className="sector-step-grid-wrap">
+                <div className="sector-grid">
               {[
                 { code: 'cement', name: 'Cement', sub: 'CSI · IPCC · ACTIVE' },
                 { code: 'oil_gas', name: 'Oil & Gas', sub: 'IPIECA · API · ACTIVE' },
@@ -746,8 +806,23 @@ export default function PowerWizard({ onSwitchSector }: { onSwitchSector?: (s: '
                   <Zap size={20} /><span className="sector-name">{s.name}</span><small>{s.sub}</small>
                 </button>
               ))}
+              <GwpSectorCards
+                value={p.calculationContext.gwpSet}
+                options={GWP_OPTIONS_THREE}
+                onChange={(g) => patch((d) => (d.calculationContext.gwpSet = g as PowerGwpSet))}
+              />
+                </div>
+              </div>
+              <aside className="sector-step-onboarding-col" aria-label="Get started">
+                <div className="callout callout-info sector-step-onboarding">
+                  <div><b>First time here?</b> <span>See the calculator end-to-end with a sample 660 MW supercritical PC plant.</span></div>
+                  <div className="sector-step-onboarding-actions">
+                    <button className="add-entry-btn" onClick={trySample}>Try with sample data →</button>
+                  </div>
+                </div>
+              </aside>
             </div>
-            <div className="step-footer">
+            <div className="sector-step-footer">
               <button className="btn primary" onClick={() => setStep(2)}>Continue →</button>
             </div>
           </section>
@@ -949,151 +1024,24 @@ export default function PowerWizard({ onSwitchSector }: { onSwitchSector?: (s: '
         })()}
 
         {step === 4 && result && (
-          <section className="step-page active">
-            <h1 className="step-title">Scope 1 <em>report</em></h1>
-            <p className="step-sub">{result.methodologyPack} · GWP {result.gwpSet.replace('_', ' · ')} · {result.dataQuality.overall.replace(/_/g, ' ').toLowerCase()} data quality</p>
-
-            <div className="summary-hero">
-              <span>Gross Scope 1 — CO2 + CH4 + N2O + HFCs + SF6 − CCS</span>
-              <strong>{fmt.format(result.scope1.grossScope1CO2eTonnes)}</strong>
-              <small>tCO2e</small>
-              {result.ccsCapturedAndStoredTonnes > 0 && (
-                <p style={{ marginTop: 10 }}>CCS deducted: {fmt.format(result.ccsCapturedAndStoredTonnes)} tCO2 (per EU ETS Art 49)</p>
+          submitted ? (
+            <Scope1ReviewSubmittedContent sectorLabel="Scope 1 · Power" />
+          ) : (
+            <Scope1ReviewContent
+              quadrants={buildScope1ReviewQuadrants(
+                p as unknown as Record<string, unknown>,
+                result as unknown as Record<string, unknown>,
+                'POWER',
               )}
-              <p style={{ marginTop: 10 }}>
-                CO2 {fmt.format(result.scope1.byGas.co2Tonnes)} t · CH4 {fmt.format(result.scope1.byGas.ch4Tonnes)} t · N2O {fmt.format(result.scope1.byGas.n2oTonnes)} t · SF6 {fmt.format(result.scope1.byGas.sf6Tonnes)} t · HFCs {fmt.format(result.scope1.byGas.hfcCO2eTonnes)} tCO2e
-              </p>
-            </div>
-
-            <div className="form-card">
-              <h2>By category</h2>
-              <div className="result-table">
-                <div className="result-row" style={{ gridTemplateColumns: COL_GRID, fontWeight: 800, color: 'var(--ink-mute)' }}>
-                  <span>Category</span><span style={{ textAlign: 'right' }}>CO2 (t)</span><span style={{ textAlign: 'right' }}>CH4 (t)</span><span style={{ textAlign: 'right' }}>N2O (t)</span><span style={{ textAlign: 'right' }}>tCO2e</span>
-                </div>
-                {(Object.entries(result.scope1.byCategory) as [string, { co2Tonnes: number; ch4Tonnes: number; n2oTonnes: number; co2eTonnes: number }][]).map(([k, g]) => (
-                  <div key={k} className="result-row" style={{ gridTemplateColumns: COL_GRID }}>
-                    <strong>{k.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</strong>
-                    <span style={{ textAlign: 'right' }}>{fmt.format(g.co2Tonnes)}</span>
-                    <span style={{ textAlign: 'right' }}>{fmt4.format(g.ch4Tonnes)}</span>
-                    <span style={{ textAlign: 'right' }}>{fmt4.format(g.n2oTonnes)}</span>
-                    <span style={{ textAlign: 'right' }}>{fmt.format(g.co2eTonnes)}</span>
-                  </div>
-                ))}
-                <div className="result-row" style={{ gridTemplateColumns: COL_GRID, fontWeight: 800 }}>
-                  <strong>Gross Scope 1</strong>
-                  <span style={{ textAlign: 'right' }}>{fmt.format(result.scope1.byGas.co2Tonnes)}</span>
-                  <span style={{ textAlign: 'right' }}>{fmt4.format(result.scope1.byGas.ch4Tonnes)}</span>
-                  <span style={{ textAlign: 'right' }}>{fmt4.format(result.scope1.byGas.n2oTonnes)}</span>
-                  <span style={{ textAlign: 'right' }}>{fmt.format(result.scope1.grossScope1CO2eTonnes)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="summary-cats">
-              <div className="summary-card"><span>Biogenic CO2 memo</span><strong>{fmt.format(result.memoItems.biogenicCO2Tonnes)}</strong><small>tCO2 (excluded)</small></div>
-              <div className="summary-card"><span>CCS process vent</span><strong>{fmt.format(result.memoItems.ccsProcessVentTonnes)}</strong><small>tCO2 (memo)</small></div>
-              <div className="summary-card"><span>Supporting Scope 2</span><strong>{fmt.format(result.supportingScope2.purchasedElectricityCO2eTonnes)}</strong><small>tCO2e</small></div>
-              <div className="summary-card"><span>Supporting Scope 3</span><strong>{fmt.format(result.supportingScope3.thirdPartyMobileCO2eTonnes)}</strong><small>tCO2e</small></div>
-            </div>
-
-            {result.reconciliation.checked && (
-              <div className="form-card">
-                <h2>Reconciliation vs disclosed figures</h2>
-                <p className="form-sub">{result.reconciliation.note}</p>
-                <div className="result-table">
-                  <div className="result-row" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', fontWeight: 800, color: 'var(--ink-mute)' }}>
-                    <span>Metric</span><span style={{ textAlign: 'right' }}>Disclosed</span><span style={{ textAlign: 'right' }}>Modelled</span><span style={{ textAlign: 'right' }}>Variance</span><span style={{ textAlign: 'right' }}>Status</span>
-                  </div>
-                  {result.reconciliation.lines.map((line) => (
-                    <div key={line.metric} className="result-row" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr' }}>
-                      <strong>{line.label}</strong>
-                      <span style={{ textAlign: 'right' }}>{fmt.format(line.disclosed ?? 0)} <small style={{ color: 'var(--muted)' }}>{line.unit}</small></span>
-                      <span style={{ textAlign: 'right' }}>{fmt.format(line.modelled)} <small style={{ color: 'var(--muted)' }}>{line.unit}</small></span>
-                      <span style={{ textAlign: 'right', color: line.withinThreshold ? 'inherit' : '#c2410c', fontWeight: 700 }}>{fmt.format(line.variancePercent ?? 0)}%</span>
-                      <span style={{ textAlign: 'right', color: line.withinThreshold ? 'var(--ink-mute)' : '#c2410c' }}>{line.withinThreshold ? 'within ±5%' : 'review'}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {((p.activityData.production.netGenerationMwh ?? 0) > 0 || (p.activityData.production.grossGenerationMwh ?? 0) > 0) && (
-              <div className="form-card">
-                <h2>Generation &amp; intensity</h2>
-                <p className="form-sub">kgCO2e per MWh net is the canonical power-sector KPI.</p>
-                <div className="summary-cats">
-                  {(p.activityData.production.grossGenerationMwh ?? 0) > 0 && <div className="summary-card"><span>Gross generation</span><strong>{fmt.format(p.activityData.production.grossGenerationMwh ?? 0)}</strong><small>MWh</small></div>}
-                  {(p.activityData.production.netGenerationMwh ?? 0) > 0 && <div className="summary-card"><span>Net generation</span><strong>{fmt.format(p.activityData.production.netGenerationMwh ?? 0)}</strong><small>MWh</small></div>}
-                  {result.intensityMetrics.co2ePerMwhNet != null && <div className="summary-card"><span>Per MWh net (KPI)</span><strong>{fmt.format(result.intensityMetrics.co2ePerMwhNet)}</strong><small>kgCO2e / MWh</small></div>}
-                  {result.intensityMetrics.co2ePerMwhGross != null && <div className="summary-card"><span>Per MWh gross</span><strong>{fmt.format(result.intensityMetrics.co2ePerMwhGross)}</strong><small>kgCO2e / MWh</small></div>}
-                  {result.intensityMetrics.fossilCo2PerMwhNet != null && <div className="summary-card"><span>Fossil CO2 / MWh net</span><strong>{fmt.format(result.intensityMetrics.fossilCo2PerMwhNet)}</strong><small>kgCO2 / MWh</small></div>}
-                </div>
-              </div>
-            )}
-
-            {result.assumptions.length > 0 && (
-              <div className="form-card">
-                <h2>Assumptions &amp; limitations</h2>
-                {result.assumptions.map((a, i) => (
-                  <p key={i} className="form-sub" style={{ margin: '4px 0' }}><span className="entry-badge" style={{ marginRight: 8 }}>{a.kind.toLowerCase()}</span><b>{a.label}</b> — {a.detail}</p>
-                ))}
-              </div>
-            )}
-
-            {result.errors.length > 0 && (
-              <div className="form-card" style={{ borderColor: '#c2410c' }}>
-                <h2><AlertCircle size={18} /> Validation errors</h2>
-                {result.errors.map((e, i) => <p key={i} className="form-sub"><b>{e.code}</b> — {e.message}</p>)}
-              </div>
-            )}
-            {result.warnings.length > 0 && (
-              <div className="form-card">
-                <h2><Info size={18} /> Warnings</h2>
-                {result.warnings.map((w, i) => <p key={i} className="form-sub"><b>{w.code}</b> — {w.message}</p>)}
-              </div>
-            )}
-            {result.errors.length === 0 && result.warnings.length === 0 && (
-              <div className="form-card"><h2><CheckCircle2 size={18} /> Clean run</h2><p className="form-sub">No validation issues raised.</p></div>
-            )}
-
-            <div className="form-card">
-              <h2>Audit trail</h2>
-              <p className="form-sub">{result.calculationTrace.length} calculation steps · {result.factorSnapshots.length} factor snapshots · methodology pack <b>{result.methodologyPack}</b> · GWP <b>{result.gwpSet.replace('_', ' · ')}</b>.</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 10 }}>
-                {(['xlsx', 'pdf', 'csv', 'json', 'audit-pack'] as const).map((fmt) => (
-                  <button key={fmt} className="btn ghost" onClick={async () => {
-                    const res = await scope1Fetch('/api/v1/calculations/power/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload: p, format: fmt }) })
-                    const blob = await res.blob()
-                    const url = URL.createObjectURL(blob)
-                    const a = document.createElement('a')
-                    a.href = url
-                    a.download = `scope1-power.${fmt === 'audit-pack' ? 'zip' : fmt}`
-                    a.click()
-                    URL.revokeObjectURL(url)
-                  }}>{fmt.toUpperCase()}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="step-footer">
-              <button className="btn ghost" onClick={() => setStep(3)}>Back to data</button>
-              <button className="btn primary" onClick={() => runCalculate(true)} disabled={busy}>{busy ? 'Saving…' : 'Calculate & save'}</button>
-              {result.calculationId ? (
-                <button
-                  type="button"
-                  className="btn primary"
-                  onClick={lockInventory}
-                  disabled={busy || submitted}
-                  style={submitted ? { background: '#15803d' } : undefined}
-                >
-                  {submitted ? 'Submitted for review' : busy ? 'Submitting…' : 'Submit for review'}
-                </button>
-              ) : null}
-            </div>
-          </section>
+              busy={busy}
+              onBack={() => setStep(3)}
+              onSubmit={lockInventory}
+              submitError={submitError}
+            />
+          )
         )}
+
       </section>
-    </div>
+    </main>
   )
 }

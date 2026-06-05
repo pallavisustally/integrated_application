@@ -1,5 +1,7 @@
 'use client'
 
+import type { CSSProperties } from 'react'
+
 import { wizardStepLockReason, type WizardGateContext } from '@/lib/ui/wizard-stepper'
 
 export function WizardProgressNav({
@@ -16,7 +18,11 @@ export function WizardProgressNav({
   gate: WizardGateContext
 }) {
   return (
-    <nav className="wizard-progress" aria-label="Inventory steps">
+    <nav
+      className="wizard-progress"
+      aria-label="Inventory steps"
+      style={{ '--step-count': steps.length } as CSSProperties}
+    >
       {steps.map((label, i) => {
         const target = i + 1
         const reachable = canReach(target)

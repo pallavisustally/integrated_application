@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { Scope1ReviewGridReadOnly } from '@/components/review/scope1-review-page'
+import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
 import { SUSTALLY_API_URL as API_URL } from '@/lib/api-url'
 
 type Scope1Submission = {
@@ -18,19 +20,30 @@ type Scope1Submission = {
   reviewStatus?: string
   grossScope1Tonnes?: number
   rejectionReason?: string
-  result?: { scope1?: { grossScope1CO2eTonnes?: number } }
+  inputPayload?: unknown
+  result?: unknown
 }
 
 export default function Scope1ReviewClient({ submission }: { submission: Scope1Submission }) {
   const router = useRouter()
   const [rejectReason, setRejectReason] = useState('')
-  const [showReject, setShowReject] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState(submission.status || submission.reviewStatus || 'PENDING')
 
   const applicationId = submission.applicationId || submission.id
-  const displayStatus = submission.status || submission.reviewStatus
-
   const legacyOnly = !submission.applicationId && !!submission.reviewStatus
+
+  const quadrants = useMemo(() => {
+    const payload = (submission.inputPayload || {}) as Record<string, unknown>
+    const result = (submission.result || {
+      scope1: {
+        grossScope1CO2eTonnes: submission.grossScope1Tonnes,
+        grossScope1CO2Tonnes: submission.grossScope1Tonnes,
+      },
+    }) as Record<string, unknown>
+    return buildScope1ReviewQuadrants(payload, result, submission.sectorCode)
+  }, [submission])
 
   const patchApplication = async (data: Record<string, unknown>) => {
     if (legacyOnly) {
@@ -61,10 +74,11 @@ export default function Scope1ReviewClient({ submission }: { submission: Scope1S
   }
 
   const approve = async () => {
-    if (!confirm('Approve this Scope 1 inventory? PDF will be generated and applicant emailed.')) return
+    if (!confirm('Approve this Scope 1 inventory? Reports will be generated and the applicant emailed.')) return
     setBusy(true)
     try {
       await patchApplication({ status: 'APPROVED' })
+      setStatus('APPROVED')
       alert('Approved. Reports and email are being generated.')
       router.refresh()
     } catch {
@@ -82,6 +96,8 @@ export default function Scope1ReviewClient({ submission }: { submission: Scope1S
         status: 'REJECTED',
         rejectionReason: rejectReason.trim(),
       })
+      setStatus('REJECTED')
+      setShowRejectModal(false)
       alert('Rejected. Applicant will receive a retry link.')
       router.refresh()
     } catch {
@@ -91,71 +107,94 @@ export default function Scope1ReviewClient({ submission }: { submission: Scope1S
     }
   }
 
-  const tonnes =
-    submission.grossScope1Tonnes ??
-    submission.result?.scope1?.grossScope1CO2eTonnes ??
-    0
+  const pending =
+    status === 'pending' || status === 'PENDING' || status === 'IN_PROGRESS'
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-8 font-sans">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-        <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">
-          Scope 1 review
+  const header = (
+    <div className="flex items-center justify-between mb-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Admin Review Panel</h1>
+        <p className="text-gray-500 text-sm mt-1">
+          Scope 1 · {submission.facilityName || submission.inventoryName || submission.name || 'Inventory'} ·{' '}
+          {submission.assessmentId || applicationId}
         </p>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
-          {submission.facilityName || submission.inventoryName || submission.name || 'Inventory'}
-        </h1>
-        <p className="text-sm text-gray-500 mb-6">
-          {submission.sectorCode} � FY {submission.reportingYear} � Assessment{' '}
-          {submission.assessmentId} � Status {displayStatus}
-        </p>
+      </div>
+      <div
+        className={`px-4 py-1.5 rounded-full text-sm font-bold border ${
+          status === 'APPROVED' || status === 'approved'
+            ? 'bg-green-100 text-green-700 border-green-200'
+            : status === 'REJECTED' || status === 'rejected'
+              ? 'bg-red-100 text-red-700 border-red-200'
+              : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+        }`}
+      >
+        {String(status)}
+      </div>
+    </div>
+  )
 
-        <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-6 mb-8">
-          <p className="text-xs text-indigo-800 font-semibold uppercase">Gross Scope 1 (t CO?e)</p>
-          <p className="text-3xl font-bold text-indigo-950">{Number(tonnes).toLocaleString()}</p>
-        </div>
-
-        {(displayStatus === 'pending' || displayStatus === 'PENDING') && (
-          <div className="flex gap-3">
+  const footer = (
+    <>
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 flex justify-center gap-4 shadow-lg z-10">
+        {pending ? (
+          <>
             <button
               type="button"
+              onClick={() => setShowRejectModal(true)}
               disabled={busy}
-              onClick={approve}
-              className="px-5 py-2.5 bg-green-700 text-white rounded-lg font-semibold text-sm disabled:opacity-60"
-            >
-              Approve
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setShowReject(true)}
-              className="px-5 py-2.5 bg-white border border-red-200 text-red-700 rounded-lg font-semibold text-sm"
+              className="px-8 py-3 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-colors border border-red-200"
             >
               Reject
             </button>
-          </div>
+            <button
+              type="button"
+              onClick={approve}
+              disabled={busy}
+              className="px-8 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200"
+            >
+              {busy ? 'Processing…' : 'Verify & Approve'}
+            </button>
+          </>
+        ) : (
+          <p className="text-gray-500 font-medium">This submission has been processed.</p>
         )}
+      </div>
 
-        {showReject && (
-          <div className="mt-6 space-y-3">
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Reject submission</h3>
+            <p className="text-sm text-gray-500 mb-4">This reason will be sent to the applicant.</p>
             <textarea
-              className="w-full border border-gray-200 rounded-lg p-3 text-sm"
-              rows={4}
-              placeholder="Rejection reason for the applicant"
+              className="w-full p-3 border border-gray-200 rounded-xl text-sm mb-4 focus:ring-2 focus:ring-red-500 outline-none h-32 resize-none"
+              placeholder="Reason for rejection…"
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
             />
-            <button
-              type="button"
-              disabled={busy || !rejectReason.trim()}
-              onClick={reject}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold disabled:opacity-60"
-            >
-              Confirm reject
-            </button>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                className="text-sm font-medium text-gray-500 hover:text-gray-700 px-4 py-2"
+                onClick={() => setShowRejectModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="bg-red-600 text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                onClick={reject}
+                disabled={!rejectReason.trim() || busy}
+              >
+                {busy ? 'Rejecting…' : 'Confirm reject'}
+              </button>
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
+  )
+
+  return (
+    <Scope1ReviewGridReadOnly quadrants={quadrants} header={header} footer={footer} />
   )
 }

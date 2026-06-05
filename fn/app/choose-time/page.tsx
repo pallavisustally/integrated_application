@@ -3,6 +3,7 @@
 import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Modal from "../../components/Modal";
+import { BookingWizardShell, useWizardTheme } from "@/components/booking-shell";
 import { bookAssessment, type AssessmentType } from "../../lib/assessment-api";
 import { SUSTALLY_API_URL } from "../../lib/api-url";
 import {
@@ -14,7 +15,7 @@ const CHOOSE_TIME_STORAGE_KEY = "chooseTimeData:v2";
 
 // Reusing Icons from Page 1
 const CalendarIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-indigo-100">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
     </svg>
 );
@@ -88,6 +89,7 @@ const shifts: { label: ShiftType; icon: React.ReactNode; range: string }[] = [
 function ChooseTimeContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { theme, toggleTheme } = useWizardTheme();
 
     const [selectedDateIndex, setSelectedDateIndex] = useState<number | null>(null);
     const [selectedShift, setSelectedShift] = useState<ShiftType | null>(null);
@@ -376,514 +378,350 @@ function ChooseTimeContent() {
     if (isSuccess) {
         if (countdown !== null) {
             return (
-                <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gray-200">
-                        <div 
-                            className="h-full bg-indigo-500 transition-all duration-1000 ease-linear" 
-                            style={{ width: `${((10 - countdown) / 10) * 100}%` }}
-                        ></div>
-                    </div>
-                    
-                    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center text-center relative z-10 border border-gray-100">
-                        <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center mb-6 relative">
-                            <span className="text-3xl font-bold text-indigo-600 font-mono tracking-tighter">
-                                {countdown}
-                            </span>
-                            <svg className="absolute inset-0 w-full h-full text-indigo-200 animate-[spin_3s_linear_infinite]" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="30 10" />
-                            </svg>
-                        </div>
-                        
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                            Preparing Assessment
-                        </h2>
-                        <p className="text-sm text-gray-500 mb-8 max-w-[280px]">
-                            Your Scope 2 Environment Assessment is being initialized. You will be redirected shortly...
-                        </p>
-
-                        <div className="w-full p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-                                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                            </div>
-                            <div className="text-left">
-                                <h3 className="text-sm font-semibold text-gray-900">Instant Access</h3>
-                                <p className="text-xs text-gray-500">We've also emailed you a backup link.</p>
+                <BookingWizardShell step={3} theme={theme} onThemeToggle={toggleTheme}>
+                    <section className="step-page active booking-page">
+                        <div className="booking-success-page">
+                            <div className="form-card booking-success-card">
+                                <div className="booking-success-icon" style={{ position: "relative", width: 80, height: 80 }}>
+                                    <span style={{ fontSize: 28, fontWeight: 800, color: "var(--purple)" }}>{countdown}</span>
+                                </div>
+                                <h1 className="step-title" style={{ fontSize: 28 }}>
+                                    Preparing <em>assessment</em>
+                                </h1>
+                                <p className="step-sub" style={{ marginBottom: 24 }}>
+                                    Your {isScope1 ? "Scope 1" : "Scope 2"} assessment is being initialized. You will be redirected shortly.
+                                </p>
+                                <div className="booking-callout" style={{ textAlign: "left" }}>
+                                    <div>
+                                        <strong>Instant access</strong>
+                                        <p>We&apos;ve also emailed you a backup link.</p>
+                                    </div>
+                                </div>
+                                {countdown === 0 ? (
+                                    <p className="booking-field-hint" style={{ marginTop: 20, color: "var(--purple)" }}>
+                                        Redirecting…
+                                    </p>
+                                ) : null}
                             </div>
                         </div>
-
-                        {countdown === 0 && (
-                            <div className="mt-8 text-indigo-600 font-medium text-sm animate-pulse flex items-center gap-2">
-                                <span>Redirecting</span>
-                                <span className="flex gap-0.5">
-                                    <span className="w-1 h-1 bg-indigo-600 rounded-full animate-[bounce_1s_infinite_0ms]"></span>
-                                    <span className="w-1 h-1 bg-indigo-600 rounded-full animate-[bounce_1s_infinite_200ms]"></span>
-                                    <span className="w-1 h-1 bg-indigo-600 rounded-full animate-[bounce_1s_infinite_400ms]"></span>
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                </main>
+                    </section>
+                </BookingWizardShell>
             );
         }
 
         return (
-            <main className="min-h-screen bg-white px-4 py-8 sm:px-6 sm:py-10 flex flex-col items-center">
-                {/* Header (logo then tick on mobile) */}
-                <div className="w-full max-w-3xl flex flex-col items-center text-center">
-                    <div className="flex items-center justify-center gap-2 sm:gap-3 opacity-90 flex-wrap">
-                        <img src="/sustally-logo.png" alt="Sustally" className="h-10 sm:h-12 w-auto object-contain" />
-                        <div className="flex h-8 sm:h-10">
-                            <div className="w-px bg-gray-200 h-full" />
-                        </div>
-                        <span className="font-medium text-gray-500 sm:text-gray-700 text-xs sm:text-sm max-w-[180px] sm:max-w-[220px] leading-tight text-left">
-                            Choose Sustally As Your Sustainability Ally
-                        </span>
-                    </div>
-                </div>
-
-                <div className="w-full max-w-3xl flex-1 flex flex-col items-center justify-center text-center gap-6 mt-10">
-                    {/* Success Checkmark */}
-                    <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center shadow-[0_0_30px_rgba(76,175,80,0.20)]">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                            <polyline points="22 4 12 14.01 9 11.01" />
-                        </svg>
-                    </div>
-
-                    <div className="space-y-3">
-                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
-                            Thank You! Your Assessment Slot Is Booked.
-                        </h2>
-                        <p className="text-sm sm:text-base text-gray-500 max-w-md mx-auto">
-                            Please Check Your Email For The Assessment Link.
-                        </p>
-                    </div>
-
-                    {/* Booking Time Card */}
-                    <div className="w-full max-w-md bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-center gap-6">
-                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F57C00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                        </div>
-                        <div className="text-left min-w-0">
-                            <div className="text-sm sm:text-base font-semibold text-gray-900 truncate">
-                                {selectedDateIndex !== null ? formatDate(dates[selectedDateIndex].date) : ""}
+            <BookingWizardShell step={3} theme={theme} onThemeToggle={toggleTheme}>
+                <section className="step-page active booking-page">
+                    <div className="booking-success-page">
+                        <div className="form-card booking-success-card">
+                            <div className="booking-success-hero">
+                                <div className="booking-success-icon">
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                    </svg>
+                                </div>
+                                <h1 className="step-title" style={{ fontSize: 28 }}>
+                                    Slot <em>booked</em>
+                                </h1>
+                                <p className="step-sub">
+                                    Check your email for the assessment link.
+                                </p>
                             </div>
-                            <div className="text-sm sm:text-base font-semibold text-gray-900">
-                                {selectedTime}
+
+                            <div className="booking-success-slot-wrap">
+                                <div className="booking-slot-card">
+                                    <div className="booking-panel-icon" style={{ width: 48, height: 48 }}>
+                                        <CalendarIcon />
+                                    </div>
+                                    <div className="booking-slot-details">
+                                        <div>
+                                            {selectedDateIndex !== null ? formatDate(dates[selectedDateIndex].date) : ""}
+                                        </div>
+                                        <div>{selectedTime}</div>
+                                    </div>
+                                </div>
+                                <p className="booking-success-assessment-id">
+                                    Assessment ID: {bookedAssessmentId || "—"}
+                                </p>
+                            </div>
+
+                            <div className="booking-confirm-banner">
+                                <div className="booking-success-icon" style={{ width: 36, height: 36, margin: 0 }}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p style={{ fontWeight: 700, fontSize: 13, margin: 0 }}>
+                                        A confirmation and assessment link has been sent to your registered email.
+                                    </p>
+                                    <p className="booking-field-hint" style={{ marginTop: 4 }}>
+                                        Check your inbox (and spam folder) for the access link.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="booking-success-resend">
+                                <p>
+                                    Didn&apos;t receive email at{" "}
+                                    <span className="booking-success-email">{searchParams.get("email")}</span>?
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleResendEmail}
+                                    disabled={isSendingEmail}
+                                    className="btn primary"
+                                >
+                                    {isSendingEmail ? "Sending…" : "Resend email"}
+                                </button>
                             </div>
                         </div>
                     </div>
-
-                    <div className="text-base sm:text-lg font-normal text-gray-900 tracking-wide">
-                        Assessment Id: <span className="font-normal">{bookedAssessmentId || "—"}</span>
-                    </div>
-
-                    {/* Email Confirmation Banner */}
-                    <div className="w-full max-w-2xl bg-green-50 border border-green-200 rounded-2xl px-5 py-4 flex items-start sm:items-center gap-4 text-left">
-                        <div className="w-9 h-9 rounded-full bg-green-700 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-sm font-semibold text-green-800">
-                                A Confirmation And Assessment Link Has Been Sent To Your Registered Contact Email.
-                            </p>
-                            <p className="text-xs sm:text-sm text-green-700 mt-1">
-                                Check Your Inbox (And Spam Folder) For The Access Link.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Resend Email Option */}
-                <div className="mt-8 flex justify-center items-center gap-1.5 w-full text-sm">
-                    <span className="text-gray-600">
-                        Didn't Receive Email At <span className="font-semibold text-gray-900">{searchParams.get("email")}</span>?
-                    </span>
-                    <button
-                        onClick={handleResendEmail}
-                        disabled={isSendingEmail}
-                        className="text-indigo-600 hover:text-indigo-800 font-semibold hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isSendingEmail ? "Sending..." : "Resend"}
-                    </button>
-                </div>
-            </main>
+                </section>
+            </BookingWizardShell>
         );
     }
 
     return (
-        <div className="min-h-screen w-full bg-gray-50 text-gray-800 font-sans selection:bg-indigo-100 p-2 md:p-4 flex flex-col">
-            {/* Notification Popup */}
-            {notification && (
+        <BookingWizardShell step={3} theme={theme} onThemeToggle={toggleTheme}>
+            {notification ? (
                 <div
+                    role="status"
                     style={{
                         position: "fixed",
-                        top: "10%",
+                        top: "12%",
                         left: "50%",
                         transform: "translate(-50%, -50%)",
                         zIndex: 10000,
-                        backgroundColor: notification.type === "success" ? "#1a1a1a" : "#2a1a1a",
-                        border: `2px solid ${notification.type === "success" ? "#4CAF50" : "#FF6B35"}`,
-                        borderRadius: "16px",
-                        padding: "16px 24px",
-                        boxShadow: `0 8px 32px rgba(${notification.type === "success" ? "76, 175, 80" : "255, 107, 53"}, 0.4)`,
-                        minWidth: "300px",
-                        maxWidth: "500px",
-                        animation: "slideIn 0.3s ease-out",
-                        backdropFilter: "blur(10px)",
+                        background: "var(--surface)",
+                        border: `1px solid ${notification.type === "success" ? "var(--success)" : "#b3261e"}`,
+                        borderRadius: 12,
+                        padding: "14px 20px",
+                        boxShadow: "var(--shadow-soft)",
+                        minWidth: 280,
+                        maxWidth: 480,
                     }}
                 >
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <p style={{ margin: 0, color: "#FFFFFF", fontSize: "14px", fontWeight: "500" }}>{notification.message}</p>
-                        <button
-                            onClick={() => setNotification(null)}
-                            style={{
-                                background: "transparent",
-                                border: "none",
-                                color: "#B5B5B5",
-                                cursor: "pointer",
-                                marginLeft: "auto"
-                            }}
-                        >✕</button>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <p style={{ margin: 0, fontSize: 13, color: "var(--ink)" }}>{notification.message}</p>
+                        <button type="button" className="btn ghost" onClick={() => setNotification(null)} style={{ padding: "4px 8px" }}>
+                            Close
+                        </button>
                     </div>
                 </div>
-            )}
+            ) : null}
 
-            <div className="w-full h-full max-w-7xl mx-auto flex flex-col">
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-center mb-2 flex-shrink-0 gap-4">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full tracking-wide">
-                                {isScope1 ? "Scope 1 Assessment" : "Scope 2 Assessment"}
-                            </span>
+            <section className="step-page active booking-page">
+                <h1 className="step-title">
+                    Choose <em>slot</em>
+                </h1>
+                <p className="step-sub">
+                    {isScope1
+                        ? "Select a convenient time for your Scope 1 assessment."
+                        : "Select a convenient time for your Scope 2 assessment."}
+                </p>
+
+                <div className="form-card booking-panel">
+                    <div className="booking-panel-head">
+                        <div className="booking-panel-icon">
+                            <CalendarIcon />
                         </div>
-                        <h1 className="text-xl font-bold text-gray-900">
-                            {isScope1
-                                ? "Book Your Scope 1 Self Assessment"
-                                : "Book Your Scope 2 Self Assessment"}
-                        </h1>
-                        <p className="text-gray-500 mt-1 text-xs">
-                            Select A Convenient Time For Your Assessment.
-                        </p>
+                        <h2>Select date &amp; time</h2>
                     </div>
 
-                    {/* Centered Progress Step */}
-                    <div className="flex flex-col items-center justify-center">
-                        <p className="text-xs font-semibold text-gray-400 tracking-widest mb-1">
-                            Step 3 Of 6 — Choose Time
-                        </p>
-                        <div className="flex items-center gap-3">
-                            <div className="h-1 w-32 bg-gray-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-indigo-600 w-[50%]"></div>
-                            </div>
-                            <span className="text-sm font-bold text-gray-400">50%</span>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 md:mt-0 flex flex-col items-end">
-                        <div className="flex items-center gap-3 opacity-80">
-                            <img
-                                src="/sustally-logo.png"
-                                alt="sustally"
-                                className="h-12 w-auto object-contain"
-                            />
-                            <div className="flex gap-1 h-12">
-                                <div className="w-[1px] bg-gray-300 h-full"></div>
-
-                            </div>
-                            <span className="font-medium text-gray-500 text-sm max-w-[200px] leading-tight text-left">
-                                Choose Sustally As Your Sustainability Ally
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="flex-1 min-h-0 flex flex-col mb-4">
-
-                    {/* Date and Time Selection */}
-                    <div className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-y-auto">
-                        <div className="absolute top-6 left-6">
-                            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                                <CalendarIcon />
+                    <div className="space-y-6">
+                        <div>
+                            <label className="booking-field-label">
+                                Select a date <span className="required-mark">*</span>
+                            </label>
+                            <p className="booking-field-hint" style={{ marginBottom: 12 }}>
+                                Choose your preferred assessment date
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                                {dates.length === 0 ? (
+                                    <p className="col-span-full booking-field-hint">Loading available dates…</p>
+                                ) : null}
+                                {dates.map((d, index) => (
+                                    <button
+                                        key={index}
+                                        type="button"
+                                        onClick={() => handleDateSelect(index)}
+                                        className={`booking-date-card ${selectedDateIndex === index ? "selected" : ""}`}
+                                    >
+                                        <span className="day">{getDayNumber(d.date)}</span>
+                                        <span className="month">{getMonthName(d.date)}</span>
+                                        <span className="label">{d.label}</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
-                        <h2 className="text-[10px] font-bold text-gray-400 tracking-wider mb-6 ml-14 pt-6">Select Date & Time</h2>
-
-                        <div className="space-y-6">
-                            {/* Date Selection */}
+                        {selectedDateIndex !== null ? (
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-2">
-                                    Select A Date <span className="text-red-500">*</span>
+                                <label className="booking-field-label">
+                                    Select time of day <span className="required-mark">*</span>
                                 </label>
-                                <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Assessment Date</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                                    {dates.length === 0 && (
-                                        <p className="col-span-full text-xs text-gray-500">Loading available dates…</p>
-                                    )}
-                                    {dates.map((d, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => handleDateSelect(index)}
-                                            className={`relative p-6 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1 min-h-[140px] ${selectedDateIndex === index
-                                                ? "bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500 shadow-sm"
-                                                : "bg-white border-gray-200 hover:border-indigo-300 hover:shadow-md"
-                                                }`}
-                                        >
-                                            {selectedDateIndex === index && (
-                                                <div className="absolute top-3 right-3 text-indigo-500">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                                        <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                            <span className={`text-4xl font-bold ${selectedDateIndex === index ? "text-indigo-600" : "text-gray-900"}`}>
-                                                {getDayNumber(d.date)}
-                                            </span>
-                                            <span className={`text-sm font-medium ${selectedDateIndex === index ? "text-indigo-600" : "text-gray-900"}`}>
-                                                {getMonthName(d.date)}
-                                            </span>
-                                            <span className="text-xs text-gray-500 font-medium">
-                                                {d.label}
-                                            </span>
-                                        </button>
-                                    ))}
+                                <p className="booking-field-hint" style={{ marginBottom: 12 }}>
+                                    Choose your preferred time period
+                                </p>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                                    {(() => {
+                                        const now = new Date();
+                                        const isTodaySelected =
+                                            dates[selectedDateIndex]?.date.getDate() === now.getDate() &&
+                                            dates[selectedDateIndex]?.date.getMonth() === now.getMonth() &&
+                                            dates[selectedDateIndex]?.date.getFullYear() === now.getFullYear();
+                                        return (
+                                            <button
+                                                key="Now"
+                                                type="button"
+                                                onClick={() => handleShiftSelect("Now")}
+                                                disabled={!isTodaySelected}
+                                                className={`booking-shift-card ${selectedShift === "Now" ? "selected" : ""}`}
+                                            >
+                                                <ClockIcon />
+                                                <span style={{ fontWeight: 800, fontSize: 14 }}>Now</span>
+                                                <span className="shift-range">Immediately</span>
+                                            </button>
+                                        );
+                                    })()}
+                                    {shifts.map((shift) => {
+                                        let isShiftAvailable = true;
+                                        if (selectedDateIndex !== null) {
+                                            const isToday = dates[selectedDateIndex].label === "Today";
+                                            if (isToday) {
+                                                const availableSlots = timeSlotsByShift[shift.label].filter((t) => !isTimeSlotInPast(t));
+                                                if (availableSlots.length === 0) isShiftAvailable = false;
+                                            }
+                                        }
+                                        return (
+                                            <button
+                                                key={shift.label}
+                                                type="button"
+                                                onClick={() => handleShiftSelect(shift.label)}
+                                                disabled={!isShiftAvailable}
+                                                className={`booking-shift-card ${selectedShift === shift.label ? "selected" : ""}`}
+                                            >
+                                                {shift.icon}
+                                                <span style={{ fontWeight: 800, fontSize: 14 }}>{shift.label}</span>
+                                                <span className="shift-range">{shift.range}</span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
+                        ) : null}
 
-
-                            {/* Shift Selection */}
-                            {selectedDateIndex !== null && (
-                                <div className="animate-fade-in">
-                                    <label className="block text-xs font-medium text-gray-700 mb-2">
-                                        Select Time Of Day <span className="text-red-500">*</span>
-                                    </label>
-                                    <p className="text-[10px] text-gray-500 mb-3">Choose Your Preferred Time Period</p>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                                        {(() => {
-                                            const now = new Date();
-                                            const isTodaySelected = dates[selectedDateIndex]?.date.getDate() === now.getDate() && dates[selectedDateIndex]?.date.getMonth() === now.getMonth() && dates[selectedDateIndex]?.date.getFullYear() === now.getFullYear();
-                                            return (
-                                                <button
-                                                    key="Now"
-                                                    onClick={() => handleShiftSelect("Now")}
-                                                    disabled={!isTodaySelected}
-                                                    className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all h-[120px] gap-2 ${
-                                                        !isTodaySelected
-                                                            ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-100"
-                                                            : selectedShift === "Now"
-                                                                ? "bg-gray-900 text-white border-gray-900 shadow-md"
-                                                                : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                                                        }`}
-                                                >
-                                                    <div className={`${selectedShift === "Now" ? "text-white" : "text-gray-900"}`}>
-                                                        <ClockIcon />
-                                                    </div>
-                                                    <span className={`text-sm font-bold ${selectedShift === "Now" ? "text-white" : "text-gray-900"}`}>
-                                                        Now
-                                                    </span>
-                                                    <span className={`text-[10px] font-medium ${selectedShift === "Now" ? "text-gray-300" : "text-gray-500"}`}>
-                                                        Immediately
-                                                    </span>
-                                                </button>
-                                            );
-                                        })()}
-                                        {shifts.map((shift) => {
-                                            // Optional: Filter shifts if all its slots are past (for Today)
-                                            // But for now, let's just let the user click and see empty/filtered slots or handle it here
-                                            // Let's filter shifts that are completely in the past
-                                            let isShiftAvailable = true;
-
-                                            if (selectedDateIndex !== null) {
-                                                const isToday = dates[selectedDateIndex].label === "Today";
-                                                if (isToday) {
-                                                    const availableSlots = timeSlotsByShift[shift.label].filter(t => !isTimeSlotInPast(t));
-                                                    if (availableSlots.length === 0) isShiftAvailable = false;
-                                                }
-                                            }
-
-                                            return (
-                                                <button
-                                                    key={shift.label}
-                                                    onClick={() => handleShiftSelect(shift.label)}
-                                                    disabled={!isShiftAvailable}
-                                                    className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all h-[120px] gap-2 ${!isShiftAvailable
-                                                        ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-100"
-                                                        : selectedShift === shift.label
-                                                            ? "bg-gray-900 text-white border-gray-900 shadow-md"
-                                                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                                                        }`}
-                                                >
-                                                    <div className={`${selectedShift === shift.label ? "text-white" : "text-gray-900"}`}>
-                                                        {shift.icon}
-                                                    </div>
-                                                    <span className={`text-sm font-bold ${selectedShift === shift.label ? "text-white" : "text-gray-900"}`}>
-                                                        {shift.label}
-                                                    </span>
-                                                    <span className={`text-[10px] font-medium ${selectedShift === shift.label ? "text-gray-300" : "text-gray-500"}`}>
-                                                        {shift.range}
-                                                    </span>
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Time Selection */}
-                            {selectedShift !== null && (
-                                <div className="min-h-[150px] animate-fade-in">
-                                    {selectedShift === "Now" ? (
-                                        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-start gap-3 mt-4 w-full">
-                                            <div className="mt-0.5 text-indigo-500">
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-bold text-indigo-900 mb-1">Instant Assessment Access</h4>
-                                                <p className="text-xs text-indigo-700 leading-relaxed">
-                                                    By selecting "Now", your assessment link will be generated instantly and ready to start within 10 seconds of confirming your booking.
-                                                </p>
-                                            </div>
+                        {selectedShift !== null ? (
+                            <div style={{ minHeight: 150 }}>
+                                {selectedShift === "Now" ? (
+                                    <div className="booking-callout">
+                                        <div>
+                                            <strong>Instant assessment access</strong>
+                                            <p>
+                                                By selecting &quot;Now&quot;, your assessment link will be generated instantly and ready to start within 10 seconds of confirming your booking.
+                                            </p>
                                         </div>
-                                    ) : (
-                                        <>
-                                            <label className="block text-xs font-medium text-gray-700 mb-2">
-                                                Select Specific Time <span className="text-red-500">*</span>
-                                            </label>
-                                            <p className="text-[10px] text-gray-500 mb-3">Pick Your Exact Appointment Time</p>
-
-                                            <div className="flex flex-wrap gap-3">
-                                                {timeSlotsByShift[selectedShift]
-                                                    .filter(time => {
-                                                        if (selectedDateIndex !== null) {
-                                                            const isToday = dates[selectedDateIndex].label === "Today";
-                                                            if (isToday) {
-                                                                return !isTimeSlotInPast(time);
-                                                            }
-                                                        }
-                                                        return true;
-                                                    })
-                                                    .map((time) => (
-                                                        <button
-                                                            key={time}
-                                                            onClick={() => handleTimeSelect(time)}
-                                                            className={`py-3 px-6 rounded-full text-xs font-bold transition-all text-center border min-w-[100px] ${selectedTime === time
-                                                                ? "bg-white text-indigo-600 border-indigo-500 ring-1 ring-indigo-500 shadow-sm"
-                                                                : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                                                                }`}
-                                                        >
-                                                            {time}
-                                                        </button>
-                                                    ))}
-                                                {/* Show message if all slots are filtered out but shift was selectable (edge case) */}
-                                                {timeSlotsByShift[selectedShift].filter(time => {
+                                    </div>
+                                ) : (
+                                    <>
+                                        <label className="booking-field-label">
+                                            Select specific time <span className="required-mark">*</span>
+                                        </label>
+                                        <p className="booking-field-hint" style={{ marginBottom: 12 }}>
+                                            Pick your exact appointment time
+                                        </p>
+                                        <div className="flex flex-wrap gap-3">
+                                            {timeSlotsByShift[selectedShift]
+                                                .filter((time) => {
                                                     if (selectedDateIndex !== null) {
                                                         const isToday = dates[selectedDateIndex].label === "Today";
                                                         if (isToday) return !isTimeSlotInPast(time);
                                                     }
                                                     return true;
-                                                }).length === 0 && (
-                                                        <p className="text-xs text-gray-500 italic w-full text-center py-4">
-                                                            No Available Slots For This Shift Today.
-                                                        </p>
-                                                    )}
-                                            </div>
-
-                                            {!selectedTime && (
-                                                <p className="text-[10px] text-gray-400 mt-2 italic animate-pulse">
-                                                    * Select A Time Slot To Proceed.
+                                                })
+                                                .map((time) => (
+                                                    <button
+                                                        key={time}
+                                                        type="button"
+                                                        onClick={() => handleTimeSelect(time)}
+                                                        className={`booking-time-chip ${selectedTime === time ? "selected" : ""}`}
+                                                    >
+                                                        {time}
+                                                    </button>
+                                                ))}
+                                            {timeSlotsByShift[selectedShift].filter((time) => {
+                                                if (selectedDateIndex !== null) {
+                                                    const isToday = dates[selectedDateIndex].label === "Today";
+                                                    if (isToday) return !isTimeSlotInPast(time);
+                                                }
+                                                return true;
+                                            }).length === 0 ? (
+                                                <p className="booking-field-hint w-full text-center" style={{ padding: "16px 0" }}>
+                                                    No available slots for this shift today.
                                                 </p>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Terms and Conditions */}
-                        <div className="mt-6 pt-4 border-t border-gray-100">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <div className="relative flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={termsAccepted}
-                                        onChange={(e) => setTermsAccepted(e.target.checked)}
-                                        className="peer h-4 w-4 cursor-pointer appearance-none rounded border border-gray-300 transition-all checked:border-gray-900 checked:bg-indigo-500 group-hover:border-gray-400"
-                                    />
-                                    <svg
-                                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity peer-checked:opacity-100 text-white w-3 h-3"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth={3}
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                    </svg>
-                                </div>
-                                <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors select-none">
-                                    I Agree To The <span
-                                        className="underline decoration-dotted font-medium text-gray-800 hover:text-indigo-600 cursor-pointer"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            setShowTerms(true);
-                                        }}
-                                    >
-                                        Terms And Conditions
-                                    </span>
-                                </span>
-                            </label>
-                        </div>
-
-                        {/* Action Bar */}
-                        <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-100">
-                            <button
-                                onClick={() => {
-                                    const qs = buildBookingQuery();
-                                    router.push(qs ? `/choose-assessment?${qs}` : "/choose-assessment");
-                                }}
-                                className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
-                            >
-                                &larr; Back
-                            </button>
-                            <button
-                                onClick={handleConfirmBooking}
-                                disabled={!selectedTime || !termsAccepted || isSendingEmail}
-                                className={`flex items-center gap-1.5 px-6 py-2 rounded-xl font-bold transition-all transform ${selectedTime && termsAccepted && !isSendingEmail
-                                    ? "bg-indigo-500 hover:bg-indigo-500 text-white hover:scale-105 cursor-pointer shadow-lg text-sm"
-                                    : "bg-indigo-500 text-white cursor-not-allowed text-sm"
-                                    }`}
-                            >
-                                {isSendingEmail ? "Booking..." : "Confirm Booking"}
-                                {!isSendingEmail && <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>}
-                            </button>
-                        </div>
+                                            ) : null}
+                                        </div>
+                                        {!selectedTime ? (
+                                            <p className="booking-field-hint" style={{ marginTop: 8 }}>
+                                                Select a time slot to proceed.
+                                            </p>
+                                        ) : null}
+                                    </>
+                                )}
+                            </div>
+                        ) : null}
                     </div>
 
+                    <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--rule)" }}>
+                        <label className="flex items-center gap-2 cursor-pointer" style={{ fontSize: 12, color: "var(--ink-soft)" }}>
+                            <input
+                                type="checkbox"
+                                checked={termsAccepted}
+                                onChange={(e) => setTermsAccepted(e.target.checked)}
+                                style={{ accentColor: "var(--purple)" }}
+                            />
+                            <span>
+                                I agree to the{" "}
+                                <button
+                                    type="button"
+                                    className="btn ghost"
+                                    style={{ padding: 0, minHeight: 0, textDecoration: "underline", fontSize: 12 }}
+                                    onClick={() => setShowTerms(true)}
+                                >
+                                    terms and conditions
+                                </button>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div className="booking-footer">
+                        <button
+                            type="button"
+                            className="btn ghost"
+                            onClick={() => {
+                                const qs = buildBookingQuery();
+                                router.push(qs ? `/choose-assessment?${qs}` : "/choose-assessment");
+                            }}
+                        >
+                            Back to assessment type
+                        </button>
+                        <button
+                            type="button"
+                            className="btn primary"
+                            onClick={handleConfirmBooking}
+                            disabled={!selectedTime || !termsAccepted || isSendingEmail}
+                        >
+                            {isSendingEmail ? "Booking…" : "Confirm booking"}
+                        </button>
+                    </div>
                 </div>
-            </div>
-            {/* Terms and Conditions Modal */}
-            <Modal
-                isOpen={showTerms}
-                onClose={() => setShowTerms(false)}
-                title="Terms and Conditions"
-            >
-                <ol className="text-sm text-gray-600 space-y-4 list-decimal pl-5">
+            </section>
+
+            <Modal isOpen={showTerms} onClose={() => setShowTerms(false)} title="Terms and Conditions">
+                <ol className="text-sm text-[var(--ink-soft)] space-y-4 list-decimal pl-5">
                     <li>
                         This Application is established for the purpose of administering the GCG assessment process, including assessment scheduling, examination conduct, administrative review, and certificate issuance.
                     </li>
@@ -904,13 +742,21 @@ function ChooseTimeContent() {
                     </li>
                 </ol>
             </Modal>
-        </div>
+        </BookingWizardShell>
     );
 }
 
 export default function ChooseTimePage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense
+            fallback={
+                <BookingWizardShell step={3} theme="light" onThemeToggle={() => {}}>
+                    <section className="step-page active booking-page">
+                        <p className="step-sub">Loading…</p>
+                    </section>
+                </BookingWizardShell>
+            }
+        >
             <ChooseTimeContent />
         </Suspense>
     );

@@ -87,7 +87,7 @@ function DashboardContent() {
             if (typeof window !== "undefined") {
                 const storedScope1 = sessionStorage.getItem("scope1_user");
                 if (storedScope1) {
-                    router.replace("/scope1/report");
+                    router.replace("/scope1/dashboard");
                     setInitialized(true);
                     return;
                 }
@@ -149,7 +149,7 @@ function DashboardContent() {
                         sessionStorage.setItem("scope1_user", JSON.stringify(data.user));
                         sessionStorage.removeItem("scope2_user");
                     }
-                    router.replace("/scope1/report");
+                    router.replace("/scope1/dashboard");
                     return;
                 }
 

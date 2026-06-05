@@ -1,7 +1,9 @@
 'use client'
 
 import { scope1Fetch, scope1SaveQuery } from '@/lib/scope1-api'
-import { lockScope1Calculation } from '@/lib/scope1-lock'
+import { Scope1ReviewContent, Scope1ReviewSubmittedContent } from '@/components/review/scope1-review-page'
+import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
+import { submitScope1ForReview } from '@/lib/scope1-submit-for-review'
 import { useScope1OrganizationPrefill } from '@/lib/use-scope1-organization-prefill'
 import { useScope1BoundaryPrefill } from '@/lib/use-scope1-boundary-prefill'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -37,8 +39,12 @@ import { FactorOverridePanel } from '@/components/factor-override-panel'
 import { OilGasMethodologyGuide } from '@/components/methodology-guide'
 import { SourceApplicabilityPanel } from '@/components/source-applicability-panel'
 import { WizardProgressNav } from '@/components/wizard-progress-nav'
+import { useWizardTheme } from '@/lib/use-wizard-theme'
 import { ReportSignoffPanel } from '@/components/report-signoff-panel'
 import { AccessibleNumField, AccessibleSelect, AccessibleTextField } from '@/lib/ui/form-fields'
+import { EntryLabelField } from '@/lib/ui/entry-label-field'
+import { GwpSectorCards, GWP_OPTIONS_THREE } from '@/lib/ui/gwp-switch'
+import { labelSuggestionsFor } from '@/lib/ui/label-suggestions'
 import {
   applicabilityFlags,
   OIL_GAS_INVENTORY_SOURCES,
@@ -57,6 +63,7 @@ import {
   LiveTotalsStrip,
   ResultsViewTabs,
   ActivityDataTools,
+  WizardStickyChrome,
   listInventoryVersions,
   ReconciliationPanel,
   StickyExportBar,
@@ -100,7 +107,7 @@ type OgCat =
   | 'process'
   | 'reported'
 
-const STEPS = ['Sector', 'Facility & methods', 'Activity data', 'Review & report']
+const STEPS = ['Sector', 'Facility & methods', 'Activity data', 'Review & submit']
 
 const FUEL_CODES = [
   'natural_gas',
@@ -178,12 +185,6 @@ const OIL_GAS_ACTIVITY_HINTS: Record<OgCat, string> = {
   process: 'Hydrogen SMR, FCC, amine acid gas, and other process CO2 sources.',
   reported: 'Optional disclosed totals for reconciliation. Does not change modelled emissions.',
 }
-
-const GWP_SETS: { key: OilGasGwpSet; label: string }[] = [
-  { key: 'AR5_100', label: 'AR5·100' },
-  { key: 'AR6_100', label: 'AR6·100' },
-  { key: 'AR6_20', label: 'AR6·20' },
-]
 
 const fmt = (v: number) => formatNumber(v, 2)
 const fmt4 = (v: number) => formatNumber(v, 4)
@@ -519,7 +520,7 @@ function StationaryTable({
         >
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('oil_gas', 'combustion')} />
               <EntryLabeledSelect
                 label="Fuel"
                 value={e.fuelCode}
@@ -603,7 +604,7 @@ function MobileTable({
         >
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (m) => (m.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (m) => (m.label = v))} suggestions={labelSuggestionsFor('oil_gas', 'mobile')} />
               <EntryLabeledSelect
                 label="Ownership"
                 value={e.ownership}
@@ -695,7 +696,7 @@ function FlareTable({ entries, trace, onChange }: { entries: FlareEntry[]; trace
           formula={<>CO2 = Σ(molfrac×nC)·molPerSm3·V·DRE·M_CO2 + inert CO2 · CH4 slip = CH4·V·(1−DRE)·ρ_CH4</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('oil_gas', 'combustion')} />
               <EntryLabeledSelect
                 label="Flare type"
                 value={e.flareType}
@@ -754,7 +755,7 @@ function VentTable({ entries, trace, onChange }: { entries: VentEntry[]; trace: 
           formula={<>released = ventVolume × molfrac × density × (1 − capture)</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (v) => (v.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(val) => upd(e.id, (row) => (row.label = val))} suggestions={labelSuggestionsFor('oil_gas', 'venting')} />
               <EntryLabeledSelect
                 label="Event type"
                 value={e.eventType}
@@ -796,7 +797,7 @@ function FugitiveTable({ entries, trace, onChange }: { entries: FugitiveComponen
           formula={<>count × leakFactor(kgCH4/hr) × hours → CH4 → CO2e</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('oil_gas', 'combustion')} />
               <EntryLabeledSelect
                 label="Component"
                 value={e.componentCode}
@@ -855,7 +856,7 @@ function RefrigerantTable({ entries, trace, onChange }: { entries: RefrigerantEn
           formula={e.tier === 'TIER1_CAPACITY' ? <>capacity × leakRate% × GWP / 1000</> : <>(purchases − disposals − Δinventory) × GWP / 1000</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('oil_gas', 'fugitive')} />
               <EntryLabeledSelect
                 label="Gas"
                 value={e.gasCode}
@@ -920,7 +921,7 @@ function ProcessTable({ entries, trace, onChange }: { entries: ProcessEntry[]; t
           onEvidenceChange={(patch) => upd(e.id, (x) => Object.assign(x, patch))}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (p) => (p.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (row) => (row.label = v))} suggestions={labelSuggestionsFor('oil_gas', 'combustion')} />
               <EntryLabeledSelect
                 label="Process type"
                 value={e.processType}
@@ -992,7 +993,7 @@ function ReportedTable({ entries, trace, onChange }: { entries: ReportedEntry[];
           formula={<>direct disclosed CO2e, or CO2 + CH4·GWP + N2O·GWP from reported gas masses</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('oil_gas', 'fugitive')} />
               <label className="field">Source / category tag<input value={e.categoryTag ?? ''} placeholder="e.g. flaring · venting+process" onChange={(ev) => upd(e.id, (r) => (r.categoryTag = ev.target.value))} /></label>
               <EntryLabeledSelect
                 label="Basis"
@@ -1320,7 +1321,7 @@ function OilGasResultsPage({
 /* --------------------------------- wizard -------------------------------- */
 
 export function OilGasWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement' | 'oil_gas' | 'pulp_paper' | 'iron_steel' | 'power') => void }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const { theme, toggleTheme } = useWizardTheme()
   const [step, setStep] = useState(1)
   const [cat, setCat] = useState<OgCat>('stationary')
   const [p, setP] = useState<OilGasInputPayload>(emptyOilGasPayload())
@@ -1331,6 +1332,7 @@ export function OilGasWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
   const [hasDraft, setHasDraft] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [factors, setFactors] = useState<{
     constants: { factorCode: string; factorName: string; value: number; unit: string; source: string }[]
@@ -1385,22 +1387,19 @@ export function OilGasWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
   useScope1BoundaryPrefill(patch)
 
   async function lockInventory() {
-    if (!result?.calculationId) {
-      alert('Save to database first, then submit for review.')
-      return
-    }
+    setSubmitError(null)
     setBusy(true)
     try {
-      const out = await lockScope1Calculation(
-        result.calculationId,
+      const out = await submitScope1ForReview(
+        '/api/v1/calculations/oil-gas/calculate',
+        p,
         p.organization.contactName || 'system',
       )
       if (!out.ok) {
-        alert(`Submit failed: ${out.message}`)
+        setSubmitError(out.message)
         return
       }
       setSubmitted(true)
-      alert('Inventory submitted for admin review.')
     } finally {
       setBusy(false)
     }
@@ -1649,106 +1648,63 @@ export function OilGasWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
 
   return (
     <main className={theme === 'dark' ? 'wizard-app dark' : 'wizard-app'}>
-      <header className="wizard-header">
-        <div className="wizard-header-inner">
-          <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
-            <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
-            <span className="brand-divider" />
-            <span className="brand-label">
-              <span className="brand-eyebrow">Scope 1 Calculator</span>
-              <span className="brand-product">Oil &amp; Gas</span>
-            </span>
-          </button>
-          <div className="wizard-actions">
-            <div className="gwp-switch">
-              <span>GWP</span>
-              {GWP_SETS.map((g) => (
-                <button
-                  key={g.key}
-                  className={p.calculationContext.gwpSet === g.key ? 'active' : ''}
-                  onClick={() => {
-                    if (p.calculationContext.gwpSet === g.key) return
-                    if (
-                      (step >= 3 || result || live) &&
-                      typeof window !== 'undefined' &&
-                      !window.confirm(
-                        'Changing the GWP set recalculates all CO2e values. Continue?',
-                      )
-                    ) {
-                      return
-                    }
-                    patch((d) => (d.calculationContext.gwpSet = g.key))
-                  }}
-                >
-                  {g.label}
-                </button>
-              ))}
-            </div>
-            <button className="theme-switch" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+      <WizardStickyChrome>
+        <header className="wizard-header">
+          <div className="wizard-header-inner">
+            <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
+              <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
+              <span className="brand-divider" />
+              <span className="brand-label">
+                <span className="brand-eyebrow">Scope 1 Calculator</span>
+                <span className="brand-product">Oil &amp; Gas</span>
+              </span>
             </button>
+            <div className="wizard-actions">
+              <button className="theme-switch" onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <WizardProgressNav
-        steps={STEPS}
-        step={step}
-        canReach={canReach}
-        onGo={tryGoTo}
-        gate={{
-          orgValid,
-          facilityValid,
-          hasResult: !!result,
-          facilityLockHint: 'Add facility name and value-chain segment on Facility & methods first.',
-        }}
-      />
+        <WizardProgressNav
+          steps={STEPS}
+          step={step}
+          canReach={canReach}
+          onGo={tryGoTo}
+          gate={{
+            orgValid,
+            facilityValid,
+            hasResult: !!result,
+            facilityLockHint: 'Add facility name and value-chain segment on Facility & methods first.',
+          }}
+        />
+      </WizardStickyChrome>
 
       <section className="wizard-main">
         {step === 1 && (
-          <section className="step-page active">
-            <h1 className="step-title">What <em>sector</em> are you in?</h1>
-            <p className="step-sub">Oil &amp; Gas uses the IPIECA/API six-category taxonomy plus refrigerants. Gross Scope 1 covers all four canonical source types — <b>stationary combustion</b> (engines, turbines, heaters), <b>mobile combustion</b>, <b>process emissions</b> (flaring, SMR, FCC, amine acid-gas), and <b>fugitive emissions</b> (cold venting, LDAR components, refrigerants) — as full CO2e (CO2 + CH4 + N2O), with methane front and centre.</p>
-            {hasDraft && (
-              <div className="callout callout-success">
-                <div>
-                  <b>Draft restored.</b>{' '}
-                  <span>Your previous entry was autosaved in this browser and reloaded.</span>
+          <section className="step-page active sector-step-page">
+            <div className="sector-step-intro">
+              <h1 className="step-title">What sector are you <em>in?</em></h1>
+              <p className="step-sub">Oil &amp; Gas uses the IPIECA/API six-category taxonomy plus refrigerants. Gross Scope 1 covers all four canonical source types — <b>stationary combustion</b> (engines, turbines, heaters), <b>mobile combustion</b>, <b>process emissions</b> (flaring, SMR, FCC, amine acid-gas), and <b>fugitive emissions</b> (cold venting, LDAR components, refrigerants) — as full CO2e (CO2 + CH4 + N2O), with methane front and centre.</p>
+              {hasDraft && (
+                <div className="callout callout-success">
+                  <div>
+                    <b>Draft restored.</b>{' '}
+                    <span>Your previous entry was autosaved in this browser and reloaded.</span>
+                  </div>
+                  <button type="button" className="btn ghost" onClick={startFresh}>
+                    Start fresh
+                  </button>
                 </div>
-                <button type="button" className="btn ghost" onClick={startFresh}>
-                  Start fresh
-                </button>
-              </div>
-            )}
-            <div className="callout callout-info">
-              <div>
-                <b>First time here?</b>{' '}
-                <span>See the calculator end-to-end with a sample offshore upstream asset.</span>
-              </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="application/json,.json"
-                  style={{ display: 'none' }}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) importJson(f)
-                    e.currentTarget.value = ''
-                  }}
-                />
-                <button type="button" className="btn ghost" onClick={() => fileRef.current?.click()}>
-                  Load JSON
-                </button>
-                <button type="button" className="add-entry-btn" onClick={loadSample} disabled={busy}>
-                  {busy ? 'Loading…' : 'Try with sample data →'}
-                </button>
-              </div>
+              )}
+              {importError && (
+                <p className="field-error" style={{ marginTop: 12 }}>{importError}</p>
+              )}
             </div>
-            {importError && (
-              <p className="field-error" style={{ marginTop: -6, marginBottom: 12 }}>{importError}</p>
-            )}
-            <div className="sector-grid">
+            <div className="sector-step-body">
+              <div className="sector-step-grid-wrap">
+                <div className="sector-grid">
               <button className="sector-card" onClick={() => onSwitchSector?.('cement')}>
                 <span className="icon"><Factory size={22} strokeWidth={1.75} /></span>
                 <strong>Cement</strong>
@@ -1787,9 +1743,52 @@ export function OilGasWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
                   <span className="tags">Planned</span>
                 </button>
               ))}
+              <GwpSectorCards
+                value={p.calculationContext.gwpSet}
+                options={GWP_OPTIONS_THREE}
+                beforeChange={() => {
+                  if (
+                    (step >= 3 || result || live) &&
+                    typeof window !== 'undefined' &&
+                    !window.confirm('Changing the GWP set recalculates all CO2e values. Continue?')
+                  ) {
+                    return false
+                  }
+                  return true
+                }}
+                onChange={(g) => patch((d) => (d.calculationContext.gwpSet = g as OilGasGwpSet))}
+              />
+                </div>
+              </div>
+              <aside className="sector-step-onboarding-col" aria-label="Get started">
+                <div className="callout callout-info sector-step-onboarding">
+                  <div>
+                    <b>First time here?</b>{' '}
+                    <span>See the calculator end-to-end with a sample offshore upstream asset.</span>
+                  </div>
+                  <div className="sector-step-onboarding-actions">
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="application/json,.json"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) importJson(f)
+                        e.currentTarget.value = ''
+                      }}
+                    />
+                    <button type="button" className="btn ghost" onClick={() => fileRef.current?.click()}>
+                      Load JSON
+                    </button>
+                    <button type="button" className="add-entry-btn" onClick={loadSample} disabled={busy}>
+                      {busy ? 'Loading…' : 'Try with sample data →'}
+                    </button>
+                  </div>
+                </div>
+              </aside>
             </div>
-            <div className="step-footer">
-              <div />
+            <div className="sector-step-footer">
               <button className="btn primary" onClick={() => setStep(2)}>Continue</button>
             </div>
           </section>
@@ -1950,41 +1949,23 @@ export function OilGasWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
         )}
 
         {step === 4 && result && (
-          <OilGasResultsPage
-            result={result}
-            payload={p}
-            busy={busy}
-            onBack={() => setStep(3)}
-            onSave={() => runCalculate(true)}
-            onLock={lockInventory}
-            locked={submitted}
-            onDownload={download}
-            versions={listInventoryVersions('oil_gas')}
-            onRestore={(snap) => {
-              if (snap.payload) {
-                setP(snap.payload as OilGasInputPayload)
-                saveOilGasDraft(snap.payload as OilGasInputPayload)
-                setResult(null)
-                setLive(null)
-                setStep(3)
-              }
-            }}
-            onSignoffPatch={(fields) =>
-              patch((d) => {
-                if (fields.contactName !== undefined) {
-                  d.organization.contactName = fields.contactName
-                  d.auditMetadata = { ...d.auditMetadata, preparedBy: fields.contactName }
-                }
-                if (fields.contactEmail !== undefined) d.organization.contactEmail = fields.contactEmail
-                if (fields.contactPhone !== undefined) d.organization.contactPhone = fields.contactPhone
-                if (fields.contactRole !== undefined) d.organization.contactRole = fields.contactRole
-                if (fields.notes !== undefined) {
-                  d.auditMetadata = { ...d.auditMetadata, notes: fields.notes }
-                }
-              })
-            }
-          />
+          submitted ? (
+            <Scope1ReviewSubmittedContent sectorLabel="Scope 1 · Oil & Gas" />
+          ) : (
+            <Scope1ReviewContent
+              quadrants={buildScope1ReviewQuadrants(
+                p as unknown as Record<string, unknown>,
+                result as unknown as Record<string, unknown>,
+                'OIL_GAS',
+              )}
+              busy={busy}
+              onBack={() => setStep(3)}
+              onSubmit={lockInventory}
+              submitError={submitError}
+            />
+          )
         )}
+
       </section>
     </main>
   )

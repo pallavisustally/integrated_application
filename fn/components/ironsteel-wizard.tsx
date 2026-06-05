@@ -36,6 +36,15 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { Scope1ReviewContent, Scope1ReviewSubmittedContent } from '@/components/review/scope1-review-page'
+import { WizardProgressNav } from '@/components/wizard-progress-nav'
+import { useWizardTheme } from '@/lib/use-wizard-theme'
+import { WizardStickyChrome } from '@/components/wizard-shared'
+import { EntryLabelField } from '@/lib/ui/entry-label-field'
+import { GwpSectorCards, GWP_OPTIONS_THREE } from '@/lib/ui/gwp-switch'
+import { labelSuggestionsFor } from '@/lib/ui/label-suggestions'
+import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
+import { submitScope1ForReview } from '@/lib/scope1-submit-for-review'
 import { scope1Fetch, scope1SaveQuery } from '@/lib/scope1-api'
 import { useScope1OrganizationPrefill } from '@/lib/use-scope1-organization-prefill'
 import { useScope1BoundaryPrefill } from '@/lib/use-scope1-boundary-prefill'
@@ -351,7 +360,7 @@ function StationaryTable({ entries, trace, onChange }: { entries: FuelEntry[]; t
           formula={<>quantity × NCV ÷ 1000 × CO2 EF = tCO2 · CH4/N2O = energy × EF_tech / 1000 · fossil → Scope 1</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Fuel
                 <select value={e.fuelCode} onChange={(ev) => upd(e.id, (f) => (f.fuelCode = ev.target.value))}>{FUELS.map((c) => <option key={c} value={c}>{c}</option>)}</select>
               </label>
@@ -397,7 +406,7 @@ function MobileTable({ entries, trace, onChange }: { entries: MobileEntry[]; tra
           formula={<>E = qty × NCV × EF / 1000 (CO2/CH4/N2O)</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Ownership
                 <select value={e.ownership} onChange={(ev) => upd(e.id, (f) => (f.ownership = ev.target.value as MobileEntry['ownership']))}>
                   <option value="OWNED_CONTROLLED">Owned / controlled</option>
@@ -433,7 +442,7 @@ function CokeOvenTable({ entries, trace, onChange }: { entries: CokeOvenEntry[];
           formula={e.method === 'TIER1_DEFAULT' ? <>CO2 = coke × 0.56</> : <>CO2 = (coal × C − coke × C − COG × C − tar × C) × 44/12</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Method
                 <select value={e.method} onChange={(ev) => upd(e.id, (f) => (f.method = ev.target.value as CokeOvenEntry['method']))}>
                   <option value="TIER1_DEFAULT">Tier 1 default (0.56 tCO2/t)</option>
@@ -474,7 +483,7 @@ function SinterTable({ entries, trace, onChange }: { entries: SinterEntry[]; tra
           formula={<>CO2 = sinter × 0.20 OR Σ(coke C×44/12 + flux 0.440/0.477 + NG×EFng)</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Method
                 <select value={e.method} onChange={(ev) => upd(e.id, (f) => (f.method = ev.target.value as SinterEntry['method']))}>
                   <option value="TIER1_DEFAULT">Tier 1 default (0.20 tCO2/t)</option>
@@ -515,7 +524,7 @@ function DriTable({ entries, trace, onChange }: { entries: DriEntry[]; trace: Tr
           formula={e.method === 'TIER1_DEFAULT' ? <>CO2 = DRI × EF_route</> : <>CO2 = (reductant × C − DRI × C) × 44/12</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Route
                 <select value={e.driType} onChange={(ev) => upd(e.id, (f) => (f.driType = ev.target.value as DriEntry['driType']))}>
                   <option value="NATURAL_GAS">Natural-gas (MIDREX / Energiron)</option>
@@ -561,7 +570,7 @@ function BfBofTable({ entries, trace, onChange }: { entries: BfBofEntry[]; trace
           formula={e.method === 'TIER1_INTEGRATED' ? <>CO2 = crude_steel × 1.46 (IPCC integrated)</> : <>BF: (coke + PCI + NG + 12%·CaCO3 + 13.2%·Dolomite − HM·4.3% − BFG·C)·44/12; BOF: (HM + scrap − CS − slag − BOFG)·44/12</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Method
                 <select value={e.method} onChange={(ev) => upd(e.id, (f) => (f.method = ev.target.value as BfBofEntry['method']))}>
                   <option value="TIER1_INTEGRATED">Tier 1 integrated (1.46 tCO2/t CS)</option>
@@ -610,7 +619,7 @@ function EafTable({ entries, trace, onChange }: { entries: EafEntry[]; trace: Tr
           formula={e.method === 'TIER1_ELECTRODES_ONLY' ? <>CO2 = crude_steel × 0.08</> : <>CO2 = [(electrode·0.99 + charge C + DRI C + scrap C) − CS·0.005] × 44/12 + lime·0.440 + dolomite·0.477 + NG·EFng/1000</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Method
                 <select value={e.method} onChange={(ev) => upd(e.id, (f) => (f.method = ev.target.value as EafEntry['method']))}>
                   <option value="TIER1_ELECTRODES_ONLY">Tier 1 electrodes-only (0.08)</option>
@@ -658,7 +667,7 @@ function LimeKilnTable({ entries, trace, onChange }: { entries: LimeKilnEntry[];
           formula={<>CO2_combustion = E × EFco2/1000; CO2_calcination = (CaCO3 × 0.440 + Dolomite × 0.477) × calcFrac</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Kiln type
                 <select value={e.kilnType} onChange={(ev) => upd(e.id, (f) => (f.kilnType = ev.target.value as LimeKilnEntry['kilnType']))}>
                   <option value="ROTARY">Rotary</option><option value="SHAFT">Shaft</option><option value="FLUIDIZED_BED">Fluidized bed</option>
@@ -698,7 +707,7 @@ function FlaringTable({ entries, trace, onChange }: { entries: FlaringEntry[]; t
           formula={<>CO2 = V × C × DRE / 1000; CH4 slip = V × EF_CH4 × (1−DRE) / 1000</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (f) => (f.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (f) => (f.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'combustion')} />
               <label className="field">Gas type
                 <select value={e.gasType} onChange={(ev) => upd(e.id, (f) => (f.gasType = ev.target.value as FlaringEntry['gasType']))}>
                   <option value="COG">COG (coke oven gas)</option><option value="BFG">BFG (blast furnace gas)</option>
@@ -732,7 +741,7 @@ function HfcTable({ entries, trace, onChange }: { entries: RefrigerantEntry[]; t
           formula={e.method === 'MASS_BALANCE' ? <>E = inv_start + purchased − sold − inv_end − recovered; CO2e = E × GWP / 1000</> : <>E = charge × leak_rate; CO2e = E × GWP / 1000</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'fugitive')} />
               <label className="field">Gas
                 <select value={e.gasCode} onChange={(ev) => upd(e.id, (r) => (r.gasCode = ev.target.value))}>{['r134a','r410a','r404a','r407c','r32','r507a','r23','r125','r143a','r449a','r1234yf'].map((c) => <option key={c} value={c}>{c}</option>)}</select>
               </label>
@@ -784,7 +793,7 @@ function Sf6Table({ entries, trace, onChange }: { entries: Sf6Entry[]; trace: Tr
           formula={<>CO2e = leakedKg × 25,200 / 1000</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'fugitive')} />
               <NumField label="Nameplate inventory" unit="kg" value={e.nameplateInventoryKg ?? null} onChange={(v) => upd(e.id, (r) => (r.nameplateInventoryKg = v))} />
               <NumField label="Annual leak rate" step="0.001" value={e.annualLeakRate ?? null} onChange={(v) => upd(e.id, (r) => (r.annualLeakRate = v))} hint="default 0.005 (sealed-pressure)" />
               <NumField label="…or direct leaked mass" unit="kg/yr" value={e.leakedMassKg ?? null} onChange={(v) => upd(e.id, (r) => (r.leakedMassKg = v))} hint="overrides rate" />
@@ -813,7 +822,7 @@ function OtherFugitiveTable({ entries, trace, onChange }: { entries: OtherFugiti
           formula={<>CH4 kg = (direct mass | activity × EF); CO2e = CH4 × GWP / 1000</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'fugitive')} />
               <label className="field">Source
                 <select value={e.source} onChange={(ev) => upd(e.id, (r) => (r.source = ev.target.value as OtherFugitiveEntry['source']))}>
                   <option value="COAL_STOCKPILE">Coal stockpile</option><option value="COKE_OVEN_SEAL">Coke-oven seal</option>
@@ -845,7 +854,7 @@ function ReportedTable({ entries, trace, onChange }: { entries: ReportedEntry[];
           formula={<>direct disclosed CO2e, or CO2 + CH4·GWP + N2O·GWP from reported gas masses</>}>
           <div className="entry-card-section">
             <div className="field-row">
-              <label className="field">Label<input value={e.label} onChange={(ev) => upd(e.id, (r) => (r.label = ev.target.value))} /></label>
+              <EntryLabelField value={e.label} onChange={(v) => upd(e.id, (r) => (r.label = v))} suggestions={labelSuggestionsFor('iron_steel', 'fugitive')} />
               <label className="field">Source / category tag<input value={e.categoryTag ?? ''} placeholder="e.g. ETS verified statement" onChange={(ev) => upd(e.id, (r) => (r.categoryTag = ev.target.value))} /></label>
               <label className="field">Basis
                 <select value={e.basis} onChange={(ev) => upd(e.id, (r) => (r.basis = ev.target.value as ReportedEntry['basis']))}>
@@ -910,8 +919,10 @@ export function IronSteelWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
   const [cat, setCat] = useState<Cat>('stationary')
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<IronSteelCalculationResult | null>(null)
+  const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [live, setLive] = useState<IronSteelCalculationResult | null>(null)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const { theme, toggleTheme } = useWizardTheme()
   const [importError, setImportError] = useState<string | null>(null)
   const [hasDraft, setHasDraft] = useState(false)
   const [step3Tried, setStep3Tried] = useState(false)
@@ -1009,14 +1020,22 @@ export function IronSteelWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
   }
 
   async function lockInventory() {
-    if (!result?.calculationId) return
+    setSubmitError(null)
     setBusy(true)
     try {
-      const r = await scope1Fetch(`/api/v1/calculations/${result.calculationId}/lock`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ actor: p.organization.contactName || 'system' }) })
-      if (!r.ok) { const err = await r.json().catch(() => ({})); alert(`Lock failed: ${err.detail || err.error || r.statusText}`); return }
-      const data = await r.json()
-      setResult({ ...result, auditStatus: { ...result.auditStatus, workflowStatus: data.workflowStatus, calculatedAt: result.auditStatus.calculatedAt } })
-    } finally { setBusy(false) }
+      const out = await submitScope1ForReview(
+        '/api/v1/calculations/iron-steel/calculate',
+        p,
+        p.organization.contactName || 'system',
+      )
+      if (!out.ok) {
+        setSubmitError(out.message)
+        return
+      }
+      setSubmitted(true)
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function download(format: 'json' | 'xlsx' | 'pdf' | 'csv' | 'audit-pack') {
@@ -1064,62 +1083,56 @@ export function IronSteelWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
 
   return (
     <main className={theme === 'dark' ? 'wizard-app dark' : 'wizard-app'}>
-      <header className="wizard-header">
-        <div className="wizard-header-inner">
-          <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
-            <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
-            <span className="brand-divider" />
-            <span className="brand-label">
-              <span className="brand-eyebrow">Scope 1 Calculator</span>
-              <span className="brand-product">Iron &amp; Steel</span>
-            </span>
-          </button>
-          <div className="wizard-actions">
-            <div className="gwp-switch">
-              <span>GWP</span>
-              {(['AR5_100', 'AR6_100', 'AR6_20'] as const).map((g) => (
-                <button key={g} className={p.calculationContext.gwpSet === g ? 'active' : ''} onClick={() => patch((d) => (d.calculationContext.gwpSet = g))}>{g.replace('_', ' · ')}</button>
-              ))}
+      <WizardStickyChrome>
+        <header className="wizard-header">
+          <div className="wizard-header-inner">
+            <button className="wizard-brand" onClick={() => setStep(1)} title="Calculator home" aria-label="Back to calculator home">
+              <img className="brand-logo" src={theme === 'dark' ? '/brand/typemark-white.svg' : '/brand/typemark-black.svg'} alt="Sustally" />
+              <span className="brand-divider" />
+              <span className="brand-label">
+                <span className="brand-eyebrow">Scope 1 Calculator</span>
+                <span className="brand-product">Iron &amp; Steel</span>
+              </span>
+            </button>
+            <div className="wizard-actions">
+              <button className="theme-switch" onClick={toggleTheme} title="Toggle theme" aria-label="Toggle theme">
+                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+              </button>
             </div>
-            <button className="theme-switch" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle theme" aria-label="Toggle theme">
-              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-            </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <nav className="wizard-progress">
-        {(['Sector','Plant & route','Activity data','Review & report'] as const).map((label, i) => {
-          const target = i + 1; const reachable = canReach(target)
-          return (
-            <button key={label} className={step === target ? 'active' : step > target ? 'complete' : ''} onClick={() => tryGoTo(target)} disabled={!reachable && target !== step} aria-disabled={!reachable && target !== step}>
-              <span>{target}</span><b>{label}</b>
-            </button>
-          )
-        })}
-      </nav>
+        <WizardProgressNav
+          steps={['Sector', 'Plant & route', 'Activity data', 'Review & submit']}
+          step={step}
+          canReach={canReach}
+          onGo={tryGoTo}
+          gate={{
+            orgValid,
+            facilityValid,
+            hasResult: !!result,
+            facilityLockHint: 'Add a plant name and process route on Plant & route first.',
+          }}
+        />
+      </WizardStickyChrome>
 
       <section className="wizard-main">
         {step === 1 && (
-          <section className="step-page active">
-            <h1 className="step-title">What <em>sector</em> are you in?</h1>
-            <p className="step-sub">Iron &amp; Steel uses the worldsteel + ISO 14404 site-level methodology with IPCC 2006 + 2019 Refinement Tier 1/2/3 EFs. Gross Scope 1 covers all four canonical source types — <b>stationary combustion</b>, <b>mobile combustion</b>, <b>process emissions</b> (coke / sinter / BF / BOF / EAF / DRI / lime kiln / flaring), and <b>fugitive emissions</b> (HFCs, SF6, CH4 leaks) — as full CO2e (CO2 + CH4 + N2O + HFCs + SF6). Biogenic CO2 is a memo line.</p>
-            {hasDraft && (
-              <div style={{ alignItems: 'center', background: 'color-mix(in srgb, #2f6b4f 10%, transparent)', border: '1px solid color-mix(in srgb, #2f6b4f 32%, transparent)', borderRadius: 12, display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', margin: '14px 0 0', padding: '12px 16px' }}>
-                <div><b>Draft restored.</b> <span style={{ color: 'var(--muted)' }}>Your previous entry was autosaved and reloaded.</span></div>
-                <button className="btn ghost" onClick={startFresh}>Start fresh</button>
-              </div>
-            )}
-            <div style={{ alignItems: 'center', background: 'color-mix(in srgb, var(--purple) 6%, transparent)', border: '1px dashed color-mix(in srgb, var(--purple) 40%, transparent)', borderRadius: 12, display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', margin: '14px 0 18px', padding: '12px 16px' }}>
-              <div><b>First time here?</b> <span style={{ color: 'var(--muted)' }}>See the calculator end-to-end with a sample integrated BF-BOF mill.</span></div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <input ref={fileRef} type="file" accept="application/json,.json" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); e.currentTarget.value = '' }} />
-                <button className="btn ghost" onClick={() => fileRef.current?.click()}>Load JSON</button>
-                <button className="add-entry-btn" onClick={loadSample} disabled={busy}>{busy ? 'Loading…' : 'Try with sample data →'}</button>
-              </div>
+          <section className="step-page active sector-step-page">
+            <div className="sector-step-intro">
+              <h1 className="step-title">What sector are you <em>in?</em></h1>
+              <p className="step-sub">Iron &amp; Steel uses the worldsteel + ISO 14404 site-level methodology with IPCC 2006 + 2019 Refinement Tier 1/2/3 EFs. Gross Scope 1 covers all four canonical source types — <b>stationary combustion</b>, <b>mobile combustion</b>, <b>process emissions</b> (coke / sinter / BF / BOF / EAF / DRI / lime kiln / flaring), and <b>fugitive emissions</b> (HFCs, SF6, CH4 leaks) — as full CO2e (CO2 + CH4 + N2O + HFCs + SF6). Biogenic CO2 is a memo line.</p>
+              {hasDraft && (
+                <div className="callout callout-success">
+                  <div><b>Draft restored.</b> <span>Your previous entry was autosaved and reloaded.</span></div>
+                  <button className="btn ghost" onClick={startFresh}>Start fresh</button>
+                </div>
+              )}
+              {importError && <p className="field-error" style={{ marginTop: 12 }}>{importError}</p>}
             </div>
-            {importError && <p className="field-error" style={{ marginTop: -6, marginBottom: 12 }}>{importError}</p>}
-            <div className="sector-grid">
+            <div className="sector-step-body">
+              <div className="sector-step-grid-wrap">
+                <div className="sector-grid">
               <button className="sector-card" onClick={() => onSwitchSector?.('cement')}>
                 <span className="icon"><Factory size={22} strokeWidth={1.75} /></span>
                 <strong>Cement</strong><small>Integrated, clinker, grinding units</small><span className="tags">CSI Protocol · active</span>
@@ -1146,8 +1159,27 @@ export function IronSteelWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
                   <strong>{x}</strong><small>Future sector pack</small><span className="tags">Planned</span>
                 </button>
               ))}
+              <GwpSectorCards
+                value={p.calculationContext.gwpSet}
+                options={GWP_OPTIONS_THREE}
+                onChange={(g) => patch((d) => (d.calculationContext.gwpSet = g as IronSteelGwpSet))}
+              />
+                </div>
+              </div>
+              <aside className="sector-step-onboarding-col" aria-label="Get started">
+                <div className="callout callout-info sector-step-onboarding">
+                  <div><b>First time here?</b> <span>See the calculator end-to-end with a sample integrated BF-BOF mill.</span></div>
+                  <div className="sector-step-onboarding-actions">
+                    <input ref={fileRef} type="file" accept="application/json,.json" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) importJson(f); e.currentTarget.value = '' }} />
+                    <button className="btn ghost" onClick={() => fileRef.current?.click()}>Load JSON</button>
+                    <button className="add-entry-btn" onClick={loadSample} disabled={busy}>{busy ? 'Loading…' : 'Try with sample data →'}</button>
+                  </div>
+                </div>
+              </aside>
             </div>
-            <div className="step-footer"><div /><button className="btn primary" onClick={() => setStep(2)}>Continue</button></div>
+            <div className="sector-step-footer">
+              <button className="btn primary" onClick={() => setStep(2)}>Continue</button>
+            </div>
           </section>
         )}
 
@@ -1400,185 +1432,21 @@ export function IronSteelWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
         })()}
 
         {step === 4 && result && (
-          <section className="step-page active">
-            <h1 className="step-title">Scope 1 <em>report</em></h1>
-            <p className="step-sub">{result.methodologyPack} · GWP {result.gwpSet.replace('_', ' · ')} · {result.dataQuality.overall.replace(/_/g, ' ').toLowerCase()} data quality</p>
-
-            <div className="summary-hero">
-              <span>Gross Scope 1 (CO2 + CH4 + N2O + HFCs + SF6)</span>
-              <strong>{fmt.format(result.scope1.grossScope1CO2eTonnes)}</strong>
-              <small>tCO2e</small>
-              <p style={{ marginTop: 10 }}>
-                CO2 {fmt.format(result.scope1.byGas.co2Tonnes)} t · CH4 {fmt.format(result.scope1.byGas.ch4Tonnes)} t ({fmt.format(result.scope1.byGas.ch4CO2eTonnes)} tCO2e) · N2O {fmt.format(result.scope1.byGas.n2oTonnes)} t · HFCs {fmt.format(result.scope1.byGas.hfcCO2eTonnes)} tCO2e · SF6 {fmt.format(result.scope1.byGas.sf6CO2eTonnes)} tCO2e
-              </p>
-            </div>
-
-            <div className="summary-cats">
-              {(Object.entries(result.scope1.byCategory) as [string, { co2eTonnes: number }][]).map(([k, g]) => (
-                <div key={k} className="summary-card">
-                  <span>{k.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
-                  <strong>{fmt.format(g.co2eTonnes)}</strong><small>tCO2e</small>
-                </div>
-              ))}
-            </div>
-
-            <div className="form-card">
-              <h2>By category</h2>
-              <div className="result-table">
-                <div className="result-row" style={{ gridTemplateColumns: COL_GRID, fontWeight: 800, color: 'var(--ink-mute)' }}>
-                  <span>Category</span><span style={{ textAlign: 'right' }}>CO2 (t)</span><span style={{ textAlign: 'right' }}>CH4 (t)</span><span style={{ textAlign: 'right' }}>N2O (t)</span><span style={{ textAlign: 'right' }}>tCO2e</span>
-                </div>
-                {(Object.entries(result.scope1.byCategory) as [string, { co2Tonnes: number; ch4Tonnes: number; n2oTonnes: number; co2eTonnes: number }][]).map(([k, g]) => (
-                  <div key={k} className="result-row" style={{ gridTemplateColumns: COL_GRID }}>
-                    <strong>{k.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</strong>
-                    <span style={{ textAlign: 'right' }}>{fmt.format(g.co2Tonnes)}</span>
-                    <span style={{ textAlign: 'right' }}>{fmt4.format(g.ch4Tonnes)}</span>
-                    <span style={{ textAlign: 'right' }}>{fmt4.format(g.n2oTonnes)}</span>
-                    <span style={{ textAlign: 'right' }}>{fmt.format(g.co2eTonnes)}</span>
-                  </div>
-                ))}
-                <div className="result-row" style={{ gridTemplateColumns: COL_GRID, fontWeight: 800 }}>
-                  <strong>Gross Scope 1</strong>
-                  <span style={{ textAlign: 'right' }}>{fmt.format(result.scope1.byGas.co2Tonnes)}</span>
-                  <span style={{ textAlign: 'right' }}>{fmt4.format(result.scope1.byGas.ch4Tonnes)}</span>
-                  <span style={{ textAlign: 'right' }}>{fmt4.format(result.scope1.byGas.n2oTonnes)}</span>
-                  <span style={{ textAlign: 'right' }}>{fmt.format(result.scope1.grossScope1CO2eTonnes)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="summary-cats">
-              <div className="summary-card"><span>Biogenic CO2 memo</span><strong>{fmt.format(result.memoItems.biogenicCO2Tonnes)}</strong><small>tCO2 (excluded)</small></div>
-              <div className="summary-card"><span>Supporting Scope 2</span><strong>{fmt.format(result.supportingScope2.purchasedElectricityCO2eTonnes)}</strong><small>tCO2e (electricity)</small></div>
-              <div className="summary-card"><span>Supporting Scope 3</span><strong>{fmt.format(result.supportingScope3.thirdPartyMobileCO2eTonnes)}</strong><small>tCO2e (third-party mobile)</small></div>
-            </div>
-
-            {result.reconciliation.checked && (
-              <div className="form-card">
-                <h2>Reconciliation vs disclosed figures</h2>
-                <p className="form-sub">{result.reconciliation.note}</p>
-                {p.disclosure?.boundaryBasis && (
-                  <p className="form-sub" style={{ marginTop: 0 }}>
-                    <b>Boundary basis:</b> {p.disclosure.boundaryBasis.replace(/_/g, ' ').toLowerCase()}
-                    {p.disclosure.publicReportPageReference ? <> · {p.disclosure.publicReportPageReference}</> : null}
-                    {p.disclosure.publicReportUrl ? <> · <a href={p.disclosure.publicReportUrl} target="_blank" rel="noopener noreferrer">source</a></> : null}
-                  </p>
-                )}
-                <div className="result-table">
-                  <div className="result-row" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', fontWeight: 800, color: 'var(--ink-mute)' }}>
-                    <span>Metric</span>
-                    <span style={{ textAlign: 'right' }}>Disclosed</span>
-                    <span style={{ textAlign: 'right' }}>Modelled</span>
-                    <span style={{ textAlign: 'right' }}>Variance</span>
-                    <span style={{ textAlign: 'right' }}>Status</span>
-                  </div>
-                  {result.reconciliation.lines.map((line) => (
-                    <div key={line.metric} className="result-row" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr' }}>
-                      <strong>{line.label}</strong>
-                      <span style={{ textAlign: 'right' }}>{fmt.format(line.disclosed ?? 0)} <small style={{ color: 'var(--muted)' }}>{line.unit}</small></span>
-                      <span style={{ textAlign: 'right' }}>{fmt.format(line.modelled)} <small style={{ color: 'var(--muted)' }}>{line.unit}</small></span>
-                      <span style={{ textAlign: 'right', color: line.withinThreshold ? 'inherit' : '#c2410c', fontWeight: 700 }}>{fmt.format(line.variancePercent ?? 0)}%</span>
-                      <span style={{ textAlign: 'right', color: line.withinThreshold ? 'var(--ink-mute)' : '#c2410c' }}>{line.withinThreshold ? 'within ±5%' : 'review'}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {((p.activityData.production.crudeSteelTonnes ?? 0) > 0 || (p.activityData.production.hotRolledTonnes ?? 0) > 0) && (
-              <div className="form-card">
-                <h2>Production &amp; intensity</h2>
-                <p className="form-sub">Production volumes (the denominators) and derived emission intensities (kgCO2e per t crude steel — the canonical steel KPI).</p>
-                <div className="summary-cats">
-                  {(p.activityData.production.crudeSteelTonnes ?? 0) > 0 && <div className="summary-card"><span>Crude steel produced</span><strong>{fmt.format(p.activityData.production.crudeSteelTonnes ?? 0)}</strong><small>t</small></div>}
-                  {(p.activityData.production.hotRolledTonnes ?? 0) > 0 && <div className="summary-card"><span>Hot-rolled produced</span><strong>{fmt.format(p.activityData.production.hotRolledTonnes ?? 0)}</strong><small>t</small></div>}
-                  {(p.activityData.production.hotMetalTonnes ?? 0) > 0 && <div className="summary-card"><span>Hot metal produced</span><strong>{fmt.format(p.activityData.production.hotMetalTonnes ?? 0)}</strong><small>t</small></div>}
-                  {result.intensityMetrics.co2ePerTonneCrudeSteel != null && <div className="summary-card"><span>Per t crude steel</span><strong>{fmt.format(result.intensityMetrics.co2ePerTonneCrudeSteel)}</strong><small>kgCO2e / t</small></div>}
-                  {result.intensityMetrics.co2ePerTonneHotRolled != null && <div className="summary-card"><span>Per t hot-rolled</span><strong>{fmt.format(result.intensityMetrics.co2ePerTonneHotRolled)}</strong><small>kgCO2e / t</small></div>}
-                  {result.intensityMetrics.co2ePerTonneHotMetal != null && <div className="summary-card"><span>Per t hot metal</span><strong>{fmt.format(result.intensityMetrics.co2ePerTonneHotMetal)}</strong><small>kgCO2e / t</small></div>}
-                  {result.intensityMetrics.fossilCo2PerTonneCrudeSteel != null && <div className="summary-card"><span>Fossil CO2 / t crude steel</span><strong>{fmt.format(result.intensityMetrics.fossilCo2PerTonneCrudeSteel)}</strong><small>kgCO2 / t</small></div>}
-                </div>
-              </div>
-            )}
-
-            {result.assumptions.length > 0 && (
-              <div className="form-card">
-                <h2>Assumptions &amp; limitations</h2>
-                <p className="form-sub">Every default, fallback, override, and estimated basis the inventory relied on.</p>
-                {result.assumptions.map((a, i) => (
-                  <p key={i} className="form-sub" style={{ margin: '4px 0' }}>
-                    <span className="entry-badge" style={{ marginRight: 8 }}>{a.kind.toLowerCase()}</span>
-                    <b>{a.label}</b> — {a.detail}
-                  </p>
-                ))}
-              </div>
-            )}
-
-            {result.errors.length > 0 && (
-              <div className="form-card" style={{ borderColor: '#c2410c' }}>
-                <h2><AlertCircle size={18} /> Validation errors</h2>
-                {result.errors.map((e, i) => <p key={i} className="form-sub"><b>{e.code}</b> — {e.message}</p>)}
-              </div>
-            )}
-            {result.warnings.length > 0 && (
-              <div className="form-card">
-                <h2><Info size={18} /> Warnings</h2>
-                {result.warnings.map((w, i) => <p key={i} className="form-sub"><b>{w.code}</b> — {w.message}</p>)}
-              </div>
-            )}
-            {result.errors.length === 0 && result.warnings.length === 0 && (
-              <div className="form-card"><h2><CheckCircle2 size={18} /> Clean run</h2><p className="form-sub">No validation issues raised.</p></div>
-            )}
-
-            <div className="form-card">
-              <h2>Audit trail</h2>
-              <p className="form-sub">
-                {result.calculationTrace.length} calculation steps · {result.factorSnapshots.length} factor snapshots · methodology pack <b>{result.methodologyPack}</b> · GWP <b>{result.gwpSet.replace('_', ' · ')}</b>. Every override is captured with its reason. Export an audit-ready Excel, PDF, CSV, JSON, or full audit pack ZIP.
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 10 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-mute)' }}>Workflow:</span>
-                {(() => {
-                  const ws = (result.auditStatus?.workflowStatus ?? 'DRAFT').toUpperCase()
-                  const styles: Record<string, { bg: string; fg: string; label: string }> = {
-                    DRAFT:    { bg: 'color-mix(in srgb, #6b7280 18%, transparent)', fg: '#374151', label: '✎ Draft' },
-                    LOCKED:   { bg: 'color-mix(in srgb, #2f6b4f 20%, transparent)', fg: '#15803d', label: '🔒 Locked' },
-                    VERIFIED: { bg: 'color-mix(in srgb, #2563eb 22%, transparent)', fg: '#1d4ed8', label: '✓ Verified' },
-                  }
-                  const s = styles[ws] ?? styles.DRAFT
-                  return <span style={{ background: s.bg, color: s.fg, borderRadius: 999, fontSize: 11.5, fontWeight: 800, letterSpacing: 0.3, padding: '4px 10px' }}>{s.label}</span>
-                })()}
-                {result.calculationId && (
-                  <span style={{ fontSize: 12, color: 'var(--ink-mute)' }}>Calculation ID: <code style={{ fontFamily: 'monospace', fontSize: 11.5 }}>{result.calculationId}</code></span>
-                )}
-              </div>
-              {result.auditStatus?.workflowStatus?.toUpperCase() === 'LOCKED' && (
-                <p className="form-sub" style={{ marginTop: 10, color: '#15803d', fontWeight: 600 }}>This inventory is locked. Re-runs create a new revision.</p>
+          submitted ? (
+            <Scope1ReviewSubmittedContent sectorLabel="Scope 1 · Iron & Steel" />
+          ) : (
+            <Scope1ReviewContent
+              quadrants={buildScope1ReviewQuadrants(
+                p as unknown as Record<string, unknown>,
+                result as unknown as Record<string, unknown>,
+                'IRON_STEEL',
               )}
-            </div>
-
-            <div className="step-footer">
-              <button className="btn ghost" onClick={() => setStep(3)}>Back to data</button>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button className="btn ghost" onClick={() => download('xlsx')}><Leaf size={15} /> Excel</button>
-                <button className="btn ghost" onClick={() => download('pdf')}><FileText size={15} /> PDF</button>
-                <button className="btn ghost" onClick={() => download('csv')}><FileText size={15} /> CSV</button>
-                <button className="btn ghost" onClick={() => download('json')}><PenTool size={15} /> JSON</button>
-                <button className="btn ghost" onClick={() => download('audit-pack')}><FileText size={15} /> Audit pack (.zip)</button>
-                {result.auditStatus?.workflowStatus?.toUpperCase() === 'LOCKED' ? (
-                  <button className="btn primary" disabled style={{ background: '#15803d', opacity: 0.85 }}>🔒 Locked</button>
-                ) : (
-                  <>
-                    <button className="btn primary" onClick={() => runCalculate(true)} disabled={busy}>{busy ? 'Saving…' : 'Calculate & save'}</button>
-                    {result.calculationId && (
-                      <button className="btn primary" onClick={lockInventory} disabled={busy || result.errors.length > 0} title={result.errors.length > 0 ? 'Resolve validation errors before locking' : 'Lock this inventory'} style={{ background: '#15803d' }}>
-                        {busy ? 'Locking…' : '🔒 Submit & lock'}
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </section>
+              busy={busy}
+              onBack={() => setStep(3)}
+              onSubmit={lockInventory}
+              submitError={submitError}
+            />
+          )
         )}
       </section>
     </main>

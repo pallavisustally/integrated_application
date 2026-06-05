@@ -151,7 +151,7 @@ export async function sendAssessmentApprovalEmail(
         html: `
       <h1>Congratulations!</h1>
       <p>Your ${label} for <strong>${display}</strong> has been approved.</p>
-      <p>Use the secure link below to verify your email and download your report:</p>
+      <p>Click the link below to open your dashboard. We will send a one-time login code (OTP) to this email address so you can view results and download your PDF, Excel, and JSON reports.</p>
       <br />
       <a href="${dashboardLink}" style="padding: 12px 24px; background-color: #3D5F2B; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Open dashboard</a>
       <br /><br />

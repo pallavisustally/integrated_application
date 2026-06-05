@@ -30,60 +30,84 @@ const Scope1Assessments: CollectionConfig = {
   },
   hooks: {
     afterChange: [
-      async ({ doc, previousDoc, req }) => {
-        if (typeof window !== 'undefined' || !doc) return
+      async ({ doc, previousDoc, req, context }) => {
+        if (typeof window !== 'undefined' || !doc) return doc
+        if (context?.skipHooks) return doc
 
         const prevStatus = previousDoc?.reviewStatus
         const nextStatus = doc.reviewStatus
-        if (prevStatus === nextStatus) return
+        if (prevStatus === nextStatus) return doc
 
         const publicId = doc.assessmentId as string | undefined
-        if (!publicId) return
+        if (!publicId) return doc
 
-        const parents = await req.payload.find({
-          collection: 'assessments',
-          where: { assessmentId: { equals: publicId } },
-          limit: 1,
-        })
-        if (parents.totalDocs === 0) return
-        const parent = parents.docs[0]
-
-        if (nextStatus === 'approved' && prevStatus !== 'approved') {
-          await req.payload.update({
+        try {
+          const parents = await req.payload.find({
             collection: 'assessments',
-            id: parent.id,
-            data: {
-              status: 'APPROVED',
-              approvedAt: new Date().toISOString(),
-            },
-            req,
+            where: { assessmentId: { equals: publicId } },
+            limit: 1,
           })
+          if (parents.totalDocs === 0) return doc
+          const parent = parents.docs[0]
 
-          const { onScope1Approved } = await import('../lib/assessment-workflow')
-          await onScope1Approved(req.payload, doc as never, parent as never)
+          if (nextStatus === 'approved' && prevStatus !== 'approved') {
+            await req.payload.update({
+              collection: 'assessments',
+              id: parent.id,
+              data: {
+                status: 'APPROVED',
+                approvedAt: new Date().toISOString(),
+              },
+              context: { skipHooks: true },
+              req,
+            })
+
+            const apps = await req.payload.find({
+              collection: 'scope1-applications',
+              where: {
+                and: [
+                  { assessmentId: { equals: publicId } },
+                  { status: { equals: 'APPROVED' } },
+                ],
+              },
+              limit: 1,
+            })
+            const applicantEmail =
+              apps.totalDocs > 0 ? (apps.docs[0].email as string) : (parent.email as string)
+
+            const { onScope1Approved } = await import('../lib/assessment-workflow')
+            await onScope1Approved(req.payload, doc as never, parent as never, {
+              applicantEmail,
+            })
+          }
+
+          if (nextStatus === 'rejected' && prevStatus !== 'rejected') {
+            const reason = (doc.rejectionReason as string) || ''
+            await req.payload.update({
+              collection: 'assessments',
+              id: parent.id,
+              data: { status: 'REJECTED', rejectionReason: reason },
+              context: { skipHooks: true },
+              req,
+            })
+
+            const { onScope1Rejected } = await import('../lib/assessment-workflow')
+            await onScope1Rejected(
+              req.payload,
+              doc as never,
+              {
+                email: parent.email,
+                assessmentType: parent.assessmentType,
+                assessmentId: publicId,
+              },
+              reason,
+            )
+          }
+        } catch (err) {
+          console.error('[Scope1Assessments] afterChange approval workflow failed:', err)
         }
 
-        if (nextStatus === 'rejected' && prevStatus !== 'rejected') {
-          const reason = (doc.rejectionReason as string) || ''
-          await req.payload.update({
-            collection: 'assessments',
-            id: parent.id,
-            data: { status: 'REJECTED', rejectionReason: reason },
-            req,
-          })
-
-          const { onScope1Rejected } = await import('../lib/assessment-workflow')
-          await onScope1Rejected(
-            req.payload,
-            doc as never,
-            {
-              email: parent.email,
-              assessmentType: parent.assessmentType,
-              assessmentId: publicId,
-            },
-            reason,
-          )
-        }
+        return doc
       },
     ],
   },
