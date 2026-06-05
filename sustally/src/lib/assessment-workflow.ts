@@ -55,6 +55,32 @@ export async function onScope1Approved(
       },
       context: { skipHooks: true },
     })
+
+    const apps = await cms.find({
+      collection: 'scope1-applications',
+      where: { scope1Assessment: { equals: String(scope1Doc.id) } },
+      limit: 1,
+      overrideAccess: true,
+    })
+    if (apps.totalDocs > 0) {
+      const { scope1SnapshotFromAssessment } = await import('./scope1-user-payload')
+      const refreshed = await cms.findByID({
+        collection: 'scope1-assessments',
+        id: scope1Doc.id,
+        depth: 0,
+        overrideAccess: true,
+      })
+      await cms.update({
+        collection: 'scope1-applications',
+        id: apps.docs[0].id,
+        data: {
+          ...scope1SnapshotFromAssessment(refreshed),
+          reportUrl: urls.reportUrl ?? refreshed.reportUrl,
+        },
+        overrideAccess: true,
+        context: { skipHooks: true },
+      })
+    }
   } catch (err) {
     console.error('[onScope1Approved] Report generation failed (email will still be sent):', err)
     try {

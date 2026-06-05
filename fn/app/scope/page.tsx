@@ -16,6 +16,7 @@ import {
 } from '../../lib/assessment-session'
 import { applyScope2Prefill, scope2PrefillFromSession } from '../../lib/assessment-mapper';
 import { Scope2WizardShell } from '@/components/scope2-shell';
+import { useAppDialog } from '@/components/app-dialog-provider';
 import { useWizardTheme } from '@/lib/use-wizard-theme';
 
 const STATE_OPTIONS = [
@@ -146,6 +147,7 @@ function TemplateContent() {
 
   const [page, setPage] = useState<1 | 2>(1);
   const { theme, toggleTheme } = useWizardTheme();
+  const dialog = useAppDialog();
 
   const [formData, setFormData] = useState<FormDataType>({
     // Identity - Initialize from Search Params
@@ -699,7 +701,7 @@ function TemplateContent() {
   const handleRadioChange = (name: keyof FormDataType, value: any) => {
     if (name === "trackingType" || name === "energyActivityInput") {
       if (hasEnergyData(formData)) {
-        alert("Please clear the existing data before switching input modes.");
+        void dialog.alert("Please clear the existing data before switching input modes.");
         return;
       }
     }
@@ -1353,7 +1355,7 @@ function TemplateContent() {
       router.push(`/scope/review?${queryParams.toString()}`);
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert(error instanceof Error ? error.message : "Failed to submit form. Please try again.");
+      void dialog.alert(error instanceof Error ? error.message : "Failed to submit form. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -2542,7 +2544,7 @@ function TemplateContent() {
                                       type="button"
                                       onClick={() => {
                                         if (hasRenewableData(formData)) {
-                                          alert("Please clear the existing data before switching input modes.");
+                                          void dialog.alert("Please clear the existing data before switching input modes.");
                                           return;
                                         }
                                         setFormData(prev => {

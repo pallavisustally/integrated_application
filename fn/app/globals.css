@@ -24,3 +24,35 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Shared centered app dialogs (alert / confirm / notify) */
+.app-dialog-backdrop {
+  z-index: 10000;
+}
+
+.app-dialog-card--success {
+  border-color: var(--success, #16a34a);
+}
+
+.app-dialog-card--error {
+  border-color: #b3261e;
+}
+
+.app-dialog-footer {
+  gap: 10px;
+}
+
+.app-dialog-cancel {
+  background: transparent;
+  border: 1px solid var(--line, #e8e6ee);
+  border-radius: 999px;
+  color: var(--ink, #1a1523);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 8px 18px;
+}
+
+.app-dialog-cancel:hover {
+  background: color-mix(in srgb, var(--purple, #7b3ff2) 6%, transparent);
+}

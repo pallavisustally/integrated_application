@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAppDialog } from "@/components/app-dialog-provider";
 import { SUSTALLY_API_URL } from '@/lib/api-url';
 
 // ------------- ICONS (Reused) -------------
@@ -157,6 +158,7 @@ const MonthlyTable = ({ data, type, isEstimated = false }: { data: any[]; type: 
 
 export default function ReviewClient({ submission }: { submission: any }) {
     const router = useRouter();
+    const dialog = useAppDialog();
     const [isProcessing, setIsProcessing] = useState(false);
     const [status, setStatus] = useState(submission.status);
     const [rejectReason, setRejectReason] = useState("");
@@ -165,7 +167,11 @@ export default function ReviewClient({ submission }: { submission: any }) {
     const data = submission.data;
 
     const handleApprove = async () => {
-        if (!confirm("Are you sure you want to approve this submission?")) return;
+        const ok = await dialog.confirm(
+            "Are you sure you want to approve this submission?",
+            "Approve submission",
+        );
+        if (!ok) return;
 
         setIsProcessing(true);
         try {
@@ -178,10 +184,10 @@ export default function ReviewClient({ submission }: { submission: any }) {
             if (!res.ok) throw new Error("Failed to approve");
 
             setStatus("APPROVED");
-            alert("Submission approved successfully!");
+            await dialog.notify("Submission approved successfully!", "success");
         } catch (error) {
             console.error(error);
-            alert("Error approving submission");
+            await dialog.notify("Error approving submission", "error");
         } finally {
             setIsProcessing(false);
         }
@@ -203,10 +209,10 @@ export default function ReviewClient({ submission }: { submission: any }) {
 
             setStatus("REJECTED");
             setShowRejectModal(false);
-            alert("Submission rejected successfully!");
+            await dialog.notify("Submission rejected successfully!", "success");
         } catch (error) {
             console.error(error);
-            alert("Error rejecting submission");
+            await dialog.notify("Error rejecting submission", "error");
         } finally {
             setIsProcessing(false);
         }

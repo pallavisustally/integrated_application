@@ -2,6 +2,76 @@ import { categoryLabel, cementComponentLabel } from '@/lib/ui/labels'
 
 export type Scope1DriverGroup = { label: string; value: number; unit: 'tCO2' | 'tCO2e' }
 
+export type Scope1ChartSlice = { name: string; value: number; color: string }
+
+export const SCOPE1_PIE_COLORS = [
+  '#22c55e',
+  '#3b82f6',
+  '#f59e0b',
+  '#ef4444',
+  '#8b5cf6',
+  '#06b6d4',
+  '#ec4899',
+  '#9ca3af',
+]
+
+export function driverChartSlices(groups: Scope1DriverGroup[]): Scope1ChartSlice[] {
+  return groups.map((g, i) => ({
+    name: g.label,
+    value: g.value,
+    color: SCOPE1_PIE_COLORS[i % SCOPE1_PIE_COLORS.length],
+  }))
+}
+
+export function breakdownChartSlices(result: Record<string, unknown>): Scope1ChartSlice[] {
+  const scope1 = result.scope1 as Record<string, unknown> | undefined
+  if (!scope1) return []
+
+  const components = scope1.components as Record<string, number> | undefined
+  if (components) {
+    return Object.entries(components)
+      .filter(([, val]) => val > 0)
+      .map(([key, val], i) => {
+        const { label } = cementComponentLabel(key)
+        return { name: label, value: val, color: SCOPE1_PIE_COLORS[i % SCOPE1_PIE_COLORS.length] }
+      })
+  }
+
+  const byCategory = scope1.byCategory as Record<string, { co2eTonnes?: number }> | undefined
+  if (byCategory) {
+    return Object.entries(byCategory)
+      .filter(([, g]) => (g?.co2eTonnes ?? 0) > 0)
+      .map(([key, g], i) => ({
+        name: categoryLabel(key),
+        value: g.co2eTonnes ?? 0,
+        color: SCOPE1_PIE_COLORS[i % SCOPE1_PIE_COLORS.length],
+      }))
+  }
+
+  return []
+}
+
+export function gasChartSlices(result: Record<string, unknown>): Scope1ChartSlice[] {
+  const scope1 = result.scope1 as Record<string, unknown> | undefined
+  const byGas = scope1?.byGas as Record<string, number> | undefined
+  if (!byGas) return []
+  const labels: Record<string, string> = {
+    co2Tonnes: 'CO₂',
+    ch4Tonnes: 'CH₄',
+    ch4CO2eTonnes: 'CH₄ (CO₂e)',
+    n2oTonnes: 'N₂O',
+    n2oCO2eTonnes: 'N₂O (CO₂e)',
+    refrigerantCO2eTonnes: 'Refrigerants (CO₂e)',
+  }
+  return Object.entries(byGas)
+    .filter(([, v]) => typeof v === 'number' && v > 0)
+    .map(([key, v], i) => ({
+      name: labels[key] || key,
+      value: v,
+      color: SCOPE1_PIE_COLORS[i % SCOPE1_PIE_COLORS.length],
+    }))
+}
+
 export function buildScope1DriverGroups(result: Record<string, unknown>): Scope1DriverGroup[] {
   const scope1 = result.scope1 as Record<string, unknown> | undefined
   if (!scope1) return []

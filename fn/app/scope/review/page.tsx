@@ -8,6 +8,7 @@ import {
   scope2CalculationBreakdownFields,
   scope2CalculationSummaryFields,
 } from "@/lib/scope2-review-build";
+import { useAppDialog } from "@/components/app-dialog-provider";
 import { Scope2WizardShell } from "@/components/scope2-shell";
 import { useWizardTheme } from "@/lib/use-wizard-theme";
 import { Scope1ReviewSubmittedContent } from "@/components/review/scope1-review-page";
@@ -26,14 +27,6 @@ const RenewableIcon = () => (
     <path d="M12 2.5a9.5 9.5 0 0 0-9.5 9.5c0 5.25 4.25 9.5 9.5 9.5s9.5-4.25 9.5-9.5A9.5 9.5 0 0 0 12 2.5z" />
     <path d="M12 7.5v9" />
     <path d="M7.5 12h9" />
-  </svg>
-);
-
-const CrossIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="15" y1="9" x2="9" y2="15" />
-    <line x1="9" y1="9" x2="15" y2="15" />
   </svg>
 );
 
@@ -85,9 +78,9 @@ function ScopeReviewContent() {
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState<any>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { theme, toggleTheme } = useWizardTheme();
+  const dialog = useAppDialog();
 
   useEffect(() => {
     // Check if user has already submitted based on email or assessmentId
@@ -197,7 +190,7 @@ function ScopeReviewContent() {
       sessionStorage.removeItem("scopeFormData");
       sessionStorage.removeItem("scopeFormPage");
     } catch (e: any) {
-      setNotification({ message: e.message || "Something went wrong.", type: "error" });
+      void dialog.notify(e.message || "Something went wrong.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -410,20 +403,6 @@ function ScopeReviewContent() {
         </div>
       </section>
 
-      {notification ? (
-        <>
-          <div className="scope2-notification-backdrop" onClick={() => setNotification(null)} aria-hidden />
-          <div className={`scope2-notification ${notification.type === 'success' ? 'success' : 'error'}`}>
-            <div className="flex items-center gap-4">
-              {notification.type === 'success' ? <CheckIcon /> : <CrossIcon />}
-              <p>{notification.message}</p>
-              <button type="button" className="btn ghost" onClick={() => setNotification(null)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </>
-      ) : null}
     </Scope2WizardShell>
   );
 }

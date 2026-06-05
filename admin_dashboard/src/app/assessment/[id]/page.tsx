@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
+import { useAppDialog } from '@/components/app-dialog-provider';
 import Scope1AssessmentReview from '@/components/Scope1AssessmentReview';
 import { resolveApplicationForReview } from '@/lib/resolve-application';
 import { SUSTALLY_API_URL } from '@/lib/api-url';
@@ -163,6 +164,7 @@ const MonthlyTable = ({ data, type, isEstimated = false }: { data: any; type: "G
 
 export default function AssessmentViewPage() {
   const router = useRouter();
+  const dialog = useAppDialog();
   const params = useParams();
   const searchParams = useSearchParams();
   const id = params?.id as string;
@@ -225,7 +227,8 @@ export default function AssessmentViewPage() {
   const status = data?.status || 'PENDING';
 
   const handleApprove = async () => {
-    if (!confirm('Approve this submission?')) return;
+    const ok = await dialog.confirm('Approve this submission?', 'Approve submission');
+    if (!ok) return;
     try {
       const collection =
         resolvedScope === 'SCOPE_1' ? 'scope1-applications' : 'scope2-applications';
@@ -236,14 +239,22 @@ export default function AssessmentViewPage() {
       });
       if (res.ok) {
         setScope2Data((prev: any) => ({ ...prev, status: 'APPROVED' }));
+        await dialog.notify('Submission approved successfully.', 'success');
+      } else {
+        await dialog.notify('Error approving submission.', 'error');
       }
     } catch (e) {
       console.error(e);
+      await dialog.notify('Error approving submission.', 'error');
     }
   };
 
   const handleReject = async () => {
-    const reason = prompt('Reason for rejection:');
+    const reason = await dialog.prompt(
+      'Please enter the reason for rejection.',
+      'Reject submission',
+      'Reason for rejection…',
+    );
     if (reason === null) return;
     try {
       const collection =
@@ -255,9 +266,13 @@ export default function AssessmentViewPage() {
       });
       if (res.ok) {
         setScope2Data((prev: any) => ({ ...prev, status: 'REJECTED', rejectionReason: reason }));
+        await dialog.notify('Submission rejected successfully.', 'success');
+      } else {
+        await dialog.notify('Error rejecting submission.', 'error');
       }
     } catch (e) {
       console.error(e);
+      await dialog.notify('Error rejecting submission.', 'error');
     }
   };
 

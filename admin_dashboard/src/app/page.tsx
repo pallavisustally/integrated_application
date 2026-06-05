@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useAppDialog } from '@/components/app-dialog-provider';
 import { buildReviewUrl } from '@/lib/resolve-application';
 import { SUSTALLY_API_URL } from '@/lib/api-url';
 
@@ -10,6 +11,7 @@ const users: any[] = [];
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const dialog = useAppDialog();
   const [usersData, setUsersData] = useState<any[]>([]);
   const [slotsBookedCount, setSlotsBookedCount] = useState<number>(0);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -17,7 +19,6 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [feedbackModal, setFeedbackModal] = useState<{ text: string; facility: string } | null>(null);
   const itemsPerPage = 8;
 
   const mapApplication = (doc: any, scope: 'SCOPE_1' | 'SCOPE_2') => ({
@@ -194,8 +195,12 @@ export default function AdminDashboard() {
   };
 
   const handleReject = async (id: number | string, scope: 'SCOPE_1' | 'SCOPE_2' = 'SCOPE_2') => {
-    const reason = window.prompt("Please enter the reason for rejection (feedback):");
-    if (reason === null) return; // Action cancelled
+    const reason = await dialog.prompt(
+      'Please enter the reason for rejection (feedback).',
+      'Reject assessment',
+      'Rejection reason…',
+    );
+    if (reason === null) return;
     try {
       await fetch(`${SUSTALLY_API_URL}/api/${applicationCollection(scope)}/${id}`, {
         method: 'PATCH',
@@ -205,11 +210,19 @@ export default function AdminDashboard() {
       setUsersData(usersData.map(u =>
         u.id === id ? { ...u, status: 'Rejected', statusColor: 'bg-red-50 text-red-500 border border-red-200', action: false, feedback: reason } : u
       ));
-      // Re-fetch to ensure sync with server state
       fetchData();
+      await dialog.notify('Assessment rejected successfully.', 'success');
     } catch (e) {
       console.error(e);
+      await dialog.notify('Error rejecting assessment.', 'error');
     }
+  };
+
+  const showFeedback = async (text: string, facility: string) => {
+    const title = facility
+      ? `Rejection Reason / Feedback — ${facility}`
+      : 'Rejection Reason / Feedback';
+    await dialog.alert(text || 'No feedback provided.', title);
   };
 
   const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
@@ -378,7 +391,7 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3">
                       {user.feedback && user.feedback !== '---' ? (
                         <button
-                          onClick={() => setFeedbackModal({ text: user.feedback, facility: user.company })}
+                          onClick={() => void showFeedback(user.feedback, user.company)}
                           className="text-indigo-600 hover:text-indigo-700 font-semibold text-[11px] underline underline-offset-1 cursor-pointer text-left"
                         >
                           View reason
@@ -450,41 +463,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Feedback Reason Popup */}
-      {feedbackModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setFeedbackModal(null)}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-start gap-4">
-              <div>
-                <h3 className="text-base font-bold text-gray-900">Rejection Reason / Feedback</h3>
-                {feedbackModal.facility && <p className="text-xs text-gray-500 mt-0.5">{feedbackModal.facility}</p>}
-              </div>
-              <button
-                onClick={() => setFeedbackModal(null)}
-                className="text-gray-400 hover:text-gray-600 p-1 -m-1"
-                aria-label="Close"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <p className="mt-4 text-sm text-gray-700 whitespace-pre-wrap break-words">{feedbackModal.text}</p>
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setFeedbackModal(null)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg text-sm"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div >
   );
 }

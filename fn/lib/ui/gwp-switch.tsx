@@ -25,11 +25,14 @@ export function GwpSectorCards({
   value: string
   options: GwpOption[]
   onChange: (key: string) => void
-  beforeChange?: (nextKey: string) => boolean
+  beforeChange?: (nextKey: string) => boolean | Promise<boolean>
 }) {
-  const pick = (key: string) => {
+  const pick = async (key: string) => {
     if (key === value) return
-    if (beforeChange && !beforeChange(key)) return
+    if (beforeChange) {
+      const ok = await beforeChange(key)
+      if (!ok) return
+    }
     onChange(key)
   }
 

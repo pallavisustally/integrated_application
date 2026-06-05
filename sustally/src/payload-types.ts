@@ -378,6 +378,42 @@ export interface Scope1Application {
   sectorCode?: ('CEMENT' | 'OIL_GAS' | 'PULP_PAPER' | 'POWER' | 'IRON_STEEL') | null;
   reportingYear?: number | null;
   grossScope1Tonnes?: number | null;
+  /**
+   * GWP set used in calculation (e.g. AR6_100)
+   */
+  gwpSet?: string | null;
+  /**
+   * When the inventory was submitted for review
+   */
+  submittedAt?: string | null;
+  /**
+   * Stored PDF report URL after approval
+   */
+  reportUrl?: string | null;
+  /**
+   * Full wizard input snapshot (same pattern as Scope 2 application storage)
+   */
+  inputPayload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Locked calculation result snapshot for dashboard and review
+   */
+  result?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   status: 'PENDING' | 'IN_PROGRESS' | 'APPROVED' | 'REJECTED';
   rejectionReason?: string | null;
   otp?: string | null;
@@ -799,6 +835,11 @@ export interface Scope1ApplicationsSelect<T extends boolean = true> {
   sectorCode?: T;
   reportingYear?: T;
   grossScope1Tonnes?: T;
+  gwpSet?: T;
+  submittedAt?: T;
+  reportUrl?: T;
+  inputPayload?: T;
+  result?: T;
   status?: T;
   rejectionReason?: T;
   otp?: T;

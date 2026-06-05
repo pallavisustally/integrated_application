@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 
 import { Scope1ReviewGridReadOnly } from '@/components/review/scope1-review-page'
 import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
+import { useAppDialog } from '@/components/app-dialog-provider'
 import { SUSTALLY_API_URL as API_URL } from '@/lib/api-url'
 
 type Scope1Submission = {
@@ -26,6 +27,7 @@ type Scope1Submission = {
 
 export default function Scope1ReviewClient({ submission }: { submission: Scope1Submission }) {
   const router = useRouter()
+  const dialog = useAppDialog()
   const [rejectReason, setRejectReason] = useState('')
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -74,15 +76,19 @@ export default function Scope1ReviewClient({ submission }: { submission: Scope1S
   }
 
   const approve = async () => {
-    if (!confirm('Approve this Scope 1 inventory? Reports will be generated and the applicant emailed.')) return
+    const ok = await dialog.confirm(
+      'Approve this Scope 1 inventory? Reports will be generated and the applicant emailed.',
+      'Approve inventory',
+    )
+    if (!ok) return
     setBusy(true)
     try {
       await patchApplication({ status: 'APPROVED' })
       setStatus('APPROVED')
-      alert('Approved. Reports and email are being generated.')
+      await dialog.notify('Approved. Reports and email are being generated.', 'success')
       router.refresh()
     } catch {
-      alert('Approval failed')
+      await dialog.notify('Approval failed', 'error')
     } finally {
       setBusy(false)
     }
@@ -98,10 +104,10 @@ export default function Scope1ReviewClient({ submission }: { submission: Scope1S
       })
       setStatus('REJECTED')
       setShowRejectModal(false)
-      alert('Rejected. Applicant will receive a retry link.')
+      await dialog.notify('Rejected. Applicant will receive a retry link.', 'success')
       router.refresh()
     } catch {
-      alert('Rejection failed')
+      await dialog.notify('Rejection failed', 'error')
     } finally {
       setBusy(false)
     }

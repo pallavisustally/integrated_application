@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 
+import { useAppDialog } from '@/components/app-dialog-provider'
 import { Scope1ReviewGridReadOnly } from '@/components/review/Scope1ReviewGrid'
 import { SUSTALLY_API_URL as API_URL } from '@/lib/api-url'
 import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
@@ -16,6 +17,7 @@ type Props = {
 
 export default function Scope1AssessmentReview({ data, applicationId, onStatusChange }: Props) {
   const router = useRouter()
+  const dialog = useAppDialog()
   const [status, setStatus] = useState(String(data.status || 'PENDING'))
   const [rejectReason, setRejectReason] = useState('')
   const [showReject, setShowReject] = useState(false)
@@ -63,18 +65,23 @@ export default function Scope1AssessmentReview({ data, applicationId, onStatusCh
   }
 
   const approve = async () => {
-    if (!confirm('Approve this Scope 1 inventory? Reports and email will be sent to the applicant.')) {
-      return
-    }
+    const ok = await dialog.confirm(
+      'Approve this Scope 1 inventory? Reports and email will be sent to the applicant.',
+      'Approve inventory',
+    )
+    if (!ok) return
     setBusy(true)
     try {
       await patch({ status: 'APPROVED' })
       setStatus('APPROVED')
       onStatusChange?.('APPROVED')
-      alert('Approved successfully.')
+      await dialog.notify('Approved successfully.', 'success')
       router.refresh()
     } catch {
-      alert('Approval failed. Check that Sustally is running and the record exists.')
+      await dialog.notify(
+        'Approval failed. Check that Sustally is running and the record exists.',
+        'error',
+      )
     } finally {
       setBusy(false)
     }
@@ -88,10 +95,10 @@ export default function Scope1AssessmentReview({ data, applicationId, onStatusCh
       setStatus('REJECTED')
       onStatusChange?.('REJECTED')
       setShowReject(false)
-      alert('Rejected. Applicant will be notified.')
+      await dialog.notify('Rejected. Applicant will be notified.', 'success')
       router.refresh()
     } catch {
-      alert('Rejection failed.')
+      await dialog.notify('Rejection failed.', 'error')
     } finally {
       setBusy(false)
     }

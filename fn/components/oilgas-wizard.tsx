@@ -1,6 +1,7 @@
 'use client'
 
 import { scope1Fetch, scope1SaveQuery } from '@/lib/scope1-api'
+import { useAppDialog } from '@/components/app-dialog-provider'
 import { Scope1ReviewContent, Scope1ReviewSubmittedContent } from '@/components/review/scope1-review-page'
 import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
 import { submitScope1ForReview } from '@/lib/scope1-submit-for-review'
@@ -1322,6 +1323,7 @@ function OilGasResultsPage({
 
 export function OilGasWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement' | 'oil_gas' | 'pulp_paper' | 'iron_steel' | 'power') => void }) {
   const { theme, toggleTheme } = useWizardTheme()
+  const dialog = useAppDialog()
   const [step, setStep] = useState(1)
   const [cat, setCat] = useState<OgCat>('stationary')
   const [p, setP] = useState<OilGasInputPayload>(emptyOilGasPayload())
@@ -1746,15 +1748,12 @@ export function OilGasWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
               <GwpSectorCards
                 value={p.calculationContext.gwpSet}
                 options={GWP_OPTIONS_THREE}
-                beforeChange={() => {
-                  if (
-                    (step >= 3 || result || live) &&
-                    typeof window !== 'undefined' &&
-                    !window.confirm('Changing the GWP set recalculates all CO2e values. Continue?')
-                  ) {
-                    return false
-                  }
-                  return true
+                beforeChange={async () => {
+                  if (!(step >= 3 || result || live)) return true
+                  return dialog.confirm(
+                    'Changing the GWP set recalculates all CO2e values. Continue?',
+                    'Change GWP set',
+                  )
                 }}
                 onChange={(g) => patch((d) => (d.calculationContext.gwpSet = g as OilGasGwpSet))}
               />

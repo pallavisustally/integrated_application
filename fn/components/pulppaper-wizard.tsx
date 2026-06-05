@@ -38,6 +38,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { scope1Fetch, scope1SaveQuery } from '@/lib/scope1-api'
+import { useAppDialog } from '@/components/app-dialog-provider'
 import { Scope1ReviewContent, Scope1ReviewSubmittedContent } from '@/components/review/scope1-review-page'
 import { buildScope1ReviewQuadrants } from '@/lib/scope1-review-build'
 import { submitScope1ForReview } from '@/lib/scope1-submit-for-review'
@@ -1204,6 +1205,7 @@ function PulpPaperResultsPage({
 
 
 export function PulpPaperWizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement' | 'oil_gas' | 'pulp_paper' | 'iron_steel' | 'power') => void }) {
+  const dialog = useAppDialog()
   const [p, setP] = useState<PulpPaperInputPayload>(emptyPulpPaperPayload)
   const [step, setStep] = useState<number>(1)
   const [cat, setCat] = useState<Cat>('stationary')
@@ -1607,15 +1609,12 @@ export function PulpPaperWizard({ onSwitchSector }: { onSwitchSector?: (s: 'ceme
               <GwpSectorCards
                 value={p.calculationContext.gwpSet}
                 options={GWP_OPTIONS_THREE}
-                beforeChange={() => {
-                  if (
-                    (step >= 3 || result || live) &&
-                    typeof window !== 'undefined' &&
-                    !window.confirm('Changing the GWP set recalculates all CO2e values. Continue?')
-                  ) {
-                    return false
-                  }
-                  return true
+                beforeChange={async () => {
+                  if (!(step >= 3 || result || live)) return true
+                  return dialog.confirm(
+                    'Changing the GWP set recalculates all CO2e values. Continue?',
+                    'Change GWP set',
+                  )
                 }}
                 onChange={(g) => patch((d) => (d.calculationContext.gwpSet = g as typeof d.calculationContext.gwpSet))}
               />

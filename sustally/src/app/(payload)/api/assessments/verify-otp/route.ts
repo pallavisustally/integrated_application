@@ -7,6 +7,7 @@ import {
   otpIsValid,
 } from '../../../../../lib/assessment-otp'
 import { normalizeEmail } from '../../../../../lib/assessment-utils'
+import { buildScope1UserPayload } from '../../../../../lib/scope1-user-payload'
 import { corsHeaders, jsonResponse } from '../../../../../lib/cors'
 
 export const OPTIONS = async (request: Request) => {
@@ -163,27 +164,7 @@ function buildScope1User(
     sector?: string | null
   },
 ) {
-  const inputPayload = scope1Doc?.inputPayload
-  return {
-    assessmentId: application.assessmentId || assessment.assessmentId,
-    email: application.email || assessment.email,
-    name: application.userName || assessment.name || scope1Doc?.name,
-    company: application.userCompany || assessment.company,
-    sector: assessment.sector,
-    calculationId: scope1Doc?.id,
-    sectorCode: application.sectorCode || scope1Doc?.sectorCode,
-    reportingYear: application.reportingYear ?? scope1Doc?.reportingYear,
-    grossScope1Tonnes: application.grossScope1Tonnes ?? scope1Doc?.grossScope1Tonnes,
-    gwpSet: scope1Doc?.gwpSet,
-    facilityName:
-      application.facilityName ||
-      (inputPayload as { facility?: { name?: string } } | undefined)?.facility?.name ||
-      scope1Doc?.name,
-    reportUrl: scope1Doc?.reportUrl,
-    result: scope1Doc?.result,
-    inputPayload: scope1Doc?.inputPayload,
-    applicationId: application.id,
-  }
+  return buildScope1UserPayload(application, scope1Doc, assessment)
 }
 
 function buildScope2User(application: Scope2Application) {

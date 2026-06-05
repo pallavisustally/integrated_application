@@ -3,6 +3,7 @@
 import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Modal from "../../components/Modal";
+import { useAppDialog } from "@/components/app-dialog-provider";
 import { BookingWizardShell, useWizardTheme } from "@/components/booking-shell";
 import { bookAssessment, type AssessmentType } from "../../lib/assessment-api";
 import { SUSTALLY_API_URL } from "../../lib/api-url";
@@ -101,7 +102,7 @@ function ChooseTimeContent() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [countdown, setCountdown] = useState<number | null>(null);
     const [assessmentLinkToRedirect, setAssessmentLinkToRedirect] = useState<string | null>(null);
-    const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
+    const dialog = useAppDialog();
     const [bookedAssessmentId, setBookedAssessmentId] = useState<string | null>(null);
     const [bookedAssessmentLink, setBookedAssessmentLink] = useState<string | null>(null);
 
@@ -263,10 +264,7 @@ function ChooseTimeContent() {
                 result = await response.json();
             } catch (parseError) {
                 console.error("Failed to parse response:", parseError);
-                setNotification({
-                    message: "Failed to send email: Invalid response from server.",
-                    type: "error"
-                });
+                void dialog.notify("Failed to send email: Invalid response from server.", "error");
                 return false;
             }
 
@@ -274,15 +272,12 @@ function ChooseTimeContent() {
                 return true;
             } else {
                 const errorMessage = result.error || result.message || `Server error (${response.status})`;
-                setNotification({ message: `Failed to send email: ${errorMessage}`, type: "error" });
+                void dialog.notify(`Failed to send email: ${errorMessage}`, "error");
                 return false;
             }
         } catch (error) {
             console.error("Error sending email:", error);
-            setNotification({
-                message: "Failed to send email. Please check your connection.",
-                type: "error"
-            });
+            void dialog.notify("Failed to send email. Please check your connection.", "error");
             return false;
         } finally {
             setIsSendingEmail(false);
@@ -306,7 +301,7 @@ function ChooseTimeContent() {
 
         const email = searchParams.get("email")?.trim();
         if (!email) {
-            setNotification({ message: "Email is required. Go back and complete Step 1.", type: "error" });
+            void dialog.notify("Email is required. Go back and complete Step 1.", "error");
             return null;
         }
 
@@ -327,7 +322,7 @@ function ChooseTimeContent() {
         });
 
         if (!result.success) {
-            setNotification({ message: result.error, type: "error" });
+            void dialog.notify(result.error, "error");
             return null;
         }
 
@@ -368,10 +363,7 @@ function ChooseTimeContent() {
 
         const success = await sendBookingEmail(data);
         if (success) {
-            setNotification({
-                message: "Email sent successfully!",
-                type: "success"
-            });
+            void dialog.notify("Email sent successfully!", "success");
         }
     };
 
@@ -486,33 +478,6 @@ function ChooseTimeContent() {
 
     return (
         <BookingWizardShell step={3} theme={theme} onThemeToggle={toggleTheme}>
-            {notification ? (
-                <div
-                    role="status"
-                    style={{
-                        position: "fixed",
-                        top: "12%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        zIndex: 10000,
-                        background: "var(--surface)",
-                        border: `1px solid ${notification.type === "success" ? "var(--success)" : "#b3261e"}`,
-                        borderRadius: 12,
-                        padding: "14px 20px",
-                        boxShadow: "var(--shadow-soft)",
-                        minWidth: 280,
-                        maxWidth: 480,
-                    }}
-                >
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <p style={{ margin: 0, fontSize: 13, color: "var(--ink)" }}>{notification.message}</p>
-                        <button type="button" className="btn ghost" onClick={() => setNotification(null)} style={{ padding: "4px 8px" }}>
-                            Close
-                        </button>
-                    </div>
-                </div>
-            ) : null}
-
             <section className="step-page active booking-page">
                 <h1 className="step-title">
                     Choose <em>slot</em>

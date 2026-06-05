@@ -13,6 +13,7 @@ import { OilGasWizard } from "@/components/oilgas-wizard";
 import PowerWizard from "@/components/power-wizard";
 import { PulpPaperWizard } from "@/components/pulppaper-wizard";
 import { Scope1Wizard } from "@/components/scope1-wizard";
+import { useAppDialog } from "@/components/app-dialog-provider";
 import {
   SECTOR_SWITCH_MESSAGE,
   sectorDraftLooksMeaningful,
@@ -28,6 +29,7 @@ export type Sector = CalculatorSector;
  */
 export function CalculatorRoot() {
   const searchParams = useSearchParams();
+  const dialog = useAppDialog();
   const [sector, setSector] = useState<Sector>("cement");
 
   useEffect(() => {
@@ -38,19 +40,17 @@ export function CalculatorRoot() {
   }, [searchParams]);
 
   const switchSector = useCallback(
-    (next: Sector) => {
+    async (next: Sector) => {
       if (next === sector) return;
 
-      if (
-        sectorDraftLooksMeaningful(sector) &&
-        !window.confirm(SECTOR_SWITCH_MESSAGE)
-      ) {
-        return;
+      if (sectorDraftLooksMeaningful(sector)) {
+        const ok = await dialog.confirm(SECTOR_SWITCH_MESSAGE, "Switch sector");
+        if (!ok) return;
       }
 
       setSector(next);
     },
-    [sector],
+    [dialog, sector],
   );
 
   if (sector === "oil_gas") {

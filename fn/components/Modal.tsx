@@ -7,9 +7,10 @@ interface ModalProps {
     onClose: () => void;
     title?: string;
     children: React.ReactNode;
+    footer?: React.ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";
@@ -21,32 +22,41 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         };
     }, [isOpen]);
 
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="modal-backdrop app-dialog-backdrop" onClick={onClose} role="presentation">
             <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-                onClick={onClose}
-                aria-hidden="true"
-            />
-
-            <div className="wizard-modal-card relative">
-                <div className="wizard-modal-head">
+                className="modal-card app-dialog-card"
+                role="dialog"
+                aria-modal="true"
+                aria-label={title || "Dialog"}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="modal-head">
                     <h3>{title}</h3>
-                    <button type="button" className="btn ghost" onClick={onClose} aria-label="Close">
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                    <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
+                        ×
                     </button>
                 </div>
 
-                <div className="wizard-modal-body">{children}</div>
+                <div className="modal-body">{children}</div>
 
-                <div className="wizard-modal-foot">
-                    <button type="button" className="btn ghost" onClick={onClose}>
-                        Close
-                    </button>
+                <div className="modal-footer app-dialog-footer">
+                    {footer ?? (
+                        <button type="button" className="modal-ok" onClick={onClose}>
+                            Close
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

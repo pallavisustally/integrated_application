@@ -1,9 +1,8 @@
 import type { Payload } from 'payload'
 import type { Scope1Application } from '@/payload-types'
 
+import { scope1SnapshotFromAssessment } from './scope1-user-payload'
 import { sendScope1AdminNotification, type Scope1Submission } from './email'
-
-type Scope1SectorCode = Scope1Application['sectorCode']
 
 type Scope1AssessmentDoc = {
   id: string
@@ -13,7 +12,11 @@ type Scope1AssessmentDoc = {
   sectorCode?: string | null
   reportingYear?: number | null
   grossScope1Tonnes?: number | null
+  gwpSet?: string | null
   inputPayload?: unknown
+  result?: unknown
+  reportUrl?: string | null
+  submittedAt?: string | null
 }
 
 async function resolveParentAssessment(
@@ -100,11 +103,8 @@ export async function upsertScope1ApplicationForSubmission(
     userCompany: parent.company || undefined,
     userMobile: parent.mobile || undefined,
     facilityName: facilityLabel(scope1Doc),
-    inventoryName: scope1Doc.name || undefined,
-    sectorCode: scope1Doc.sectorCode as Scope1SectorCode | undefined,
-    reportingYear: scope1Doc.reportingYear ?? undefined,
-    grossScope1Tonnes: scope1Doc.grossScope1Tonnes ?? undefined,
     status: 'PENDING' as const,
+    ...scope1SnapshotFromAssessment(scope1Doc),
   }
 
   const existing = await cms.find({

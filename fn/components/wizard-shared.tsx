@@ -1,5 +1,6 @@
 'use client'
 
+import { useAppDialog } from '@/components/app-dialog-provider'
 import { scope1Api } from '@/lib/scope1-api'
 import type { ComponentType, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
@@ -510,6 +511,7 @@ export function VersionHistoryPanel({
   currentGross: number
   onRestore?: (snap: InventoryVersionSnapshot) => void
 }) {
+  const dialog = useAppDialog()
   if (versions.length === 0) return null
   const prev = versions[0]
   const delta = compareGrossDelta(prev.grossScope1, currentGross)
@@ -541,15 +543,12 @@ export function VersionHistoryPanel({
               <button
                 type="button"
                 className="btn ghost"
-                onClick={() => {
-                  if (
-                    typeof window !== 'undefined' &&
-                    window.confirm(
-                      `Restore inventory from ${new Date(v.savedAt).toLocaleString()}? Unsaved edits on this step will be replaced.`,
-                    )
-                  ) {
-                    onRestore(v)
-                  }
+                onClick={async () => {
+                  const ok = await dialog.confirm(
+                    `Restore inventory from ${new Date(v.savedAt).toLocaleString()}? Unsaved edits on this step will be replaced.`,
+                    'Restore inventory',
+                  )
+                  if (ok) onRestore(v)
                 }}
               >
                 Restore
@@ -752,12 +751,14 @@ export function StickyExportBar({
   locked?: boolean
   signoff?: ReportSignoffInput
 }) {
+  const dialog = useAppDialog()
   const warnSignoff = signoff && !hasSignoffContact(signoff)
 
-  function guardedExport(run: () => void, label: string) {
-    if (warnSignoff && typeof window !== 'undefined') {
-      const ok = window.confirm(
+  async function guardedExport(run: () => void, label: string) {
+    if (warnSignoff) {
+      const ok = await dialog.confirm(
         `No prepared-by name and work email on the sign-off block. Export ${label} anyway?`,
+        'Export inventory',
       )
       if (!ok) return
     }
@@ -771,13 +772,13 @@ export function StickyExportBar({
         {warnSignoff ? <em className="sticky-export-hint">Sign-off contact not complete</em> : null}
       </span>
       <div className="sticky-export-actions">
-        <button type="button" className="btn primary" onClick={() => guardedExport(onPdf, 'PDF')}>
+        <button type="button" className="btn primary" onClick={() => void guardedExport(onPdf, 'PDF')}>
           PDF report
         </button>
-        <button type="button" className="btn secondary" onClick={() => guardedExport(onExcel, 'Excel')}>
+        <button type="button" className="btn secondary" onClick={() => void guardedExport(onExcel, 'Excel')}>
           Excel + trace
         </button>
-        <button type="button" className="btn ghost" onClick={() => guardedExport(onJson, 'JSON')}>
+        <button type="button" className="btn ghost" onClick={() => void guardedExport(onJson, 'JSON')}>
           JSON
         </button>
         {onSave ? (

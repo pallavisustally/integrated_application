@@ -4,6 +4,7 @@ import { Info, Search } from 'lucide-react'
 import { useState } from 'react'
 
 import type { FactorOverride } from '@/lib/engine/types'
+import { useAppDialog } from '@/components/app-dialog-provider'
 import { AccessibleNumField, FocusTrapModal } from '@/lib/ui/form-fields'
 
 type Num = number | null
@@ -31,6 +32,7 @@ export function FactorOverridePanel({
   const [onlyOver, setOnlyOver] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const dialog = useAppDialog()
 
   const overrideCount = Object.keys(overrides).length
   const q = query.trim().toLowerCase()
@@ -44,15 +46,16 @@ export function FactorOverridePanel({
     )
   })
 
-  function setOverride(code: string, value: Num, existingReason: string) {
+  async function setOverride(code: string, value: Num, existingReason: string) {
     const next = { ...overrides }
     if (value === null) {
       delete next[code]
     } else {
       if (value === 0) {
-        const ok =
-          typeof window !== 'undefined' &&
-          window.confirm('You are replacing the default factor with zero. Is this intentional?')
+        const ok = await dialog.confirm(
+          'You are replacing the default factor with zero. Is this intentional?',
+          'Confirm factor override',
+        )
         if (!ok) return
       }
       next[code] = { value, reason: existingReason }
@@ -167,7 +170,7 @@ export function FactorOverridePanel({
                       unit={f.unit}
                       step="0.0001"
                       value={ov ? ov.value : null}
-                      onChange={(v) => setOverride(f.factorCode, v, ov?.reason ?? '')}
+                      onChange={(v) => void setOverride(f.factorCode, v, ov?.reason ?? '')}
                     />
                     <label className="field" style={{ gridColumn: 'span 2' }}>
                       <span className="field-title">Reason (recorded in factor snapshot)</span>

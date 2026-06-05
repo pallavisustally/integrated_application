@@ -45,6 +45,7 @@ import { useWizardTheme } from '@/lib/use-wizard-theme'
 import { ReportSignoffPanel } from '@/components/report-signoff-panel'
 import { AccessibleNumField, AccessibleSelect, AccessibleTextField, DefaultValueField } from '@/lib/ui/form-fields'
 import { EntryLabelField } from '@/lib/ui/entry-label-field'
+import { useAppDialog } from '@/components/app-dialog-provider'
 import { GwpSectorCards, GWP_OPTIONS_TWO } from '@/lib/ui/gwp-switch'
 import { labelSuggestionsFor } from '@/lib/ui/label-suggestions'
 import {
@@ -356,6 +357,7 @@ function fugitiveRowCO2(trace: TraceEntry[] | undefined, label: string) {
 
 export function Scope1Wizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement' | 'oil_gas' | 'pulp_paper' | 'iron_steel' | 'power') => void }) {
   const { theme, toggleTheme } = useWizardTheme()
+  const dialog = useAppDialog()
   const [step, setStep] = useState(1)
   const [cat, setCat] = useState<Cat>('process')
   const [p, setP] = useState<InputPayload>(emptyPayload())
@@ -796,17 +798,12 @@ export function Scope1Wizard({ onSwitchSector }: { onSwitchSector?: (s: 'cement'
               <GwpSectorCards
                 value={p.calculationContext.gwpSet}
                 options={GWP_OPTIONS_TWO}
-                beforeChange={() => {
-                  if (
-                    (step >= 3 || result || live) &&
-                    typeof window !== 'undefined' &&
-                    !window.confirm(
-                      'Changing the GWP set recalculates all CO2e values (especially fugitive emissions). Continue?',
-                    )
-                  ) {
-                    return false
-                  }
-                  return true
+                beforeChange={async () => {
+                  if (!(step >= 3 || result || live)) return true
+                  return dialog.confirm(
+                    'Changing the GWP set recalculates all CO2e values (especially fugitive emissions). Continue?',
+                    'Change GWP set',
+                  )
                 }}
                 onChange={(g) => patch((d) => (d.calculationContext.gwpSet = g as 'AR5' | 'AR6'))}
               />

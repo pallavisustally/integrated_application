@@ -6,6 +6,7 @@ import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import CostSavingCard from "../../dashboard/CostSavingCard";
+import { useAppDialog } from "@/components/app-dialog-provider";
 import { SECTOR_INITIATIVES } from "../../data/sectorInitiatives";
 
 /* eslint-disable @next/next/no-img-element */
@@ -23,6 +24,7 @@ function CertificateContent() {
   const [spslExists, setSpslExists] = useState(true);
   const [futureExists, setFutureExists] = useState(true);
   const [anithaExists, setAnithaExists] = useState(true);
+  const dialog = useAppDialog();
   const formatCertificateId = () => {
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
@@ -229,7 +231,7 @@ function CertificateContent() {
       pdf.save(`Certification_${data.userCompany !== "-" ? data.userCompany : data.facilityName}_${data.reportingYear}.pdf`);
     } catch (err) {
       console.error("Failed to generate certificate", err);
-      alert("Failed to generate certificate. Please try again.");
+      void dialog.alert("Failed to generate certificate. Please try again.");
     } finally {
       setIsDownloading(false);
     }
@@ -266,7 +268,7 @@ function CertificateContent() {
       pdf.save(`Assessment_Report_${data.userCompany !== "-" ? data.userCompany : data.facilityName}_${data.reportingYear}.pdf`);
     } catch (err) {
       console.error("Failed to generate report", err);
-      alert("Failed to generate report. Please try again.");
+      void dialog.alert("Failed to generate report. Please try again.");
     } finally {
       setIsDownloadingReport(false);
     }
@@ -293,7 +295,7 @@ function CertificateContent() {
       pdf.save(`BRSR_P6_Report_${data.userCompany !== "-" ? data.userCompany : data.facilityName}_${data.reportingYear}.pdf`);
     } catch (err) {
       console.error("Failed to generate BRSR report", err);
-      alert("Failed to generate BRSR report. Please try again.");
+      void dialog.alert("Failed to generate BRSR report. Please try again.");
     } finally {
       setIsDownloadingBrsr(false);
     }

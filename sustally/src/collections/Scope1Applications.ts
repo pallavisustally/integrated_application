@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import type { Scope1Application, Scope1Assessment } from '@/payload-types'
 
+import { buildScope1UserPayload } from '../lib/scope1-user-payload'
+
 const Scope1Applications: CollectionConfig = {
   slug: 'scope1-applications',
   admin: {
@@ -62,6 +64,15 @@ const Scope1Applications: CollectionConfig = {
                 req,
               })
             }
+
+            const { scope1SnapshotFromAssessment } = await import('../lib/scope1-user-payload')
+            await req.payload.update({
+              collection: 'scope1-applications',
+              id: doc.id,
+              data: scope1SnapshotFromAssessment(scope1Doc as Scope1Assessment),
+              context: { skipHooks: true },
+              req,
+            })
 
             const publicId = (doc.assessmentId as string) || (scope1Doc.assessmentId as string)
             if (publicId) {
@@ -220,6 +231,31 @@ const Scope1Applications: CollectionConfig = {
     {
       name: 'grossScope1Tonnes',
       type: 'number',
+    },
+    {
+      name: 'gwpSet',
+      type: 'text',
+      admin: { description: 'GWP set used in calculation (e.g. AR6_100)' },
+    },
+    {
+      name: 'submittedAt',
+      type: 'date',
+      admin: { description: 'When the inventory was submitted for review' },
+    },
+    {
+      name: 'reportUrl',
+      type: 'text',
+      admin: { description: 'Stored PDF report URL after approval' },
+    },
+    {
+      name: 'inputPayload',
+      type: 'json',
+      admin: { description: 'Full wizard input snapshot (same pattern as Scope 2 application storage)' },
+    },
+    {
+      name: 'result',
+      type: 'json',
+      admin: { description: 'Locked calculation result snapshot for dashboard and review' },
     },
     {
       name: 'status',
@@ -390,28 +426,7 @@ function buildScope1UserFromApplication(
   application: Scope1Application,
   scope1Doc: Scope1Assessment | null,
 ) {
-  const inputPayload = scope1Doc?.inputPayload
-  const facilityName =
-    application.facilityName ||
-    (inputPayload as { facility?: { name?: string } } | undefined)?.facility?.name ||
-    scope1Doc?.name
-
-  return {
-    assessmentId: application.assessmentId,
-    email: application.email,
-    name: application.userName || scope1Doc?.name,
-    company: application.userCompany,
-    facilityName,
-    calculationId: scope1Doc?.id,
-    sectorCode: application.sectorCode || scope1Doc?.sectorCode,
-    reportingYear: application.reportingYear ?? scope1Doc?.reportingYear,
-    grossScope1Tonnes: application.grossScope1Tonnes ?? scope1Doc?.grossScope1Tonnes,
-    gwpSet: scope1Doc?.gwpSet,
-    reportUrl: scope1Doc?.reportUrl,
-    result: scope1Doc?.result,
-    inputPayload: scope1Doc?.inputPayload,
-    applicationId: application.id,
-  }
+  return buildScope1UserPayload(application, scope1Doc)
 }
 
 export default Scope1Applications
